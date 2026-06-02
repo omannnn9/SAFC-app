@@ -325,8 +325,27 @@ const RELEVANT = /(bafana|safa|south africa(n)?\s+(national|men'?s|football|socc
 // Reject obvious club-only items unless they also mention Bafana.
 const CLUB_NOISE = /\b(epl|premier league|la liga|serie a|bundesliga|champions league|psl match|chiefs vs|pirates vs)\b/i;
 
+// Curated fallback images for news cards when NewsAPI returns no urlToImage.
+const NEWS_FALLBACK_IMAGES = {
+  match: "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=1200&q=80",
+  player: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=80",
+  team: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1200&q=80",
+  stadium: "https://images.unsplash.com/photo-1540552965303-1ee5b5d6a8ae?w=1200&q=80",
+  default: "https://media.api-sports.io/football/teams/1469.png",
+} as const;
+
+function resolveNewsImage(title: string, description: string | null, articleImage: string | null): string {
+  if (articleImage) return articleImage;
+  const hay = `${title} ${description ?? ""}`.toLowerCase();
+  if (/\b(vs|v\.|match|fixture|kick.?off|goal|draw|win|defeat|final)\b/.test(hay)) return NEWS_FALLBACK_IMAGES.match;
+  if (/\b(player|striker|defender|midfielder|keeper|coach|hugo broos|squad call)\b/.test(hay)) return NEWS_FALLBACK_IMAGES.player;
+  if (/\b(stadium|fnb|loftus|moses mabhida|orlando)\b/.test(hay)) return NEWS_FALLBACK_IMAGES.stadium;
+  if (/\b(bafana|safa|south africa|squad|team)\b/.test(hay)) return NEWS_FALLBACK_IMAGES.team;
+  return NEWS_FALLBACK_IMAGES.default;
+}
+
 export const getLiveNews = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveArticle[]>("newsapi:bafana:v2", 60 * 60, async () => {
+  return cachedFetch<LiveArticle[]>("newsapi:bafana:v3", 60 * 30, async () => {
     const key = process.env.NEWS_API_KEY;
     if (!key) throw new Error("NEWS_API_KEY not set");
     const q = encodeURIComponent('"Bafana Bafana" OR "South Africa national team" OR "SAFA"');
@@ -348,7 +367,7 @@ export const getLiveNews = createServerFn({ method: "GET" }).handler(async () =>
       title: a.title,
       excerpt: a.description ?? "",
       body: a.content ?? a.description ?? "",
-      cover_url: a.urlToImage,
+      cover_url: resolveNewsImage(a.title, a.description, a.urlToImage),
       category: "team" as const,
       is_premium: false,
       published_at: a.publishedAt,
