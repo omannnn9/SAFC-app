@@ -819,12 +819,11 @@ async function buildScoreContext(): Promise<ScoreCtx> {
 }
 
 export const getLiveNews = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveArticle[]>("news:aggregated:v1", 60 * 20, async () => {
+  return cachedFetch<LiveArticle[]>("news:aggregated:v2-no-yahoo", 60 * 20, async () => {
     const ctx = await buildScoreContext();
 
-    // Multi-source pull in parallel.
-    const [bbc, espn, goal, caf, newsapi] = await Promise.all([
-      fetchRss("https://feeds.bbci.co.uk/sport/football/africa/rss.xml", "BBC Sport", 1),
+    // Multi-source pull in parallel. Only football-specific feeds.
+    const [espn, goal, caf, newsapi] = await Promise.all([
       fetchRss("https://www.espn.com/espn/rss/soccer/news", "ESPN", 1),
       fetchRss("https://www.goal.com/feeds/en/news", "Goal.com", 1),
       fetchRss("https://www.cafonline.com/rss/news/", "CAF", 1.2),
@@ -832,7 +831,6 @@ export const getLiveNews = createServerFn({ method: "GET" }).handler(async () =>
     ]);
 
     const all: RawArticle[] = [
-      ...bbc.articles,
       ...espn.articles,
       ...goal.articles,
       ...caf.articles,
@@ -840,11 +838,20 @@ export const getLiveNews = createServerFn({ method: "GET" }).handler(async () =>
     ];
 
     console.log(
-      `[news] sources: bbc=${bbc.articles.length} espn=${espn.articles.length} goal=${goal.articles.length} caf=${caf.articles.length} newsapi=${newsapi.length}`,
+      `[news] sources: espn=${espn.articles.length} goal=${goal.articles.length} caf=${caf.articles.length} newsapi=${newsapi.length}`,
     );
 
+    // Hard block: drop anything from Yahoo or other blocked sources, regardless of feed.
+    const allowed = all.filter((a) => {
+      if (SOURCE_BLOCK.test(a.source) || SOURCE_BLOCK.test(a.url)) {
+        console.log(`[news] BLOCK source=${a.source} url=${a.url}`);
+        return false;
+      }
+      return true;
+    });
+
     // Relevance gate.
-    const gated = all.filter((a) => {
+    const gated = allowed.filter((a) => {
       const hay = `${a.title} ${a.description}`;
       if (CLUB_NOISE.test(hay) && !SA_CONTEXT.test(hay)) return false;
       // must mention SA context OR a known player/opponent
