@@ -1,6 +1,8 @@
-// Comprehensive SAFA Match Centre scraper. Treats safa.net as the single
-// source of truth for the Bafana Bafana squad, player profiles, fixtures and
-// results. Pure HTML parsing — no third-party SDKs.
+import { verifyKickoff } from "@/lib/safa.server";
+
+// Comprehensive SAFA Match Centre scraper. SAFA is used for squad/profile
+// content and fixture metadata, but NOT as the authority for kickoff times.
+// Kickoffs are always passed through the verified multi-source override layer.
 //
 // Source pages:
 //   https://www.safa.net/match-centre/teams/south-africa/players
@@ -164,7 +166,8 @@ const MONTHS: Record<string, number> = {
   july: 6, august: 7, september: 8, october: 9, november: 10, december: 11,
 };
 
-// Parse "Thursday, 11 June 2026" + "22:00" SAST → ISO UTC.
+// Parse SAFA's displayed "Thursday, 11 June 2026" + "22:00" SAST → ISO UTC.
+// This raw value is never exposed directly; parseMatchBlock verifies/overrides it.
 function parseKickoff(dayLine: string, dateLine: string, timeText: string): string {
   const dm = /(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/.exec(dateLine);
   if (!dm) return new Date().toISOString();
@@ -232,10 +235,10 @@ function parseMatchBlock(block: string): SafaMatch | null {
       if (tm) timeText = tm[0];
     }
   }
-  const kickoffIso = parseKickoff(dayLine, dateLine, timeText);
-
   const bafanaHome = isBafana(homeName);
   const opponent = bafanaHome ? awayName : homeName;
+  const rawKickoffIso = parseKickoff(dayLine, dateLine, timeText);
+  const kickoffIso = verifyKickoff(opponent, rawKickoffIso);
 
   return {
     id,
