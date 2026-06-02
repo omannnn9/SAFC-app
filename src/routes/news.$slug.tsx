@@ -114,7 +114,9 @@ function ArticlePage() {
               day: "numeric",
               month: "long",
               year: "numeric",
+              timeZone: "Africa/Johannesburg",
             })}
+
             {article.source && <span className="ml-2">· {article.source}</span>}
           </span>
           <button
