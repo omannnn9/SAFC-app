@@ -22,6 +22,10 @@ import { Route as SquadIdRouteImport } from './routes/squad.$id'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as FixturesIdRouteImport } from './routes/fixtures.$id'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as ApiPublicHooksMatchPollRouteImport } from './routes/api/public/hooks/match-poll'
+import { Route as ApiPublicHooksKickoffReminderRouteImport } from './routes/api/public/hooks/kickoff-reminder'
+import { Route as ApiPublicHooksArticlePollRouteImport } from './routes/api/public/hooks/article-poll'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -87,6 +91,29 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const ApiPublicHooksMatchPollRoute = ApiPublicHooksMatchPollRouteImport.update({
+  id: '/api/public/hooks/match-poll',
+  path: '/api/public/hooks/match-poll',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksKickoffReminderRoute =
+  ApiPublicHooksKickoffReminderRouteImport.update({
+    id: '/api/public/hooks/kickoff-reminder',
+    path: '/api/public/hooks/kickoff-reminder',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksArticlePollRoute =
+  ApiPublicHooksArticlePollRouteImport.update({
+    id: '/api/public/hooks/article-poll',
+    path: '/api/public/hooks/article-poll',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -95,12 +122,16 @@ export interface FileRoutesByFullPath {
   '/premium': typeof PremiumRoute
   '/register': typeof RegisterRoute
   '/signup': typeof SignupRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/fixtures/$id': typeof FixturesIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/squad/$id': typeof SquadIdRoute
   '/news/': typeof NewsIndexRoute
   '/squad/': typeof SquadIndexRoute
+  '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
+  '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
+  '/api/public/hooks/match-poll': typeof ApiPublicHooksMatchPollRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,12 +140,16 @@ export interface FileRoutesByTo {
   '/premium': typeof PremiumRoute
   '/register': typeof RegisterRoute
   '/signup': typeof SignupRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/fixtures/$id': typeof FixturesIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/squad/$id': typeof SquadIdRoute
   '/news': typeof NewsIndexRoute
   '/squad': typeof SquadIndexRoute
+  '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
+  '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
+  '/api/public/hooks/match-poll': typeof ApiPublicHooksMatchPollRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,12 +160,16 @@ export interface FileRoutesById {
   '/premium': typeof PremiumRoute
   '/register': typeof RegisterRoute
   '/signup': typeof SignupRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/fixtures/$id': typeof FixturesIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/squad/$id': typeof SquadIdRoute
   '/news/': typeof NewsIndexRoute
   '/squad/': typeof SquadIndexRoute
+  '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
+  '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
+  '/api/public/hooks/match-poll': typeof ApiPublicHooksMatchPollRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,12 +180,16 @@ export interface FileRouteTypes {
     | '/premium'
     | '/register'
     | '/signup'
+    | '/notifications'
     | '/profile'
     | '/fixtures/$id'
     | '/news/$slug'
     | '/squad/$id'
     | '/news/'
     | '/squad/'
+    | '/api/public/hooks/article-poll'
+    | '/api/public/hooks/kickoff-reminder'
+    | '/api/public/hooks/match-poll'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,12 +198,16 @@ export interface FileRouteTypes {
     | '/premium'
     | '/register'
     | '/signup'
+    | '/notifications'
     | '/profile'
     | '/fixtures/$id'
     | '/news/$slug'
     | '/squad/$id'
     | '/news'
     | '/squad'
+    | '/api/public/hooks/article-poll'
+    | '/api/public/hooks/kickoff-reminder'
+    | '/api/public/hooks/match-poll'
   id:
     | '__root__'
     | '/'
@@ -170,12 +217,16 @@ export interface FileRouteTypes {
     | '/premium'
     | '/register'
     | '/signup'
+    | '/_authenticated/notifications'
     | '/_authenticated/profile'
     | '/fixtures/$id'
     | '/news/$slug'
     | '/squad/$id'
     | '/news/'
     | '/squad/'
+    | '/api/public/hooks/article-poll'
+    | '/api/public/hooks/kickoff-reminder'
+    | '/api/public/hooks/match-poll'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -190,6 +241,9 @@ export interface RootRouteChildren {
   SquadIdRoute: typeof SquadIdRoute
   NewsIndexRoute: typeof NewsIndexRoute
   SquadIndexRoute: typeof SquadIndexRoute
+  ApiPublicHooksArticlePollRoute: typeof ApiPublicHooksArticlePollRoute
+  ApiPublicHooksKickoffReminderRoute: typeof ApiPublicHooksKickoffReminderRoute
+  ApiPublicHooksMatchPollRoute: typeof ApiPublicHooksMatchPollRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -285,14 +339,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/api/public/hooks/match-poll': {
+      id: '/api/public/hooks/match-poll'
+      path: '/api/public/hooks/match-poll'
+      fullPath: '/api/public/hooks/match-poll'
+      preLoaderRoute: typeof ApiPublicHooksMatchPollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/kickoff-reminder': {
+      id: '/api/public/hooks/kickoff-reminder'
+      path: '/api/public/hooks/kickoff-reminder'
+      fullPath: '/api/public/hooks/kickoff-reminder'
+      preLoaderRoute: typeof ApiPublicHooksKickoffReminderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/article-poll': {
+      id: '/api/public/hooks/article-poll'
+      path: '/api/public/hooks/article-poll'
+      fullPath: '/api/public/hooks/article-poll'
+      preLoaderRoute: typeof ApiPublicHooksArticlePollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
 }
 
@@ -324,6 +408,9 @@ const rootRouteChildren: RootRouteChildren = {
   SquadIdRoute: SquadIdRoute,
   NewsIndexRoute: NewsIndexRoute,
   SquadIndexRoute: SquadIndexRoute,
+  ApiPublicHooksArticlePollRoute: ApiPublicHooksArticlePollRoute,
+  ApiPublicHooksKickoffReminderRoute: ApiPublicHooksKickoffReminderRoute,
+  ApiPublicHooksMatchPollRoute: ApiPublicHooksMatchPollRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
