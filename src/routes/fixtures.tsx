@@ -20,9 +20,11 @@ function FixturesPage() {
   return (
     <PageContainer>
       <AppHeader title="Fixtures" />
-      <div className="px-4 pt-4">
-        <h1 className="font-display text-3xl font-bold tracking-tight">Fixtures</h1>
-        <p className="text-sm text-muted-foreground">All Bafana matches.</p>
+      <div className="px-4 pt-5">
+        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Broadcast schedule</div>
+        <h1 className="mt-1 font-display text-4xl font-black tracking-tight">
+          Match <span className="text-gradient-gold">timeline</span>
+        </h1>
       </div>
 
       <div className="mt-4 flex gap-2 px-4">
@@ -30,10 +32,10 @@ function FixturesPage() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 rounded-xl px-3 py-2.5 text-xs font-semibold uppercase tracking-wider transition ${
+            className={`flex-1 rounded-xl px-3 py-2.5 text-[11px] font-black uppercase tracking-[0.18em] transition ${
               tab === t
-                ? "bg-primary text-primary-foreground"
-                : "border border-border bg-surface/60 text-muted-foreground"
+                ? "bg-primary text-primary-foreground shadow-[var(--shadow-glow-gold)]"
+                : "glass text-muted-foreground"
             }`}
           >
             {t}
@@ -41,64 +43,110 @@ function FixturesPage() {
         ))}
       </div>
 
-      <ul className="space-y-3 px-4 pt-4">
+      <ol className="relative mt-6 px-4">
+        {/* timeline rail */}
+        <div className="absolute left-9 top-0 bottom-0 w-px bg-gradient-to-b from-primary/40 via-border to-transparent" />
         {list.length === 0 && (
-          <li className="rounded-xl border border-border bg-surface/60 p-6 text-center text-sm text-muted-foreground">
+          <li className="glass rounded-xl p-6 text-center text-sm text-muted-foreground">
             Nothing here yet.
           </li>
         )}
-        {list.map((m) => (
-          <li key={m.id}>
-            <MatchCard m={m} />
+        {list.map((m, i) => (
+          <li key={m.id} className="relative flex gap-4 pb-5">
+            <TimelineDot m={m} />
+            <div className="flex-1">
+              <MatchCard m={m} live={tab === "upcoming" && i === 0} />
+            </div>
           </li>
         ))}
-      </ul>
+      </ol>
     </PageContainer>
   );
 }
 
-function MatchCard({ m }: { m: Match }) {
+function TimelineDot({ m }: { m: Match }) {
+  const k = new Date(m.kickoff);
+  const isUpcoming = m.status === "upcoming";
+  return (
+    <div className="flex w-10 shrink-0 flex-col items-center">
+      <div
+        className={`relative grid h-10 w-10 place-items-center rounded-full glass ${
+          isUpcoming ? "ring-glow-gold" : "opacity-60"
+        }`}
+      >
+        <div className="text-center leading-none">
+          <div className="font-display text-[11px] font-black">
+            {k.toLocaleDateString("en-ZA", { day: "2-digit" })}
+          </div>
+          <div className="text-[8px] uppercase tracking-wider text-muted-foreground">
+            {k.toLocaleDateString("en-ZA", { month: "short" })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MatchCard({ m, live }: { m: Match; live?: boolean }) {
   const k = new Date(m.kickoff);
   return (
     <Link
       to="/fixtures/$id"
       params={{ id: m.id }}
-      className={`block overflow-hidden rounded-2xl border ${
-        m.is_home ? "border-primary/30" : "border-border"
-      } bg-surface/60 p-4 transition hover:border-primary/50`}
+      className={`group glass relative block overflow-hidden rounded-2xl p-4 transition hover:-translate-y-0.5 ${
+        m.status === "upcoming" ? "ring-glow-gold" : ""
+      } ${m.status === "completed" ? "opacity-90" : ""}`}
     >
+      {live && (
+        <div className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--sa-green)] px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white live-dot">
+          <span className="h-1.5 w-1.5 rounded-full bg-white" /> Live soon
+        </div>
+      )}
       <div className="flex items-center justify-between">
-        <div className="text-[10px] uppercase tracking-[0.18em] text-primary">{m.competition}</div>
-        <div className="text-[10px] text-muted-foreground">
-          {k.toLocaleDateString("en-ZA", { day: "numeric", month: "short" })} ·{" "}
+        <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+          {m.competition}
+        </div>
+        <div className="text-[10px] font-mono text-muted-foreground">
           {k.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" })}
         </div>
       </div>
-      <div className="mt-3 flex items-center justify-between">
-        <Team flag="🇿🇦" name="South Africa" home={m.is_home} />
+
+      <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+        <Team flag="🇿🇦" name="South Africa" home accent />
         {m.status === "completed" ? (
-          <div className="font-display text-3xl font-bold tabular-nums">
-            {m.is_home ? m.home_score : m.away_score} – {m.is_home ? m.away_score : m.home_score}
+          <div className="font-display text-3xl font-black tabular-nums">
+            <span className="text-primary">{m.is_home ? m.home_score : m.away_score}</span>
+            <span className="px-1 text-muted-foreground">–</span>
+            <span>{m.is_home ? m.away_score : m.home_score}</span>
           </div>
         ) : (
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">vs</div>
+          <div className="font-display text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+            VS
+          </div>
         )}
-        <Team flag="🏳️" name={m.opponent} home={!m.is_home} />
+        <Team flag="🏳️" name={m.opponent} />
       </div>
-      <div className="mt-3 flex items-center gap-1 text-[11px] text-muted-foreground">
+
+      <div className="mt-3 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
         <MapPin className="h-3 w-3" /> {m.venue}
       </div>
     </Link>
   );
 }
 
-function Team({ flag, name, home }: { flag: string; name: string; home: boolean }) {
+function Team({ flag, name, home, accent }: { flag: string; name: string; home?: boolean; accent?: boolean }) {
   return (
-    <div className={`flex flex-col items-center gap-1 ${home ? "" : "opacity-90"}`}>
-      <div className="grid h-12 w-12 place-items-center rounded-lg bg-background/60 text-xl">
+    <div className={`flex flex-col items-center gap-1.5 ${home ? "" : "opacity-90"}`}>
+      <div
+        className={`grid h-12 w-12 place-items-center rounded-xl text-xl ${
+          accent ? "bg-[var(--sa-green)] ring-glow-green" : "bg-surface-2"
+        }`}
+      >
         {flag}
       </div>
-      <div className="max-w-[80px] truncate text-center text-[10px] font-medium">{name}</div>
+      <div className="max-w-[88px] truncate text-center font-display text-[10px] font-black uppercase tracking-wider">
+        {name}
+      </div>
     </div>
   );
 }
