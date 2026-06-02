@@ -104,6 +104,45 @@ function parseIcs(text: string): SafaFixture[] {
 let memCache: { at: number; data: SafaFixture[] } | null = null;
 const TTL_MS = 10 * 60 * 1000;
 
+// ============= VERIFIED KICKOFF OVERRIDES =============
+//
+// SAFA's iCal feed occasionally publishes incorrect kickoff times for matches
+// hosted abroad (timezone math drift). When a fixture's SAFA time disagrees
+// with FIFA + multiple independent sources (kickoffclock, matchtimes,
+// whatisthetime, Al Jazeera, FoxSports, etc.), we override to the canonical
+// UTC time below. Each entry MUST cite ≥2 independent sources in the comment.
+//
+// Key: `${YYYY-MM-DD}|${opponentSlug}` (date in Africa/Johannesburg).
+const VERIFIED_KICKOFFS: Record<string, { utc: string; sources: string[] }> = {
+  // Mexico vs South Africa, WC 2026 opener, Estadio Azteca.
+  // FIFA: 1:00 PM CDT Mexico City = 19:00 UTC = 21:00 SAST.
+  // SAFA incorrectly publishes 22:00 SAST (20:00 UTC). Off by +1h.
+  "2026-06-11|mexico": {
+    utc: "2026-06-11T19:00:00.000Z",
+    sources: ["fifa.com", "kickoffclock.com", "matchtimes.app", "whatisthetime.now"],
+  },
+};
+
+function applyVerifiedKickoffs(fixtures: SafaFixture[]): SafaFixture[] {
+  return fixtures.map((f) => {
+    const sastDay = new Date(f.startUtc).toLocaleDateString("en-CA", {
+      timeZone: "Africa/Johannesburg",
+    });
+    const utcDay = f.startUtc.slice(0, 10);
+    for (const candidateDay of [sastDay, utcDay]) {
+      const key = `${candidateDay}|${f.opponentSlug}`;
+      const override = VERIFIED_KICKOFFS[key];
+      if (override && override.utc !== f.startUtc) {
+        console.log(
+          `[safa] overriding kickoff for ${f.summary}: ${f.startUtc} → ${override.utc} (verified via ${override.sources.join(", ")})`,
+        );
+        return { ...f, startUtc: override.utc };
+      }
+    }
+    return f;
+  });
+}
+
 export async function fetchSafaUpcomingFixtures(): Promise<SafaFixture[]> {
   if (memCache && Date.now() - memCache.at < TTL_MS) return memCache.data;
   try {
