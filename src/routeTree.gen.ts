@@ -13,13 +13,13 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PremiumRouteImport } from './routes/premium'
-import { Route as NewsRouteImport } from './routes/news'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FixturesRouteImport } from './routes/fixtures'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SquadIndexRouteImport } from './routes/squad.index'
+import { Route as NewsIndexRouteImport } from './routes/news.index'
 import { Route as SquadIdRouteImport } from './routes/squad.$id'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as FixturesIdRouteImport } from './routes/fixtures.$id'
@@ -43,11 +43,6 @@ const RegisterRoute = RegisterRouteImport.update({
 const PremiumRoute = PremiumRouteImport.update({
   id: '/premium',
   path: '/premium',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NewsRoute = NewsRouteImport.update({
-  id: '/news',
-  path: '/news',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -79,6 +74,11 @@ const SquadIndexRoute = SquadIndexRouteImport.update({
   path: '/squad/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NewsIndexRoute = NewsIndexRouteImport.update({
+  id: '/news/',
+  path: '/news/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SquadIdRoute = SquadIdRouteImport.update({
   id: '/squad/$id',
   path: '/squad/$id',
@@ -105,7 +105,6 @@ export interface FileRoutesByFullPath {
   '/fixtures': typeof FixturesRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
-  '/news': typeof NewsRouteWithChildren
   '/premium': typeof PremiumRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -114,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/fixtures/$id': typeof FixturesIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/squad/$id': typeof SquadIdRoute
+  '/news/': typeof NewsIndexRoute
   '/squad/': typeof SquadIndexRoute
 }
 export interface FileRoutesByTo {
@@ -121,7 +121,6 @@ export interface FileRoutesByTo {
   '/fixtures': typeof FixturesRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
-  '/news': typeof NewsRouteWithChildren
   '/premium': typeof PremiumRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -130,6 +129,7 @@ export interface FileRoutesByTo {
   '/fixtures/$id': typeof FixturesIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/squad/$id': typeof SquadIdRoute
+  '/news': typeof NewsIndexRoute
   '/squad': typeof SquadIndexRoute
 }
 export interface FileRoutesById {
@@ -139,7 +139,6 @@ export interface FileRoutesById {
   '/fixtures': typeof FixturesRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
-  '/news': typeof NewsRouteWithChildren
   '/premium': typeof PremiumRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -148,6 +147,7 @@ export interface FileRoutesById {
   '/fixtures/$id': typeof FixturesIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/squad/$id': typeof SquadIdRoute
+  '/news/': typeof NewsIndexRoute
   '/squad/': typeof SquadIndexRoute
 }
 export interface FileRouteTypes {
@@ -157,7 +157,6 @@ export interface FileRouteTypes {
     | '/fixtures'
     | '/forgot-password'
     | '/login'
-    | '/news'
     | '/premium'
     | '/register'
     | '/reset-password'
@@ -166,6 +165,7 @@ export interface FileRouteTypes {
     | '/fixtures/$id'
     | '/news/$slug'
     | '/squad/$id'
+    | '/news/'
     | '/squad/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -173,7 +173,6 @@ export interface FileRouteTypes {
     | '/fixtures'
     | '/forgot-password'
     | '/login'
-    | '/news'
     | '/premium'
     | '/register'
     | '/reset-password'
@@ -182,6 +181,7 @@ export interface FileRouteTypes {
     | '/fixtures/$id'
     | '/news/$slug'
     | '/squad/$id'
+    | '/news'
     | '/squad'
   id:
     | '__root__'
@@ -190,7 +190,6 @@ export interface FileRouteTypes {
     | '/fixtures'
     | '/forgot-password'
     | '/login'
-    | '/news'
     | '/premium'
     | '/register'
     | '/reset-password'
@@ -199,6 +198,7 @@ export interface FileRouteTypes {
     | '/fixtures/$id'
     | '/news/$slug'
     | '/squad/$id'
+    | '/news/'
     | '/squad/'
   fileRoutesById: FileRoutesById
 }
@@ -208,12 +208,12 @@ export interface RootRouteChildren {
   FixturesRoute: typeof FixturesRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
-  NewsRoute: typeof NewsRouteWithChildren
   PremiumRoute: typeof PremiumRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   SquadIdRoute: typeof SquadIdRoute
+  NewsIndexRoute: typeof NewsIndexRoute
   SquadIndexRoute: typeof SquadIndexRoute
 }
 
@@ -245,13 +245,6 @@ declare module '@tanstack/react-router' {
       path: '/premium'
       fullPath: '/premium'
       preLoaderRoute: typeof PremiumRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/news': {
-      id: '/news'
-      path: '/news'
-      fullPath: '/news'
-      preLoaderRoute: typeof NewsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -294,6 +287,13 @@ declare module '@tanstack/react-router' {
       path: '/squad'
       fullPath: '/squad/'
       preLoaderRoute: typeof SquadIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/news/': {
+      id: '/news/'
+      path: '/news'
+      fullPath: '/news/'
+      preLoaderRoute: typeof NewsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/squad/$id': {
@@ -351,28 +351,18 @@ const FixturesRouteWithChildren = FixturesRoute._addFileChildren(
   FixturesRouteChildren,
 )
 
-interface NewsRouteChildren {
-  NewsSlugRoute: typeof NewsSlugRoute
-}
-
-const NewsRouteChildren: NewsRouteChildren = {
-  NewsSlugRoute: NewsSlugRoute,
-}
-
-const NewsRouteWithChildren = NewsRoute._addFileChildren(NewsRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   FixturesRoute: FixturesRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
-  NewsRoute: NewsRouteWithChildren,
   PremiumRoute: PremiumRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   SquadIdRoute: SquadIdRoute,
+  NewsIndexRoute: NewsIndexRoute,
   SquadIndexRoute: SquadIndexRoute,
 }
 export const routeTree = rootRouteImport
