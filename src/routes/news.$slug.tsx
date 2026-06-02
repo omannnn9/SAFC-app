@@ -151,10 +151,25 @@ function ArticlePage() {
           </div>
         ) : (
           <>
-            {article.body && article.body !== article.excerpt && (
-              <div className="mt-6 whitespace-pre-line text-sm leading-relaxed text-foreground/90">
-                {article.body}
+            {fullContent?.html ? (
+              <div
+                className="article-body mt-6 space-y-4 text-[15px] leading-relaxed text-foreground/90"
+                dangerouslySetInnerHTML={{ __html: fullContent.html }}
+              />
+            ) : fullLoading ? (
+              <div className="mt-6 space-y-3">
+                <div className="h-3 w-full animate-pulse rounded bg-muted/40" />
+                <div className="h-3 w-11/12 animate-pulse rounded bg-muted/40" />
+                <div className="h-3 w-10/12 animate-pulse rounded bg-muted/40" />
+                <div className="h-3 w-9/12 animate-pulse rounded bg-muted/40" />
               </div>
+            ) : (
+              article.body &&
+              article.body !== article.excerpt && (
+                <div className="mt-6 whitespace-pre-line text-sm leading-relaxed text-foreground/90">
+                  {article.body.replace(/\s*\[\+\d+ chars\]\s*$/, "")}
+                </div>
+              )
             )}
             {article.url && (
               <a
