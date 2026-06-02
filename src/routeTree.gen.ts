@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SquadRouteImport } from './routes/squad'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
@@ -20,16 +19,12 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FixturesRouteImport } from './routes/fixtures'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SquadIndexRouteImport } from './routes/squad.index'
 import { Route as SquadIdRouteImport } from './routes/squad.$id'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as FixturesIdRouteImport } from './routes/fixtures.$id'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 
-const SquadRoute = SquadRouteImport.update({
-  id: '/squad',
-  path: '/squad',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -79,10 +74,15 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SquadIndexRoute = SquadIndexRouteImport.update({
+  id: '/squad/',
+  path: '/squad/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SquadIdRoute = SquadIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => SquadRoute,
+  id: '/squad/$id',
+  path: '/squad/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const NewsSlugRoute = NewsSlugRouteImport.update({
   id: '/$slug',
@@ -110,11 +110,11 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
-  '/squad': typeof SquadRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/fixtures/$id': typeof FixturesIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/squad/$id': typeof SquadIdRoute
+  '/squad/': typeof SquadIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,11 +126,11 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
-  '/squad': typeof SquadRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/fixtures/$id': typeof FixturesIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/squad/$id': typeof SquadIdRoute
+  '/squad': typeof SquadIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -144,11 +144,11 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
-  '/squad': typeof SquadRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/fixtures/$id': typeof FixturesIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/squad/$id': typeof SquadIdRoute
+  '/squad/': typeof SquadIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -162,11 +162,11 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/signup'
-    | '/squad'
     | '/profile'
     | '/fixtures/$id'
     | '/news/$slug'
     | '/squad/$id'
+    | '/squad/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -178,11 +178,11 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/signup'
-    | '/squad'
     | '/profile'
     | '/fixtures/$id'
     | '/news/$slug'
     | '/squad/$id'
+    | '/squad'
   id:
     | '__root__'
     | '/'
@@ -195,11 +195,11 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/signup'
-    | '/squad'
     | '/_authenticated/profile'
     | '/fixtures/$id'
     | '/news/$slug'
     | '/squad/$id'
+    | '/squad/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -213,18 +213,12 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
-  SquadRoute: typeof SquadRouteWithChildren
+  SquadIdRoute: typeof SquadIdRoute
+  SquadIndexRoute: typeof SquadIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/squad': {
-      id: '/squad'
-      path: '/squad'
-      fullPath: '/squad'
-      preLoaderRoute: typeof SquadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -295,12 +289,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/squad/': {
+      id: '/squad/'
+      path: '/squad'
+      fullPath: '/squad/'
+      preLoaderRoute: typeof SquadIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/squad/$id': {
       id: '/squad/$id'
-      path: '/$id'
+      path: '/squad/$id'
       fullPath: '/squad/$id'
       preLoaderRoute: typeof SquadIdRouteImport
-      parentRoute: typeof SquadRoute
+      parentRoute: typeof rootRouteImport
     }
     '/news/$slug': {
       id: '/news/$slug'
@@ -360,16 +361,6 @@ const NewsRouteChildren: NewsRouteChildren = {
 
 const NewsRouteWithChildren = NewsRoute._addFileChildren(NewsRouteChildren)
 
-interface SquadRouteChildren {
-  SquadIdRoute: typeof SquadIdRoute
-}
-
-const SquadRouteChildren: SquadRouteChildren = {
-  SquadIdRoute: SquadIdRoute,
-}
-
-const SquadRouteWithChildren = SquadRoute._addFileChildren(SquadRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
@@ -381,8 +372,19 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
-  SquadRoute: SquadRouteWithChildren,
+  SquadIdRoute: SquadIdRoute,
+  SquadIndexRoute: SquadIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
