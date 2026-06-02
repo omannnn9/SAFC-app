@@ -97,6 +97,27 @@ function HomePage() {
   const past = useMemo(() => pastRes?.data ?? [], [pastRes?.data]);
 
   const c = useCountdown(next?.kickoff);
+
+  // Hero image rotator — premium crossfade every 6s, pauses when tab hidden
+  const [heroIdx, setHeroIdx] = useState(0);
+  useEffect(() => {
+    // Preload all hero images for seamless crossfade
+    HERO_IMAGES.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+    const tick = () => setHeroIdx((i) => (i + 1) % HERO_IMAGES.length);
+    let id = window.setInterval(tick, 6000);
+    const onVis = () => {
+      window.clearInterval(id);
+      if (!document.hidden) id = window.setInterval(tick, 6000);
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
   const nextHome = next?.home_team ?? null;
   const nextAway = next?.away_team ?? null;
 
