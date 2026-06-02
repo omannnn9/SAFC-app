@@ -163,15 +163,21 @@ function HomePage() {
                     accent={nextHome?.is_bafana}
                   />
                   <div className="text-center">
-                    {c && (
-                      <div className="font-mono text-2xl font-black tabular-nums leading-none text-primary">
-                        {String(c.days).padStart(2, "0")}:{String(c.hrs).padStart(2, "0")}:
-                        {String(c.mins).padStart(2, "0")}
+                    {c?.isLive ? (
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-[var(--sa-green)] px-3 py-1 text-[11px] font-black uppercase tracking-widest text-white live-dot">
+                        <span className="h-1.5 w-1.5 rounded-full bg-white" /> Live Now
                       </div>
-                    )}
-                    <div className="mt-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
-                      Days · Hrs · Min
-                    </div>
+                    ) : c ? (
+                      <>
+                        <div className="font-mono text-2xl font-black tabular-nums leading-none text-primary">
+                          {String(c.days).padStart(2, "0")}:{String(c.hrs).padStart(2, "0")}:
+                          {String(c.mins).padStart(2, "0")}
+                        </div>
+                        <div className="mt-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                          Days · Hrs · Min
+                        </div>
+                      </>
+                    ) : null}
                   </div>
                   <TeamBadge
                     name={nextAway?.name ?? "TBD"}
@@ -179,6 +185,7 @@ function HomePage() {
                     accent={nextAway?.is_bafana}
                   />
                 </div>
+
 
                 <div className="mt-3 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
                   <MapPin className="h-3 w-3" /> {next.venue}
