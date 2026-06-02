@@ -138,18 +138,71 @@ function onlySAFixtures(list: AFFixture[]): AFFixture[] {
   return list.filter(validFixture);
 }
 
+// Build a synthetic LiveMatch from a SAFA-only fixture (when API-Football
+// hasn't published it yet). SAFA is the authoritative source for upcoming
+// Bafana matches, so we surface it even without API data.
+function safaToLiveMatch(s: SafaFixture): LiveMatch {
+  const opponent = s.summary.replace(/®/g, "").split(" - ")[0];
+  const parts = opponent.split(/\s+vs\s+/i).map((p) => p.trim());
+  const isBafanaHome = /bafana|south africa/i.test(parts[0] ?? "");
+  const opp = (isBafanaHome ? parts[1] : parts[0]) ?? "TBD";
+  return {
+    id: `safa-${s.uid}`,
+    opponent: opp,
+    opponent_flag: null,
+    kickoff: s.startUtc,
+    venue: s.location || "TBD",
+    competition: s.summary.split(" - ")[1] ?? "International",
+    is_home: isBafanaHome,
+    home_score: null,
+    away_score: null,
+    status: "upcoming",
+  };
+}
+
 export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v3", 60 * 10, async () => {
-    const res = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=15`)) as AFFixture[];
-    const filtered = onlySAFixtures(res)
+  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v4-safa", 60 * 10, async () => {
+    const [afRes, safa] = await Promise.all([
+      apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=15`) as Promise<AFFixture[]>,
+      fetchSafaUpcomingFixtures(),
+    ]);
+    console.log(`[live] upcoming sources: api=${afRes.length} safa=${safa.length}`);
+
+    // Step 1: API-Football → only NS, SA participant, valid competition
+    const afValid = onlySAFixtures(afRes)
       .filter((f) => ["NS", "TBD", "PST"].includes(f.fixture.status.short))
-      .sort((a, b) => new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime())
+      .sort((a, b) => new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime());
+
+    // Step 2: cross-validate against SAFA. If SAFA is reachable but doesn't
+    // confirm an AF fixture, drop it (truth layer override).
+    const verified = afValid.filter((f) => {
+      const opp = f.teams.home.id === SA_TEAM_ID ? f.teams.away.name : f.teams.home.name;
+      const ok = safaConfirms(safa, opp, f.fixture.date);
+      if (!ok) console.log(`[live] dropping unverified fixture vs ${opp} on ${f.fixture.date.slice(0, 10)}`);
+      return ok;
+    });
+
+    const fromApi = verified.map(mapFixture);
+
+    // Step 3: include SAFA-only fixtures that API-Football hasn't published.
+    const apiKeys = new Set(fromApi.map((m) => `${m.kickoff.slice(0, 10)}|${normalizeName(m.opponent)}`));
+    const safaOnly = safa
+      .filter((s) => {
+        const key = `${s.startUtc.slice(0, 10)}|${s.opponentSlug}`;
+        return !Array.from(apiKeys).some((k) => k.includes(s.opponentSlug) || s.opponentSlug.includes(k.split("|")[1]) ? k.slice(0, 10) === s.startUtc.slice(0, 10) : false) && !apiKeys.has(key);
+      })
+      .map(safaToLiveMatch);
+
+    // De-dupe by id and sort ascending
+    const merged = [...fromApi, ...safaOnly];
+    const seen = new Set<string>();
+    const dedup = merged
+      .filter((m) => (seen.has(m.id) ? false : (seen.add(m.id), true)))
+      .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime())
       .slice(0, 10);
-    // De-dupe by fixture id
-    const seen = new Set<number>();
-    const dedup = filtered.filter((f) => (seen.has(f.fixture.id) ? false : (seen.add(f.fixture.id), true)));
-    console.log(`[live] upcoming: ${res.length} raw → ${dedup.length} valid NS`);
-    return dedup.map(mapFixture);
+
+    console.log(`[live] upcoming: api-verified=${fromApi.length} safa-only=${safaOnly.length} → ${dedup.length}`);
+    return dedup;
   });
 });
 
