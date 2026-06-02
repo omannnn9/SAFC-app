@@ -306,7 +306,9 @@ function HomePage() {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
+                          timeZone: "Africa/Johannesburg",
                         })}
+
                       </span>
                     </div>
                   </>
