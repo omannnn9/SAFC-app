@@ -568,7 +568,7 @@ const NEWS_FALLBACK_IMAGES = {
   player: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=80",
   team: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1200&q=80",
   stadium: "https://images.unsplash.com/photo-1540552965303-1ee5b5d6a8ae?w=1200&q=80",
-  default: "https://media.api-sports.io/football/teams/1469.png",
+  default: `https://media.api-sports.io/football/teams/${SA_TEAM_ID}.png`,
 } as const;
 
 function resolveNewsImage(title: string, description: string | null, articleImage: string | null): string {
