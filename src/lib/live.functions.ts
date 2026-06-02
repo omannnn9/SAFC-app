@@ -153,6 +153,7 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
     id: `safa-${s.uid}`,
     opponent: opp,
     opponent_flag: null,
+    cover_url: null,
     kickoff: s.startUtc,
     venue: s.location || "TBD",
     competition: s.summary.split(" - ")[1] ?? "International",
