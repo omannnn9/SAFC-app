@@ -109,6 +109,7 @@ function mapFixture(f: AFFixture): LiveMatch {
     id: `af-${f.fixture.id}`,
     opponent: opponent.name,
     opponent_flag: opponent.logo ?? teamLogo(opponent.id),
+    cover_url: opponent.logo ?? teamLogo(opponent.id),
     kickoff: f.fixture.date,
     venue: f.fixture.venue?.name ?? "TBD",
     competition: f.league.name,
