@@ -153,14 +153,6 @@ function SignupPage() {
             }
           />
 
-          <FloatField
-            icon={<Trophy className="h-4 w-4" />}
-            label="Favorite team (optional)"
-            type="text"
-            value={favoriteTeam}
-            onChange={setFavoriteTeam}
-            required={false}
-          />
 
           <button
             type="submit"
