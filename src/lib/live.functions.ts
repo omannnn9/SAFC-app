@@ -5,6 +5,7 @@ import {
   safaConfirms,
   normalizeName,
   enrichSafaFixturesWithImages,
+  verifyKickoff,
   type SafaFixture,
 } from "@/lib/safa.server";
 import { canonicalCountryName, nameToCountryCode, validateFixtureFlagData } from "@/lib/flags";
