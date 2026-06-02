@@ -169,7 +169,7 @@ function HomePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4">
           {/* FORM — green */}
           <PremiumCard
             icon={<Activity className="h-4 w-4" />}
@@ -180,11 +180,11 @@ function HomePage() {
               <div className="text-sm text-white/70">Form data unavailable</div>
             ) : (
               <>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {form.map((r, i) => (
                     <span
                       key={i}
-                      className={`grid h-9 w-9 place-items-center rounded-lg text-sm font-black shadow-md ${
+                      className={`grid h-10 w-10 place-items-center rounded-lg text-base font-black shadow-md ${
                         r === "W"
                           ? "bg-white text-[color:var(--sa-green)]"
                           : r === "D"
@@ -229,29 +229,34 @@ function HomePage() {
                     : "bg-black/50 text-white";
               return (
                 <>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="truncate font-display text-lg font-black leading-tight text-white">
-                      {lastMatch.is_home ? "vs" : "@"} {lastMatch.opponent}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/65">
+                        {lastMatch.is_home ? "Home" : "Away"}
+                      </div>
+                      <div className="break-words font-display text-2xl font-black leading-tight text-white">
+                        South Africa {lastMatch.is_home ? "vs" : "@"} {lastMatch.opponent}
+                      </div>
                     </div>
                     {result && (
-                      <span className={`grid h-7 min-w-7 place-items-center rounded-md px-2 text-xs font-black shadow ${resultClass}`}>
+                      <span className={`grid h-9 min-w-9 shrink-0 place-items-center rounded-lg px-3 text-sm font-black shadow ${resultClass}`}>
                         {result}
                       </span>
                     )}
                   </div>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="font-mono text-3xl font-black tabular-nums text-white">
+                  <div className="mt-3 flex flex-wrap items-end gap-x-3 gap-y-1">
+                    <span className="font-mono text-5xl font-black leading-none tabular-nums text-white">
                       {our ?? "—"}–{their ?? "—"}
                     </span>
                     {resultLabel && (
-                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">
+                      <span className="pb-1 text-xs font-bold uppercase tracking-[0.16em] text-white/80">
                         {resultLabel}
                       </span>
                     )}
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-white/70">
-                    <span className="truncate">{lastMatch.competition}</span>
-                    <span>
+                  <div className="mt-3 flex flex-col gap-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="break-words">{lastMatch.competition}</span>
+                    <span className="shrink-0">
                       {new Date(lastMatch.kickoff).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}
                     </span>
                   </div>
@@ -270,10 +275,10 @@ function HomePage() {
           >
             {next ? (
               <>
-                <div className="truncate font-display text-lg font-black leading-tight text-black">
+                <div className="break-words font-display text-2xl font-black leading-tight text-black">
                   vs {nextHome?.is_bafana ? nextAway?.name : nextHome?.name}
                 </div>
-                <div className="mt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-black/70">
+                <div className="mt-2 break-words text-[11px] font-bold uppercase tracking-[0.12em] text-black/70">
                   {next.competition}
                 </div>
                 <div className="mt-2 text-[11px] font-semibold text-black/80">
