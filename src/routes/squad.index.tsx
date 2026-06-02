@@ -28,15 +28,11 @@ function SquadPage() {
     <PageContainer>
       <AppHeader title="Squad" />
       <div className="px-4 pt-5">
-        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">
-          National Team
-        </div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">National Team</div>
         <h1 className="mt-1 font-display text-4xl font-black tracking-tight">
           The <span className="text-gradient-gold">Squad</span>
         </h1>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {filtered.length} players ·
-        </p>
+        <p className="mt-1 text-xs text-muted-foreground">{filtered.length} players ·</p>
       </div>
 
       {manager && <ManagerCard manager={manager} />}
@@ -92,9 +88,7 @@ function SquadPage() {
                       {p.name}
                     </div>
                     <div className="mt-1 flex items-center gap-1.5 text-[10px] text-white/80">
-                      {p.flag_url && (
-                        <img src={p.flag_url} alt="" className="h-3 w-4 rounded-sm object-cover" />
-                      )}
+                      {p.flag_url && <img src={p.flag_url} alt="" className="h-3 w-4 rounded-sm object-cover" />}
                       <span className="uppercase tracking-wider">{p.position_label || p.position}</span>
                     </div>
                   </div>
