@@ -861,7 +861,7 @@ export const getLiveNews = createServerFn({ method: "GET" }).handler(async () =>
           title: a.title,
           excerpt: a.description.slice(0, 280),
           body: a.description,
-          cover_url: resolveImage(category, a.image),
+          cover_url: resolveImage(a.image, `${a.title} ${a.description}`, ctx.imgCtx),
           category,
           is_premium: false,
           published_at: a.publishedAt,
