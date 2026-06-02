@@ -5,6 +5,7 @@ import { ArrowRight, MapPin, Trophy, Sparkles, Flame, Users2 } from "lucide-reac
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { getNextMatch, getNews, getFeaturedPlayer } from "@/lib/data";
+import { getLiveStats } from "@/lib/live.functions";
 import { useAuth } from "@/lib/auth";
 import heroPlayer from "@/assets/hero-player.jpg";
 import playerTau from "@/assets/player-tau.jpg";
@@ -49,6 +50,8 @@ function HomePage() {
   const { data: next } = useQuery({ queryKey: ["next-match"], queryFn: getNextMatch });
   const { data: news } = useQuery({ queryKey: ["news", "home"], queryFn: () => getNews() });
   const { data: featured } = useQuery({ queryKey: ["featured-player"], queryFn: getFeaturedPlayer });
+  const { data: statsRes } = useQuery({ queryKey: ["live-stats"], queryFn: () => getLiveStats() });
+  const stats = statsRes?.data;
   const c = useCountdown(next?.kickoff);
 
   return (
@@ -140,29 +143,29 @@ function HomePage() {
             tone="green"
             icon={<Flame className="h-4 w-4" />}
             label="Form"
-            value="W · W · D"
-            sub="Last 3 games"
+            value={stats ? `${stats.wins}W · ${stats.draws}D · ${stats.losses}L` : "—"}
+            sub={stats ? `Last ${stats.played} games` : "Loading…"}
           />
           <IntelCard
             tone="gold"
             icon={<Trophy className="h-4 w-4" />}
-            label="FIFA Rank"
-            value="#58"
-            sub="Up 4 places"
+            label="Goals"
+            value={stats ? String(stats.goalsFor) : "—"}
+            sub={stats ? `${stats.goalsAgainst} conceded` : "Loading…"}
           />
           <IntelCard
             tone="blue"
             icon={<Users2 className="h-4 w-4" />}
-            label="Supporters"
-            value="124K"
-            sub="Joined this season"
+            label="Upcoming"
+            value={stats ? String(stats.upcomingCount) : "—"}
+            sub="Scheduled fixtures"
           />
           <IntelCard
             tone="green"
             icon={<Sparkles className="h-4 w-4" />}
-            label="Goals (5)"
-            value="11"
-            sub="2.2 / match avg"
+            label="Avg"
+            value={stats && stats.played ? (stats.goalsFor / stats.played).toFixed(1) : "—"}
+            sub="Goals per match"
           />
         </div>
       </section>
