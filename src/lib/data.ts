@@ -64,6 +64,9 @@ export type Article = {
   published_at: string;
   source?: string;
   url?: string;
+  score?: number;
+  relevance?: "high" | "medium" | "low";
+  matched_entities?: string[];
 };
 
 // ============= PLAYERS =============
