@@ -35,7 +35,7 @@ function SquadPage() {
           The <span className="text-gradient-gold">Squad</span>
         </h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          {filtered.length} players · Pulled live from safa.net
+          {filtered.length} players ·
         </p>
       </div>
 
