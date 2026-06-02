@@ -219,10 +219,11 @@ export async function getNews(category?: Article["category"]): Promise<Article[]
 }
 
 export async function getArticle(slug: string): Promise<Article | null> {
-  if (slug.startsWith("news-") || /-\d+$/.test(slug)) {
-    const list = await getNews();
-    return list.find((a) => a.slug === slug) ?? null;
-  }
+  // Always try the live feed first — live article slugs don't follow a fixed prefix.
+  const live = await getNews();
+  const liveHit = live.find((a) => a.slug === slug);
+  if (liveHit) return liveHit;
+
   const { data } = await supabase
     .from("news_articles")
     .select("*")
