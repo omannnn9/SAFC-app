@@ -74,7 +74,7 @@ function HomePage() {
     queryKey: ["past-matches"],
     queryFn: () => getLivePastMatches(),
   });
-  const past = pastRes?.data ?? [];
+  const past = useMemo(() => pastRes?.data ?? [], [pastRes?.data]);
   const c = useCountdown(next?.kickoff);
   const nextHome = next?.home_team ?? null;
   const nextAway = next?.away_team ?? null;
