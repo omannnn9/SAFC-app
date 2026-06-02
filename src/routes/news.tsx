@@ -159,11 +159,14 @@ function FeedCard({ a }: { a: Article }) {
           className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-        {a.is_premium && (
-          <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full shimmer-gold px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-black">
-            <Lock className="h-2.5 w-2.5" /> Premium
-          </div>
-        )}
+        <div className="absolute right-3 top-3 flex items-center gap-1.5">
+          <RelevanceBadge r={a.relevance} small />
+          {a.is_premium && (
+            <div className="inline-flex items-center gap-1 rounded-full shimmer-gold px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-black">
+              <Lock className="h-2.5 w-2.5" /> Premium
+            </div>
+          )}
+        </div>
         <div className="absolute bottom-3 left-4 right-4">
           <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
             {a.category}
