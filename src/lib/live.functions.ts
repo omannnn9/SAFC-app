@@ -335,7 +335,7 @@ async function fetchPlayerStats(playerId: number, season: number) {
 }
 
 export const getLivePlayers = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LivePlayer[]>(`af:squad:${CURRENT_SEASON}:v3`, 60 * 60 * 24, async () => {
+  return cachedFetch<LivePlayer[]>(`af:squad:${CURRENT_SEASON}:v4-safa-photos`, 60 * 60 * 24, async () => {
     const res = (await apiFootball(`/players/squads?team=${SA_TEAM_ID}`)) as AFSquadResponse;
     const team = res[0];
     if (!team || team.team.id !== SA_TEAM_ID) {
@@ -348,6 +348,9 @@ export const getLivePlayers = createServerFn({ method: "GET" }).handler(async ()
     // De-dupe by id
     const seen = new Set<number>();
     const unique = players.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
+
+    // Kick off SAFA photo scraping in parallel with API-Football stats fetches.
+    const safaPhotosPromise = fetchSafaPlayerPhotos(unique.map((p) => p.name));
 
     // Enrich in parallel but capped to avoid rate limits
     const enriched: LivePlayer[] = [];
@@ -366,6 +369,8 @@ export const getLivePlayers = createServerFn({ method: "GET" }).handler(async ()
             caps: stats?.caps ?? 0,
             goals: stats?.goals ?? 0,
             assists: stats?.assists ?? 0,
+            // Photo chain: SAFA (official national-team page) → API-Football
+            // stats photo → squad photo → API-Football CDN by id.
             photo_url: stats?.photo ?? p.photo ?? `https://media.api-sports.io/football/players/${p.id}.png`,
             bio: null,
           } satisfies LivePlayer;
@@ -373,6 +378,18 @@ export const getLivePlayers = createServerFn({ method: "GET" }).handler(async ()
       );
       enriched.push(...results);
     }
+
+    // Overlay SAFA photos where available (preferred source).
+    const safaPhotos = await safaPhotosPromise;
+    let safaHits = 0;
+    for (const player of enriched) {
+      const safa = safaPhotos.get(normalizeName(player.name));
+      if (safa) {
+        player.photo_url = safa;
+        safaHits += 1;
+      }
+    }
+    console.log(`[live] squad: ${safaHits}/${enriched.length} photos from SAFA`);
     return enriched;
   });
 });
