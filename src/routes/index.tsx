@@ -1,16 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { ArrowRight, MapPin, Trophy, Sparkles, Flame, Users2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, MapPin, Trophy, Sparkles, CalendarDays, History } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { SignupBadge } from "@/components/SignupBadge";
 import { getNextMatch, getNews, getFeaturedPlayer } from "@/lib/data";
 
-import { getLiveStats } from "@/lib/live.functions";
+import { getLivePastMatches } from "@/lib/live.functions";
 import { useAuth } from "@/lib/auth";
 import heroPlayer from "@/assets/hero-player.jpg";
 import playerTau from "@/assets/player-tau.jpg";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
