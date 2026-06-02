@@ -135,3 +135,57 @@ function Mini({ v, l }: { v: number; l: string }) {
     </div>
   );
 }
+
+function ManagerCard({ manager }: { manager: Manager }) {
+  return (
+    <section className="px-4 pt-4">
+      <div className="relative overflow-hidden rounded-2xl glass-strong ring-glow-gold">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,color-mix(in_oklab,var(--sa-gold)_22%,transparent),transparent_58%)]" />
+        <div className="relative grid grid-cols-[96px_1fr] items-center gap-4 p-3">
+          <div className="relative h-24 overflow-hidden rounded-xl bg-gradient-to-br from-[var(--sa-green)]/45 to-black">
+            <PersonImage name={manager.name} photoUrl={manager.photo_url} compact />
+          </div>
+          <div className="min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Manager</div>
+            <h2 className="mt-1 truncate font-display text-2xl font-black leading-none">{manager.name}</h2>
+            <p className="mt-1 text-xs text-muted-foreground">{manager.nationality ?? "South Africa"}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PersonImage({ name, photoUrl, compact = false }: { name: string; photoUrl: string | null; compact?: boolean }) {
+  const [failed, setFailed] = useState(false);
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("");
+
+  if (photoUrl && !failed) {
+    return (
+      <img
+        src={photoUrl}
+        alt={name}
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+        className={
+          compact
+            ? "h-full w-full object-cover object-top"
+            : "absolute inset-x-0 bottom-0 mx-auto h-[72%] w-[88%] object-contain object-bottom drop-shadow-[0_24px_30px_rgb(0_0_0/0.75)] transition duration-300 group-hover:scale-105"
+        }
+      />
+    );
+  }
+
+  return (
+    <div className="absolute inset-x-0 bottom-0 grid place-items-center">
+      <div className="mb-8 grid h-24 w-24 place-items-center rounded-full bg-white/5 font-display text-3xl font-black text-white/30">
+        {initials}
+      </div>
+    </div>
+  );
+}
