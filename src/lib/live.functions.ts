@@ -196,29 +196,32 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
   const parts = opponent.split(/\s+vs\s+/i).map((p) => p.trim());
   const isBafanaHome = /bafana|south africa/i.test(parts[0] ?? "");
   const opp = (isBafanaHome ? parts[1] : parts[0]) ?? "TBD";
-  return {
-    id: `safa-${s.uid}`,
-    opponent: opp,
-    opponent_flag: null,
-    cover_url: null,
-    kickoff: s.startUtc,
-    venue: s.location || "TBD",
-    competition: s.summary.split(" - ")[1] ?? "International",
-    is_home: isBafanaHome,
-    home_team: {
-      id: isBafanaHome ? SA_TEAM_ID : null,
-      name: isBafanaHome ? "South Africa" : opp,
-      logo: isBafanaHome ? teamLogo(SA_TEAM_ID) : null,
+  return verifyFixtureTeams(
+    {
+      id: `safa-${s.uid}`,
+      opponent: opp,
+      opponent_flag: null,
+      cover_url: null,
+      kickoff: s.startUtc,
+      venue: s.location || "TBD",
+      competition: s.summary.split(" - ")[1] ?? "International",
+      is_home: isBafanaHome,
+      home_team: {
+        id: isBafanaHome ? SA_TEAM_ID : null,
+        name: isBafanaHome ? "South Africa" : opp,
+        logo: isBafanaHome ? teamLogo(SA_TEAM_ID) : null,
+      },
+      away_team: {
+        id: isBafanaHome ? null : SA_TEAM_ID,
+        name: isBafanaHome ? opp : "South Africa",
+        logo: isBafanaHome ? null : teamLogo(SA_TEAM_ID),
+      },
+      home_score: null,
+      away_score: null,
+      status: "upcoming",
     },
-    away_team: {
-      id: isBafanaHome ? null : SA_TEAM_ID,
-      name: isBafanaHome ? opp : "South Africa",
-      logo: isBafanaHome ? null : teamLogo(SA_TEAM_ID),
-    },
-    home_score: null,
-    away_score: null,
-    status: "upcoming",
-  };
+    "safa",
+  );
 }
 
 export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(async () => {
