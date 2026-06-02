@@ -140,7 +140,9 @@ function ProfilePage() {
                 day: "numeric",
                 month: "short",
                 year: "numeric",
+                timeZone: "Africa/Johannesburg",
               })}
+
             />
           )}
           <KV
