@@ -47,18 +47,43 @@ function useCountdown(target?: string) {
     secs: Math.floor((diff / 1000) % 60),
   };
 }
+const FUN_FACTS = [
+  "South Africa won AFCON in 1996 on home soil — their first major title.",
+  "Bafana Bafana made their FIFA World Cup debut in France '98.",
+  "Benni McCarthy is Bafana's all-time top scorer with 31 international goals.",
+  "South Africa hosted the 2010 FIFA World Cup — the first on African soil.",
+  "Lucas Radebe was knighted by Nelson Mandela as 'my hero'.",
+  "Bafana's nickname means 'The Boys' in isiZulu.",
+];
 
 function HomePage() {
   const { profile, session } = useAuth();
   const { data: next } = useQuery({ queryKey: ["next-match"], queryFn: getNextMatch });
   const { data: news } = useQuery({ queryKey: ["news", "home"], queryFn: () => getNews() });
   const { data: featured } = useQuery({ queryKey: ["featured-player"], queryFn: getFeaturedPlayer });
-  const { data: statsRes } = useQuery({ queryKey: ["live-stats"], queryFn: () => getLiveStats() });
-  const stats = statsRes?.data;
+  const { data: pastRes } = useQuery({ queryKey: ["past-matches"], queryFn: () => getLivePastMatches() });
+  const past = pastRes?.data ?? [];
   const c = useCountdown(next?.kickoff);
   const nextHome = next?.home_team ?? null;
   const nextAway = next?.away_team ?? null;
 
+  const form = useMemo(() => {
+    return past.slice(0, 5).map((m) => {
+      const isHome = m.home_team?.name?.toLowerCase().includes("south africa");
+      const our = (isHome ? m.home_score : m.away_score) ?? 0;
+      const their = (isHome ? m.away_score : m.home_score) ?? 0;
+      if (our > their) return "W" as const;
+      if (our === their) return "D" as const;
+      return "L" as const;
+    });
+  }, [past]);
+  const lastMatch = past[0];
+
+  const [factIdx, setFactIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setFactIdx((i) => (i + 1) % FUN_FACTS.length), 8000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <PageContainer>
@@ -71,14 +96,13 @@ function HomePage() {
           <img src={heroPlayer} alt="" className="slow-zoom h-[540px] w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/55 to-background" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_20%,color-mix(in_oklab,var(--sa-gold)_22%,transparent),transparent_70%)]" />
-          {/* spotlight sweep */}
           <div
             className="absolute -inset-y-10 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/8 to-transparent blur-2xl"
             style={{ animation: "spotlight-sweep 7s ease-in-out infinite" }}
           />
         </div>
 
-        <div className="relative z-10 px-5 pt-6 pb-8 min-h-[540px] flex flex-col">
+        <div className="relative z-10 px-5 pt-6 pb-10 min-h-[540px] flex flex-col">
           <div className="inline-flex w-fit items-center gap-2 rounded-full glass px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-foreground/90">
             <span className="live-dot h-1.5 w-1.5 rounded-full bg-[var(--sa-green)]" />
             The Pulse of the Nation
@@ -94,7 +118,6 @@ function HomePage() {
           </p>
 
           <div className="mt-auto pt-8">
-            {/* Countdown */}
             {next && (
               <Link
                 to="/fixtures/$id"
@@ -138,45 +161,90 @@ function HomePage() {
         </div>
       </section>
 
-      {/* LIVE INTELLIGENCE STRIP */}
-      <section className="mt-6">
-        <div className="mb-2 flex items-center justify-between px-4">
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-            Intelligence
+      {/* TEAM INSIGHTS — clean 4-card panel */}
+      <section className="mt-8 px-4">
+        <div className="mb-3 flex items-end justify-between">
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+            Team insights
           </h2>
-          <span className="text-[10px] text-muted-foreground">Swipe →</span>
+          <span className="text-[10px] text-muted-foreground/70">Bafana Bafana</span>
         </div>
-        <div className="scrollbar-none flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2">
-          <IntelCard
-            tone="green"
-            icon={<Flame className="h-4 w-4" />}
-            label="Form"
-            value={stats ? `${stats.wins}W · ${stats.draws}D · ${stats.losses}L` : "—"}
-            sub={stats ? `Last ${stats.played} games` : "Loading…"}
-          />
-          <IntelCard
-            tone="gold"
-            icon={<Trophy className="h-4 w-4" />}
-            label="Goals"
-            value={stats ? String(stats.goalsFor) : "—"}
-            sub={stats ? `${stats.goalsAgainst} conceded` : "Loading…"}
-          />
-          <IntelCard
-            tone="blue"
-            icon={<Users2 className="h-4 w-4" />}
-            label="Upcoming"
-            value={stats ? String(stats.upcomingCount) : "—"}
-            sub="Scheduled fixtures"
-          />
-          <IntelCard
-            tone="green"
-            icon={<Sparkles className="h-4 w-4" />}
-            label="Avg"
-            value={stats && stats.played ? (stats.goalsFor / stats.played).toFixed(1) : "—"}
-            sub="Goals per match"
-          />
+
+        <div className="grid grid-cols-2 gap-3">
+          <InsightCard icon={<Sparkles className="h-3.5 w-3.5" />} label="Form">
+            {form.length === 0 ? (
+              <div className="text-xs text-muted-foreground">No recent matches</div>
+            ) : (
+              <>
+                <div className="flex items-center gap-1.5">
+                  {form.map((r, i) => (
+                    <span
+                      key={i}
+                      className={`grid h-7 w-7 place-items-center rounded-md text-[11px] font-black ${
+                        r === "W"
+                          ? "bg-[color:var(--sa-green)] text-white"
+                          : r === "D"
+                            ? "bg-muted text-foreground"
+                            : "bg-destructive/80 text-white"
+                      }`}
+                    >
+                      {r}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-2 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                  Last {form.length} matches
+                </div>
+              </>
+            )}
+          </InsightCard>
+
+          <InsightCard icon={<History className="h-3.5 w-3.5" />} label="Last match">
+            {lastMatch ? (
+              <>
+                <div className="truncate font-display text-lg font-black leading-tight">
+                  {lastMatch.opponent}
+                </div>
+                <div className="mt-0.5 font-mono text-xl font-black tabular-nums text-primary">
+                  {lastMatch.home_score ?? "—"}–{lastMatch.away_score ?? "—"}
+                </div>
+                <div className="mt-1 text-[10px] text-muted-foreground">
+                  {new Date(lastMatch.kickoff).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })}
+                </div>
+              </>
+            ) : (
+              <div className="text-xs text-muted-foreground">—</div>
+            )}
+          </InsightCard>
+
+          <InsightCard icon={<CalendarDays className="h-3.5 w-3.5" />} label="Next match">
+            {next ? (
+              <>
+                <div className="truncate font-display text-lg font-black leading-tight">
+                  {nextHome?.is_bafana ? nextAway?.name : nextHome?.name}
+                </div>
+                <div className="mt-0.5 truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+                  {next.competition}
+                </div>
+                <div className="mt-1 text-[10px] text-muted-foreground">
+                  {new Date(next.kickoff).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })} ·{" "}
+                  {new Date(next.kickoff).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" })}
+                </div>
+              </>
+            ) : (
+              <div className="text-xs text-muted-foreground">TBD</div>
+            )}
+          </InsightCard>
+
+          <InsightCard icon={<Trophy className="h-3.5 w-3.5" />} label="Did you know?">
+            <div key={factIdx} className="animate-[fade-in_0.5s_ease-out] text-[11px] leading-snug text-foreground/85">
+              {FUN_FACTS[factIdx]}
+            </div>
+          </InsightCard>
         </div>
       </section>
+
+
 
       {/* Player spotlight */}
       {featured && (
