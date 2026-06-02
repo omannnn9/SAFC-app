@@ -4,8 +4,8 @@ import { fetchSafaUpcomingFixtures, safaConfirms, normalizeName, enrichSafaFixtu
 import { canonicalCountryName, nameToCountryCode, validateFixtureFlagData } from "@/lib/flags";
 
 // South Africa national team (Bafana Bafana) in API-Football.
-// Verified via: GET https://v3.football.api-sports.io/teams?name=South%20Africa&type=national
-const SA_TEAM_ID = 1469;
+// Verified via: GET https://v3.football.api-sports.io/teams?search=South%20Africa
+const SA_TEAM_ID = 1531;
 
 // Current international season. API-Football uses the start year of the season.
 // Bumped here once per year. Falls back to previous season if current returns empty.
@@ -242,7 +242,7 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
 }
 
 export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v6-flag-data", 60 * 10, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v7-sa-team-id", 60 * 10, async () => {
     const [afRes, safa] = await Promise.all([
       apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=15`) as Promise<AFFixture[]>,
       fetchSafaUpcomingFixtures(),
@@ -323,7 +323,7 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
 });
 
 export const getLivePastMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v4-flag-data", 60 * 30, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v5-sa-team-id", 60 * 30, async () => {
     const res = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&last=10`)) as AFFixture[];
     const filtered = onlySAFixtures(res).sort(
       (a, b) => new Date(b.fixture.date).getTime() - new Date(a.fixture.date).getTime(),
@@ -412,7 +412,7 @@ async function fetchPlayerStats(playerId: number, season: number) {
 }
 
 export const getLivePlayers = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LivePlayer[]>(`af:squad:${CURRENT_SEASON}:v4-safa-photos`, 60 * 60 * 24, async () => {
+  return cachedFetch<LivePlayer[]>(`af:squad:${CURRENT_SEASON}:v5-sa-team-id`, 60 * 60 * 24, async () => {
     const res = (await apiFootball(`/players/squads?team=${SA_TEAM_ID}`)) as AFSquadResponse;
     const team = res[0];
     if (!team || team.team.id !== SA_TEAM_ID) {
