@@ -65,7 +65,7 @@ function ProfilePage() {
         day: "numeric",
         month: "long",
         year: "numeric",
-        timeZone: "Africa/Johannesburg",
+,
       })
 
     : "—";
@@ -140,7 +140,7 @@ function ProfilePage() {
                 day: "numeric",
                 month: "short",
                 year: "numeric",
-                timeZone: "Africa/Johannesburg",
+,
               })}
 
             />

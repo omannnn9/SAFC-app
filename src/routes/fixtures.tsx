@@ -85,10 +85,10 @@ function TimelineDot({ m }: { m: Match }) {
       >
         <div className="text-center leading-none">
           <div className="font-display text-[11px] font-black">
-            {k.toLocaleDateString("en-ZA", { day: "2-digit", timeZone: "Africa/Johannesburg" })}
+            {k.toLocaleDateString("en-ZA", { day: "2-digit" })}
           </div>
           <div className="text-[8px] uppercase tracking-wider text-muted-foreground">
-            {k.toLocaleDateString("en-ZA", { month: "short", timeZone: "Africa/Johannesburg" })}
+            {k.toLocaleDateString("en-ZA", { month: "short" })}
           </div>
         </div>
 
@@ -103,7 +103,7 @@ function MatchCard({ m, live }: { m: Match; live?: boolean }) {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-    timeZone: "Africa/Johannesburg",
+,
   });
   return (
     <Link
@@ -115,7 +115,7 @@ function MatchCard({ m, live }: { m: Match; live?: boolean }) {
     >
       {live && (
         <div className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--sa-green)] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-white tabular-nums">
-          <span className="h-1.5 w-1.5 rounded-full bg-white" /> {timeSA} SAST
+          <span className="h-1.5 w-1.5 rounded-full bg-white" /> {timeSA}
         </div>
       )}
       <div className="flex items-center justify-between">
@@ -123,7 +123,7 @@ function MatchCard({ m, live }: { m: Match; live?: boolean }) {
           {m.competition}
         </div>
         <div className="text-[10px] font-mono text-muted-foreground tabular-nums">
-          {timeSA} SAST
+          {timeSA}
         </div>
       </div>
 
