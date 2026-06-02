@@ -99,7 +99,10 @@ function HomePage() {
                   <span className="text-muted-foreground">Next match</span>
                 </div>
                 <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                  <TeamBadge name="RSA" flag="🇿🇦" accent />
+                  <TeamBadge
+                    name={(next.home_team?.name ?? (next.is_home ? "South Africa" : next.opponent))}
+                    accent={next.home_team?.id === 1097 || (next.is_home && !next.home_team)}
+                  />
                   <div className="text-center">
                     {c && (
                       <div className="font-mono text-2xl font-black tabular-nums leading-none text-primary">
@@ -110,7 +113,10 @@ function HomePage() {
                       Days · Hrs · Min
                     </div>
                   </div>
-                  <TeamBadge name={next.opponent.slice(0, 3).toUpperCase()} flag="🏳️" />
+                  <TeamBadge
+                    name={(next.away_team?.name ?? (next.is_home ? next.opponent : "South Africa"))}
+                    accent={next.away_team?.id === 1097 || (!next.is_home && !next.away_team)}
+                  />
                 </div>
                 <div className="mt-3 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
                   <MapPin className="h-3 w-3" /> {next.venue}
@@ -267,7 +273,41 @@ function HomePage() {
   );
 }
 
-function TeamBadge({ name, flag, accent }: { name: string; flag: string; accent?: boolean }) {
+// Country name → ISO-2 → regional-indicator emoji flag.
+// Covers Bafana's realistic opponent pool (CAF + common friendlies).
+const COUNTRY_ISO: Record<string, string> = {
+  "south africa": "ZA", "bafana bafana": "ZA",
+  mexico: "MX", brazil: "BR", argentina: "AR", france: "FR", germany: "DE",
+  spain: "ES", portugal: "PT", england: "GB", italy: "IT", netherlands: "NL",
+  belgium: "BE", croatia: "HR", "united states": "US", usa: "US",
+  morocco: "MA", egypt: "EG", tunisia: "TN", algeria: "DZ", senegal: "SN",
+  nigeria: "NG", ghana: "GH", "ivory coast": "CI", "côte d'ivoire": "CI",
+  cameroon: "CM", mali: "ML", "burkina faso": "BF", zambia: "ZM",
+  zimbabwe: "ZW", botswana: "BW", namibia: "NA", lesotho: "LS",
+  eswatini: "SZ", swaziland: "SZ", mozambique: "MZ", angola: "AO",
+  "dr congo": "CD", "democratic republic of congo": "CD", congo: "CG",
+  kenya: "KE", uganda: "UG", tanzania: "TZ", ethiopia: "ET", rwanda: "RW",
+  sudan: "SD", "south sudan": "SS", libya: "LY", "cape verde": "CV",
+  "cabo verde": "CV", gabon: "GA", guinea: "GN", "guinea-bissau": "GW",
+  benin: "BJ", togo: "TG", "sierra leone": "SL", liberia: "LR",
+  madagascar: "MG", mauritius: "MU", comoros: "KM", seychelles: "SC",
+  czechia: "CZ", "czech republic": "CZ", japan: "JP", "south korea": "KR",
+  korea: "KR", australia: "AU", "new zealand": "NZ", canada: "CA",
+  uruguay: "UY", chile: "CL", colombia: "CO", peru: "PE", ecuador: "EC",
+  paraguay: "PY", venezuela: "VE", "saudi arabia": "SA", qatar: "QA",
+  uae: "AE", iran: "IR", iraq: "IQ", turkey: "TR", "ireland": "IE",
+  scotland: "GB", wales: "GB", "northern ireland": "GB",
+};
+
+function nameToFlag(name: string): string {
+  const iso = COUNTRY_ISO[name.trim().toLowerCase()];
+  if (!iso) return "🏳️";
+  return String.fromCodePoint(...[...iso.toUpperCase()].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+}
+
+function TeamBadge({ name, accent }: { name: string; accent?: boolean }) {
+  const flag = nameToFlag(name);
+  const short = name.length <= 3 ? name.toUpperCase() : name.slice(0, 3).toUpperCase();
   return (
     <div className="flex flex-col items-center gap-1">
       <div
@@ -277,7 +317,7 @@ function TeamBadge({ name, flag, accent }: { name: string; flag: string; accent?
       >
         {flag}
       </div>
-      <div className="font-display text-[11px] font-black tracking-wider">{name}</div>
+      <div className="font-display text-[11px] font-black tracking-wider">{short}</div>
     </div>
   );
 }
