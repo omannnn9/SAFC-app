@@ -212,8 +212,36 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
       .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime())
       .slice(0, 10);
 
-    console.log(`[live] upcoming: api-verified=${fromApi.length} safa-only=${safaOnly.length} → ${dedup.length}`);
-    return dedup;
+    // Step 4: image enrichment — SAFA og:image per match overrides team logos.
+    // We build a (day|opponentSlug) lookup against the SAFA list so both
+    // API-derived and SAFA-derived fixtures get the official match visual.
+    const safaImages = await enrichSafaFixturesWithImages(safa);
+    const safaByKey = new Map<string, string>();
+    for (const f of safa) {
+      const img = safaImages.get(f.uid);
+      if (img) safaByKey.set(`${f.startUtc.slice(0, 10)}|${f.opponentSlug}`, img);
+    }
+    const withImages = dedup.map((m) => {
+      const oppSlug = normalizeName(m.opponent);
+      const day = m.kickoff.slice(0, 10);
+      // Try exact key, then loose contains match.
+      let cover = safaByKey.get(`${day}|${oppSlug}`) ?? null;
+      if (!cover) {
+        for (const [k, v] of safaByKey) {
+          const [d, slug] = k.split("|");
+          if (d === day && (slug.includes(oppSlug) || oppSlug.includes(slug))) {
+            cover = v;
+            break;
+          }
+        }
+      }
+      return cover ? { ...m, cover_url: cover } : m;
+    });
+
+    console.log(
+      `[live] upcoming: api-verified=${fromApi.length} safa-only=${safaOnly.length} → ${withImages.length} (safa-images=${safaImages.size})`,
+    );
+    return withImages;
   });
 });
 
