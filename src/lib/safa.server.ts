@@ -125,23 +125,45 @@ const VERIFIED_KICKOFFS: Record<string, { utc: string; sources: string[] }> = {
 
 function applyVerifiedKickoffs(fixtures: SafaFixture[]): SafaFixture[] {
   return fixtures.map((f) => {
-    const sastDay = new Date(f.startUtc).toLocaleDateString("en-CA", {
-      timeZone: "Africa/Johannesburg",
-    });
-    const utcDay = f.startUtc.slice(0, 10);
-    for (const candidateDay of [sastDay, utcDay]) {
-      const key = `${candidateDay}|${f.opponentSlug}`;
-      const override = VERIFIED_KICKOFFS[key];
-      if (override && override.utc !== f.startUtc) {
-        console.log(
-          `[safa] overriding kickoff for ${f.summary}: ${f.startUtc} → ${override.utc} (verified via ${override.sources.join(", ")})`,
-        );
-        return { ...f, startUtc: override.utc };
-      }
+    const corrected = verifyKickoff(f.opponentSlug, f.startUtc);
+    if (corrected !== f.startUtc) {
+      console.log(
+        `[safa] overriding kickoff for ${f.summary}: ${f.startUtc} → ${corrected}`,
+      );
+      return { ...f, startUtc: corrected };
     }
     return f;
   });
 }
+
+/**
+ * Returns the canonical kickoff time for a fixture if a verified override
+ * exists, otherwise returns the original. Safe to call on ANY LiveMatch
+ * regardless of source (SAFA, API-Football, local DB) — this is the single
+ * choke point that guarantees no wrong kickoff time reaches the UI.
+ *
+ * Matching is done on (date-in-SAST, normalized-opponent). Opponent is
+ * normalized to lowercase alphanumerics so "Mexico", "MEXICO", "México"
+ * all match the same override key.
+ */
+export function verifyKickoff(opponent: string, kickoffIso: string): string {
+  if (!kickoffIso) return kickoffIso;
+  // NFD-strip diacritics so "México" matches "mexico".
+  const slug = normalize(
+    opponent.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+  );
+  const d = new Date(kickoffIso);
+  if (Number.isNaN(d.getTime())) return kickoffIso;
+  const sastDay = d.toLocaleDateString("en-CA", { timeZone: "Africa/Johannesburg" });
+  const utcDay = kickoffIso.slice(0, 10);
+  for (const candidateDay of [sastDay, utcDay]) {
+    const key = `${candidateDay}|${slug}`;
+    const override = VERIFIED_KICKOFFS[key];
+    if (override) return override.utc;
+  }
+  return kickoffIso;
+}
+
 
 export async function fetchSafaUpcomingFixtures(): Promise<SafaFixture[]> {
   if (memCache && Date.now() - memCache.at < TTL_MS) return memCache.data;

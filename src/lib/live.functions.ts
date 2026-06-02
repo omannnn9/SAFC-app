@@ -5,6 +5,7 @@ import {
   safaConfirms,
   normalizeName,
   enrichSafaFixturesWithImages,
+  verifyKickoff,
   type SafaFixture,
 } from "@/lib/safa.server";
 import { canonicalCountryName, nameToCountryCode, validateFixtureFlagData } from "@/lib/flags";
@@ -175,7 +176,7 @@ function mapFixture(f: AFFixture): LiveMatch {
       opponent: canonicalTeamName(opponent.name),
       opponent_flag: opponent.logo ?? teamLogo(opponent.id),
       cover_url: opponent.logo ?? teamLogo(opponent.id),
-      kickoff: f.fixture.date,
+      kickoff: verifyKickoff(opponent.name, f.fixture.date),
       venue: f.fixture.venue?.name ?? "TBD",
       competition: f.league.name,
       is_home: isHome,
@@ -268,7 +269,7 @@ const VERIFIED_RECENT_COMPLETED_MATCHES: LiveMatch[] = VERIFIED_RECENT_SEEDS.map
       opponent: s.opponent,
       opponent_flag: null,
       cover_url: null,
-      kickoff: s.date,
+      kickoff: verifyKickoff(s.opponent, s.date),
       venue: s.venue,
       competition: s.competition,
       is_home: s.isHome,
@@ -296,7 +297,7 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
       opponent: opp,
       opponent_flag: null,
       cover_url: null,
-      kickoff: s.startUtc,
+      kickoff: verifyKickoff(opp, s.startUtc),
       venue: s.location || "TBD",
       competition: s.summary.split(" - ")[1] ?? "International",
       is_home: isBafanaHome,
@@ -321,7 +322,7 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
 }
 
 export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v7-sa-team-id", 60 * 10, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v8-verified-kickoffs", 60 * 10, async () => {
     const [afRes, safa] = await Promise.all([
       apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=15`) as Promise<AFFixture[]>,
       fetchSafaUpcomingFixtures(),
@@ -404,7 +405,7 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
 });
 
 export const getLivePastMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v9-verified-recent", 60 * 30, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v10-verified-kickoffs", 60 * 30, async () => {
     const accessibleSeasons = [2024, 2023, 2022];
     const seasonResults = await Promise.all(
       accessibleSeasons.map(async (season) => {
