@@ -348,6 +348,14 @@ export type LivePlayer = {
   bio: string | null;
 };
 
+export type LiveManager = {
+  id: string;
+  name: string;
+  role: "Manager";
+  nationality: string | null;
+  photo_url: string | null;
+};
+
 type AFSquadResponse = Array<{
   team: { id: number; name: string };
   players: Array<{
@@ -372,6 +380,20 @@ type AFPlayerStatsResponse = Array<{
     league: { id: number; name: string; season: number };
     games: { appearances: number | null; position: string | null };
     goals: { total: number | null; assists: number | null };
+  }>;
+}>;
+
+type AFCoachResponse = Array<{
+  id: number;
+  name: string;
+  firstname: string | null;
+  lastname: string | null;
+  nationality: string | null;
+  photo: string | null;
+  career: Array<{
+    team: { id: number; name: string };
+    start: string | null;
+    end: string | null;
   }>;
 }>;
 
