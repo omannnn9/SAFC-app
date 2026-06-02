@@ -103,6 +103,32 @@ function teamLogo(id: number): string {
   return `https://media.api-sports.io/football/teams/${id}.png`;
 }
 
+/**
+ * Dev-time integrity check: every fixture must have two DISTINCT teams,
+ * each with its own id+logo derived from fixture.teams.home / fixture.teams.away.
+ * Logs a warning if SA appears on both sides, ids collide, or logos duplicate.
+ */
+function verifyFixtureTeams(m: LiveMatch, source: string): LiveMatch {
+  const h = m.home_team;
+  const a = m.away_team;
+  const issues: string[] = [];
+  if (!h || !a) issues.push("missing home_team/away_team");
+  else {
+    if (h.id != null && a.id != null && h.id === a.id) issues.push(`duplicate team id ${h.id}`);
+    if (h.id === SA_TEAM_ID && a.id === SA_TEAM_ID) issues.push("South Africa on both sides");
+    if (h.logo && a.logo && h.logo === a.logo) issues.push("duplicate team logo");
+    if (h.name && a.name && h.name.trim().toLowerCase() === a.name.trim().toLowerCase())
+      issues.push(`duplicate team name "${h.name}"`);
+  }
+  if (issues.length > 0) {
+    console.warn(
+      `[fixture-verify:${source}] ${m.id} ${m.kickoff} — ${issues.join("; ")}`,
+      { home: h, away: a },
+    );
+  }
+  return m;
+}
+
 function mapFixture(f: AFFixture): LiveMatch {
   const isHome = f.teams.home.id === SA_TEAM_ID;
   const opponent = isHome ? f.teams.away : f.teams.home;
@@ -113,29 +139,32 @@ function mapFixture(f: AFFixture): LiveMatch {
       : ["1H", "2H", "HT", "ET", "P", "LIVE"].includes(ftStatus)
         ? "live"
         : "completed";
-  return {
-    id: `af-${f.fixture.id}`,
-    opponent: opponent.name,
-    opponent_flag: opponent.logo ?? teamLogo(opponent.id),
-    cover_url: opponent.logo ?? teamLogo(opponent.id),
-    kickoff: f.fixture.date,
-    venue: f.fixture.venue?.name ?? "TBD",
-    competition: f.league.name,
-    is_home: isHome,
-    home_team: {
-      id: f.teams.home.id,
-      name: f.teams.home.name,
-      logo: f.teams.home.logo ?? teamLogo(f.teams.home.id),
+  return verifyFixtureTeams(
+    {
+      id: `af-${f.fixture.id}`,
+      opponent: opponent.name,
+      opponent_flag: opponent.logo ?? teamLogo(opponent.id),
+      cover_url: opponent.logo ?? teamLogo(opponent.id),
+      kickoff: f.fixture.date,
+      venue: f.fixture.venue?.name ?? "TBD",
+      competition: f.league.name,
+      is_home: isHome,
+      home_team: {
+        id: f.teams.home.id,
+        name: f.teams.home.name,
+        logo: f.teams.home.logo ?? teamLogo(f.teams.home.id),
+      },
+      away_team: {
+        id: f.teams.away.id,
+        name: f.teams.away.name,
+        logo: f.teams.away.logo ?? teamLogo(f.teams.away.id),
+      },
+      home_score: f.goals.home,
+      away_score: f.goals.away,
+      status,
     },
-    away_team: {
-      id: f.teams.away.id,
-      name: f.teams.away.name,
-      logo: f.teams.away.logo ?? teamLogo(f.teams.away.id),
-    },
-    home_score: f.goals.home,
-    away_score: f.goals.away,
-    status,
-  };
+    "api-football",
+  );
 }
 
 // Validate: SA must be a participant, and league must be a national-team
@@ -167,29 +196,32 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
   const parts = opponent.split(/\s+vs\s+/i).map((p) => p.trim());
   const isBafanaHome = /bafana|south africa/i.test(parts[0] ?? "");
   const opp = (isBafanaHome ? parts[1] : parts[0]) ?? "TBD";
-  return {
-    id: `safa-${s.uid}`,
-    opponent: opp,
-    opponent_flag: null,
-    cover_url: null,
-    kickoff: s.startUtc,
-    venue: s.location || "TBD",
-    competition: s.summary.split(" - ")[1] ?? "International",
-    is_home: isBafanaHome,
-    home_team: {
-      id: isBafanaHome ? SA_TEAM_ID : null,
-      name: isBafanaHome ? "South Africa" : opp,
-      logo: isBafanaHome ? teamLogo(SA_TEAM_ID) : null,
+  return verifyFixtureTeams(
+    {
+      id: `safa-${s.uid}`,
+      opponent: opp,
+      opponent_flag: null,
+      cover_url: null,
+      kickoff: s.startUtc,
+      venue: s.location || "TBD",
+      competition: s.summary.split(" - ")[1] ?? "International",
+      is_home: isBafanaHome,
+      home_team: {
+        id: isBafanaHome ? SA_TEAM_ID : null,
+        name: isBafanaHome ? "South Africa" : opp,
+        logo: isBafanaHome ? teamLogo(SA_TEAM_ID) : null,
+      },
+      away_team: {
+        id: isBafanaHome ? null : SA_TEAM_ID,
+        name: isBafanaHome ? opp : "South Africa",
+        logo: isBafanaHome ? null : teamLogo(SA_TEAM_ID),
+      },
+      home_score: null,
+      away_score: null,
+      status: "upcoming",
     },
-    away_team: {
-      id: isBafanaHome ? null : SA_TEAM_ID,
-      name: isBafanaHome ? opp : "South Africa",
-      logo: isBafanaHome ? null : teamLogo(SA_TEAM_ID),
-    },
-    home_score: null,
-    away_score: null,
-    status: "upcoming",
-  };
+    "safa",
+  );
 }
 
 export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(async () => {
