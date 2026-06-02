@@ -369,19 +369,25 @@ function HomePage() {
                 <div className="mt-2 break-words text-[11px] font-bold uppercase tracking-[0.12em] text-black/70">
                   {next.competition}
                 </div>
-                <div className="mt-2 text-[11px] font-semibold tabular-nums text-black/80">
-                  {new Date(next.kickoff).toLocaleDateString(undefined, {
-                    day: "numeric",
-                    month: "short",
-                  })}{" "}
-                  ·{" "}
-                  {new Date(next.kickoff).toLocaleTimeString(undefined, {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                  })}{" "}
-                 
-                </div>
+                {(() => {
+                  const k = new Date(next.kickoff);
+                  const sameAsSAST = -k.getTimezoneOffset() === 120;
+                  return (
+                    <>
+                      <div className="mt-2 text-[11px] font-semibold tabular-nums text-black/80">
+                        {k.toLocaleDateString("en-ZA", { day: "numeric", month: "short", timeZone: "Africa/Johannesburg" })}{" "}
+                        ·{" "}
+                        {k.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Africa/Johannesburg" })}{" "}
+                        SAST
+                      </div>
+                      {!sameAsSAST && (
+                        <div className="mt-1 text-[10px] tabular-nums text-black/60">
+                          {k.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false })} your time
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
 
               </>
             ) : (
