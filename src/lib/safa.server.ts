@@ -104,22 +104,41 @@ function parseIcs(text: string): SafaFixture[] {
 let memCache: { at: number; data: SafaFixture[] } | null = null;
 const TTL_MS = 10 * 60 * 1000;
 
-// ============= VERIFIED KICKOFF OVERRIDES =============
+// ============= VERIFIED KICKOFF TIMES (AUTHORITATIVE) =============
 //
-// SAFA's iCal feed occasionally publishes incorrect kickoff times for matches
-// hosted abroad (timezone math drift). When a fixture's SAFA time disagrees
-// with FIFA + multiple independent sources (kickoffclock, matchtimes,
-// whatisthetime, Al Jazeera, FoxSports, etc.), we override to the canonical
-// UTC time below. Each entry MUST cite ≥2 independent sources in the comment.
+// SAFA's iCal feed publishes incorrect kickoff times for matches hosted
+// abroad (timezone math drift). We do NOT trust SAFA for time anymore — we
+// override with canonical UTC times verified against FIFA + multiple
+// independent sources (Google, LiveScore, ESPN, kickoffclock, Flashscore).
+// Each entry MUST cite ≥2 independent sources.
 //
 // Key: `${YYYY-MM-DD}|${opponentSlug}` (date in Africa/Johannesburg).
 const VERIFIED_KICKOFFS: Record<string, { utc: string; sources: string[] }> = {
-  // Mexico vs South Africa, WC 2026 opener, Estadio Azteca.
-  // FIFA: 1:00 PM CDT Mexico City = 19:00 UTC = 21:00 SAST.
-  // SAFA incorrectly publishes 22:00 SAST (20:00 UTC). Off by +1h.
+  // Mexico vs South Africa — WC 2026 opener, Estadio Azteca, Mexico City.
+  // 13:00 CDT = 19:00 UTC = 21:00 SAST.
   "2026-06-11|mexico": {
     utc: "2026-06-11T19:00:00.000Z",
-    sources: ["fifa.com", "kickoffclock.com", "matchtimes.app", "whatisthetime.now"],
+    sources: ["fifa.com", "google.com", "livescore.com", "kickoffclock.com", "espn.com"],
+  },
+  // Czechia vs South Africa — WC 2026, Mercedes-Benz Stadium, Atlanta.
+  // 12:00 ET = 16:00 UTC = 18:00 SAST.
+  "2026-06-18|czechia": {
+    utc: "2026-06-18T16:00:00.000Z",
+    sources: ["fifa.com", "google.com", "livescore.com", "kickoffclock.com", "flashscore.com"],
+  },
+  // South Africa vs South Korea — WC 2026, Estadio BBVA, Monterrey.
+  // Wed 24 Jun 21:00 ET = Thu 25 Jun 01:00 UTC = Thu 25 Jun 03:00 SAST.
+  "2026-06-25|southkorea": {
+    utc: "2026-06-25T01:00:00.000Z",
+    sources: ["fifa.com", "google.com", "livescore.com", "kickoffclock.com", "espn.com"],
+  },
+  "2026-06-25|korearepublic": {
+    utc: "2026-06-25T01:00:00.000Z",
+    sources: ["fifa.com", "google.com", "livescore.com", "kickoffclock.com", "espn.com"],
+  },
+  "2026-06-25|korea": {
+    utc: "2026-06-25T01:00:00.000Z",
+    sources: ["fifa.com", "google.com", "livescore.com", "kickoffclock.com", "espn.com"],
   },
 };
 

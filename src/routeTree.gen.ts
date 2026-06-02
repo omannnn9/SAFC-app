@@ -10,11 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FixturesRouteImport } from './routes/fixtures'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -30,11 +28,6 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -48,11 +41,6 @@ const PremiumRoute = PremiumRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FixturesRoute = FixturesRouteImport.update({
@@ -103,11 +91,9 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/fixtures': typeof FixturesRouteWithChildren
-  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/premium': typeof PremiumRoute
   '/register': typeof RegisterRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/fixtures/$id': typeof FixturesIdRoute
@@ -119,11 +105,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/fixtures': typeof FixturesRouteWithChildren
-  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/premium': typeof PremiumRoute
   '/register': typeof RegisterRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/fixtures/$id': typeof FixturesIdRoute
@@ -137,11 +121,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/fixtures': typeof FixturesRouteWithChildren
-  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/premium': typeof PremiumRoute
   '/register': typeof RegisterRoute
-  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/fixtures/$id': typeof FixturesIdRoute
@@ -155,11 +137,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/fixtures'
-    | '/forgot-password'
     | '/login'
     | '/premium'
     | '/register'
-    | '/reset-password'
     | '/signup'
     | '/profile'
     | '/fixtures/$id'
@@ -171,11 +151,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/fixtures'
-    | '/forgot-password'
     | '/login'
     | '/premium'
     | '/register'
-    | '/reset-password'
     | '/signup'
     | '/profile'
     | '/fixtures/$id'
@@ -188,11 +166,9 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/fixtures'
-    | '/forgot-password'
     | '/login'
     | '/premium'
     | '/register'
-    | '/reset-password'
     | '/signup'
     | '/_authenticated/profile'
     | '/fixtures/$id'
@@ -206,11 +182,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   FixturesRoute: typeof FixturesRouteWithChildren
-  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PremiumRoute: typeof PremiumRoute
   RegisterRoute: typeof RegisterRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   NewsSlugRoute: typeof NewsSlugRoute
   SquadIdRoute: typeof SquadIdRoute
@@ -225,13 +199,6 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -253,13 +220,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fixtures': {
@@ -356,11 +316,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   FixturesRoute: FixturesRouteWithChildren,
-  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PremiumRoute: PremiumRoute,
   RegisterRoute: RegisterRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   NewsSlugRoute: NewsSlugRoute,
   SquadIdRoute: SquadIdRoute,
