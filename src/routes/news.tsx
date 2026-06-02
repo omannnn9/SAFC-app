@@ -121,11 +121,14 @@ function HeroArticle({ a }: { a: Article }) {
         className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-110"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-      {a.is_premium && (
-        <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full shimmer-gold px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-black">
-          <Lock className="h-3 w-3" /> Premium
-        </div>
-      )}
+      <div className="absolute right-3 top-3 flex items-center gap-2">
+        <RelevanceBadge r={a.relevance} />
+        {a.is_premium && (
+          <div className="inline-flex items-center gap-1 rounded-full shimmer-gold px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-black">
+            <Lock className="h-3 w-3" /> Premium
+          </div>
+        )}
+      </div>
       <div className="absolute inset-x-0 bottom-0 p-5">
         <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
           Featured · {a.category}
