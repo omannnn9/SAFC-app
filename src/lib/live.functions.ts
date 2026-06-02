@@ -820,6 +820,7 @@ function isValidImageUrl(url: string | null | undefined): url is string {
   if (!/^https?:\/\//i.test(url)) return false;
   if (/\/(1x1|spacer|pixel|blank)\.(gif|png)/i.test(url)) return false;
   if (/doubleclick|adservice|googlesyndication/i.test(url)) return false;
+  if (/yahoo/i.test(url)) return false; // hard blocklist
   return true;
 }
 
