@@ -323,12 +323,35 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
 });
 
 export const getLivePastMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v5-sa-team-id", 60 * 30, async () => {
-    const res = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&last=10`)) as AFFixture[];
-    const filtered = onlySAFixtures(res).sort(
-      (a, b) => new Date(b.fixture.date).getTime() - new Date(a.fixture.date).getTime(),
+  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v6-season-fallback", 60 * 30, async () => {
+    const accessibleSeasons = [2024, 2023, 2022];
+    const seasonResults = await Promise.all(
+      accessibleSeasons.map(async (season) => {
+        try {
+          const fixtures = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&season=${season}&status=FT`)) as AFFixture[];
+          return { ok: true, fixtures };
+        } catch (err) {
+          console.error(`[live] past season ${season} failed:`, err);
+          return { ok: false, fixtures: [] as AFFixture[] };
+        }
+      }),
     );
-    console.log(`[live] past: ${res.length} raw → ${filtered.length} SA-only`);
+
+    if (!seasonResults.some((result) => result.ok)) {
+      throw new Error("Unable to load past fixtures from API-Football");
+    }
+
+    const raw = seasonResults.flatMap((result) => result.fixtures);
+    if (raw.length === 0) {
+      throw new Error("API-Football returned no completed fixtures for accessible seasons");
+    }
+
+    const filtered = onlySAFixtures(raw)
+      .filter((f) => f.goals.home != null && f.goals.away != null)
+      .sort((a, b) => new Date(b.fixture.date).getTime() - new Date(a.fixture.date).getTime())
+      .slice(0, 10);
+
+    console.log(`[live] past: ${raw.length} raw season fixtures → ${filtered.length} SA-only completed`);
     return filtered.map(mapFixture);
   });
 });
