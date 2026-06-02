@@ -21,12 +21,16 @@ const CATEGORIES: { key: Article["category"] | "all"; label: string }[] = [
 
 function NewsPage() {
   const [cat, setCat] = useState<(typeof CATEGORIES)[number]["key"]>("all");
+  const [highOnly, setHighOnly] = useState(true);
   const { data, isLoading } = useQuery({
     queryKey: ["news", cat],
     queryFn: () => getNews(cat === "all" ? undefined : cat),
+    refetchInterval: 1000 * 60 * 20,
+    staleTime: 1000 * 60 * 15,
   });
 
-  const [hero, ...rest] = data ?? [];
+  const filtered = (data ?? []).filter((a) => (highOnly ? a.relevance === "high" : true));
+  const [hero, ...rest] = filtered.length ? filtered : (data ?? []);
 
   return (
     <PageContainer>
@@ -52,13 +56,24 @@ function NewsPage() {
             {c.label}
           </button>
         ))}
+        <button
+          onClick={() => setHighOnly((v) => !v)}
+          className={`ml-auto shrink-0 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${
+            highOnly
+              ? "bg-primary/20 text-primary ring-1 ring-primary/40"
+              : "glass text-muted-foreground"
+          }`}
+          title="Show only high-relevance Bafana stories"
+        >
+          {highOnly ? "Top stories" : "All"}
+        </button>
       </div>
 
       <div className="space-y-4 px-4 pt-3">
         {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
-        {!isLoading && (data?.length ?? 0) === 0 && (
+        {!isLoading && filtered.length === 0 && (
           <div className="glass rounded-xl p-6 text-center text-sm text-muted-foreground">
-            No articles yet.
+            {highOnly ? "No high-relevance stories right now." : "No articles yet."}
           </div>
         )}
 
