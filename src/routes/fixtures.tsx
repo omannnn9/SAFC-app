@@ -5,6 +5,7 @@ import { MapPin } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { getUpcomingMatches, getPastMatches, type Match } from "@/lib/data";
+import { nameToFlag } from "@/lib/flags";
 
 export const Route = createFileRoute("/fixtures")({
   head: () => ({ meta: [{ title: "Fixtures & Results — Bafana" }] }),
