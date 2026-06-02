@@ -1,84 +1,50 @@
-# Bafana Supporters Club — Full PWA Build Plan
+## Web Push Notifications
 
-Extend the existing homepage into a complete mobile-first PWA with auth, content modules, and premium subscriptions. Maintain the Modern Minimalist Premium design system (SA green/gold/black, Inter Tight + Inter).
+Browser/PWA push notifications with five trigger types. Delivered via the standard Web Push protocol (works on desktop Chrome/Firefox/Edge, Android, and iOS 16.4+ when installed to Home Screen).
 
-## Phase 1 — Backend Foundation (Lovable Cloud)
+### What you'll get
 
-Enable Lovable Cloud and create schema:
-- `profiles` (id → auth.users, full_name, phone, country, premium boolean, premium_until)
-- `user_roles` + `app_role` enum + `has_role()` security definer (admin/user)
-- `players` (name, position, club, jersey_number, caps, goals, photo_url, bio, stats jsonb)
-- `matches` (opponent, kickoff, venue, competition, home boolean, home_score, away_score, status)
-- `news_articles` (title, slug, category, excerpt, body, cover_url, published_at, author_id)
-- `bookmarks` (user_id, article_id)
-- `subscriptions` (user_id, status, plan, current_period_end)
-- `payments` (user_id, amount, status, provider_ref) — tokenized only
+1. **Notification bell** in the app header — users tap once to enable notifications, browser asks permission, done. A second tap unsubscribes.
+2. **A `/notifications` settings page** (under account) to toggle individual categories: kick-off, goals, full-time, squad, articles.
+3. **Five automatic triggers**:
+   - **Kick-off starting** — fires 15 min before kickoff (cron every 5 min)
+   - **Goal scored** — fires when API-Football score changes during a live match (cron every 30s while a Bafana match is live)
+   - **Full-time result** — fires when match status flips to FT
+   - **Squad announced** — admin-triggered button on the squad page (sends to all subscribers)
+   - **New article published** — cron every 10 min detects new articles vs the `seen_articles` table
 
-RLS on all tables, GRANTs to authenticated/service_role, public read on players/matches/news.
+### Technical bits
 
-Seed sample data (squad of ~23 players, 4–6 fixtures, 6 news articles).
+- **VAPID keys** auto-generated on first server boot and persisted to a new `app_config` table — no manual secret setup needed.
+- **Service worker** at `/sw.js` handles `push` event and click-through to relevant route (`/fixtures/$id`, `/news/$slug`, etc.).
+- **Web push delivery** done manually via fetch + JWT (ES256 signed with `jose`) — no Node-only `web-push` package, fully Worker-compatible.
+- **New tables**:
+  - `push_subscriptions` (user_id, endpoint UNIQUE, p256dh, auth, prefs jsonb, created_at)
+  - `notification_log` (dedup_key PK, sent_at) — prevents duplicate sends (e.g. same goal fired twice)
+  - `match_state` (fixture_id PK, status, home_score, away_score) — for goal/FT diffing
+  - `seen_articles` (url PK, title, published_at) — for new-article detection
+  - `app_config` (key PK, value jsonb) — stores VAPID keypair
+- **Cron jobs** (pg_cron + pg_net) call `/api/public/hooks/*` routes:
+  - `/api/public/hooks/match-poll` every 30s
+  - `/api/public/hooks/kickoff-reminder` every 5 min
+  - `/api/public/hooks/article-poll` every 10 min
+- **Files added** (~12):
+  - `public/sw.js` — service worker
+  - `src/lib/push.server.ts` — VAPID, encryption, fetch-based send
+  - `src/lib/push.functions.ts` — subscribe/unsubscribe/sendToAll server fns
+  - `src/lib/vapid.server.ts` — keypair generation + persistence
+  - `src/components/NotificationBell.tsx` — header bell button
+  - `src/routes/_authenticated/notifications.tsx` — preferences page
+  - `src/routes/api/public/hooks/match-poll.ts`
+  - `src/routes/api/public/hooks/kickoff-reminder.ts`
+  - `src/routes/api/public/hooks/article-poll.ts`
+  - + migration, manifest update (add `gcm_sender_id` not needed), admin "Send squad alert" button
 
-## Phase 2 — Auth System
+### Caveats
 
-- Email/password + Google sign-in (via Lovable broker)
-- `/login`, `/signup` (Full name, email, password, phone, country=ZA), `/forgot-password`, `/reset-password`
-- `_authenticated` layout route with redirect guard
-- Root `onAuthStateChange` listener for cache invalidation
-- `auth-attacher` wired in `src/start.ts`
+- **iOS**: only fires when the user has added the app to their Home Screen (Apple's restriction, not ours).
+- **Goal detection lag**: API-Football is ~30–60s behind broadcast, so notifications arrive a minute after the actual goal — same as every football app.
+- **30s polling cost**: only active when a Bafana match is currently live (between kickoff and FT). Off the rest of the time, so it's cheap.
+- **Admin role**: "Send squad alert" button only shows for users with `admin` role (you can grant yourself via SQL or I can add a quick admin grant).
 
-## Phase 3 — App Shell & Navigation
-
-- Sticky bottom nav: Home / News / Squad / Fixtures / Premium
-- Top bar with logo + profile avatar (links to /profile)
-- Mobile-first; desktop gets centered max-width container
-- PWA manifest only (no service worker per Lovable PWA policy) — installable
-
-## Phase 4 — Feature Routes
-
-```
-/                  Home (refined: countdown, announcement, CTA, quick stats, featured player, news strip)
-/news              News feed with category filters (Team/Match/Player/Supporter)
-/news/$slug        Article page + bookmark button
-/squad             Player grid + position filter
-/squad/$id         Player profile (photo, stats, bio)
-/fixtures          Upcoming + past tabs
-/fixtures/$id      Match detail (lineups, highlights placeholder)
-/premium           Bafana Premium Pass landing + checkout CTA
-/_authenticated/profile   Profile, membership status, digital card w/ QR, payment history
-/_authenticated/checkout  Stripe checkout (seamless Stripe payments)
-/login /signup /forgot-password /reset-password
-```
-
-Server fns (`*.functions.ts`) for: getNews, getArticle, getPlayers, getPlayer, getFixtures, getMatch, toggleBookmark, getProfile, getSubscriptionStatus.
-
-## Phase 5 — Premium Subscription
-
-- Single plan: **Bafana Premium Pass** (monthly)
-- Lovable seamless Stripe payments (`enable_stripe_payments`)
-- Subscription gate util: `requirePremium()` server-side, `<PremiumGate>` UI
-- Premium badge on profile + digital card
-
-## Phase 6 — Notifications (PWA-ready stub)
-
-- In-app notifications bell + dropdown (DB-backed `notifications` table)
-- Browser push placeholder (no SW per Lovable policy unless user requests)
-
-## Design tokens (already in styles.css)
-
-Extend with: bottom nav surface, premium gold gradient, match-card variants (home/away), badge styles.
-
----
-
-## Scope check before I start
-
-This is a very large build (~30+ files, ~6 DB tables, auth, payments). I'll proceed in this order so you can review along the way:
-
-1. **Cloud + DB schema + seed data**
-2. **Auth + app shell + bottom nav**
-3. **Home / News / Squad / Fixtures** (read-only modules)
-4. **Profile + Premium (Stripe enable + checkout)**
-5. **Bookmarks + notifications + polish**
-
-I'll skip the admin portal in this pass (you can request it after — it's another large module). Notifications will be in-app only (no native push — requires service worker which conflicts with Lovable's preview).
-
-Confirm and I'll begin with Phase 1.
+Proceed?

@@ -19,6 +19,7 @@ import {
   X,
   Loader2,
   CheckCircle2,
+  Bell,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/profile")({
@@ -187,6 +188,12 @@ function ProfilePage() {
             icon={<Crown className="h-4 w-4" />}
             label={isPremium ? "Manage subscription" : "View premium plans"}
             hint={isPremium ? "Premium Pass · Active" : "Unlock VIP perks"}
+          />
+          <RowLink
+            to="/notifications"
+            icon={<Bell className="h-4 w-4" />}
+            label="Notifications"
+            hint="Goals, kick-off, news alerts"
           />
           <RowLink
             to="/premium"

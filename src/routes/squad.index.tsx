@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
+import { SquadAdminBroadcast } from "@/components/SquadAdminBroadcast";
 import { getManager, getPlayers, type Manager, type Player } from "@/lib/data";
 
 export const Route = createFileRoute("/squad/")({
@@ -36,6 +37,10 @@ function SquadPage() {
       </div>
 
       {manager && <ManagerCard manager={manager} />}
+
+      <SquadAdminBroadcast />
+
+
 
       <div className="scrollbar-none mt-4 flex gap-2 overflow-x-auto px-4 pb-2">
         {FILTERS.map((f) => (

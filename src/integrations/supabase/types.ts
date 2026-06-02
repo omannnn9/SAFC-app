@@ -35,6 +35,24 @@ export type Database = {
         }
         Relationships: []
       }
+      app_config: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       bookmarks: {
         Row: {
           article_id: string
@@ -63,6 +81,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      match_state: {
+        Row: {
+          away_score: number | null
+          fixture_id: string
+          home_score: number | null
+          opponent: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          away_score?: number | null
+          fixture_id: string
+          home_score?: number | null
+          opponent?: string | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          away_score?: number | null
+          fixture_id?: string
+          home_score?: number | null
+          opponent?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       matches: {
         Row: {
@@ -148,6 +193,21 @@ export type Database = {
           published_at?: string
           slug?: string
           title?: string
+        }
+        Relationships: []
+      }
+      notification_log: {
+        Row: {
+          dedup_key: string
+          sent_at: string
+        }
+        Insert: {
+          dedup_key: string
+          sent_at?: string
+        }
+        Update: {
+          dedup_key?: string
+          sent_at?: string
         }
         Relationships: []
       }
@@ -295,6 +355,60 @@ export type Database = {
           phone?: string | null
           premium_until?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          prefs: Json
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          prefs?: Json
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          prefs?: Json
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      seen_articles: {
+        Row: {
+          seen_at: string
+          title: string | null
+          url: string
+        }
+        Insert: {
+          seen_at?: string
+          title?: string | null
+          url: string
+        }
+        Update: {
+          seen_at?: string
+          title?: string | null
+          url?: string
         }
         Relationships: []
       }
