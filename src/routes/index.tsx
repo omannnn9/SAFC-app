@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, MapPin, Trophy, Sparkles, CalendarDays, History } from "lucide-react";
+import { ArrowRight, MapPin, Trophy, Activity, CalendarDays, History, Lightbulb } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
-import { SignupBadge } from "@/components/SignupBadge";
 import { getNextMatch, getNews, getFeaturedPlayer } from "@/lib/data";
 
 import { getLivePastMatches } from "@/lib/live.functions";
