@@ -122,6 +122,16 @@ function mapFixture(f: AFFixture): LiveMatch {
     venue: f.fixture.venue?.name ?? "TBD",
     competition: f.league.name,
     is_home: isHome,
+    home_team: {
+      id: f.teams.home.id,
+      name: f.teams.home.name,
+      logo: f.teams.home.logo ?? teamLogo(f.teams.home.id),
+    },
+    away_team: {
+      id: f.teams.away.id,
+      name: f.teams.away.name,
+      logo: f.teams.away.logo ?? teamLogo(f.teams.away.id),
+    },
     home_score: f.goals.home,
     away_score: f.goals.away,
     status,
