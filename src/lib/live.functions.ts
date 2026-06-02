@@ -656,12 +656,12 @@ async function fetchNewsApi(): Promise<RawArticle[]> {
   }
 }
 
+// Strict fallback set — ONLY SAFA/SA-related visuals, no random stock club shots.
+const SA_TEAM_LOGO = `https://media.api-sports.io/football/teams/${SA_TEAM_ID}.png`;
 const NEWS_FALLBACK_IMAGES = {
-  match: "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=1200&q=80",
-  player: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=80",
-  team: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1200&q=80",
+  // Stadium / generic SA national team fallback (last resort).
   stadium: "https://images.unsplash.com/photo-1540552965303-1ee5b5d6a8ae?w=1200&q=80",
-  default: `https://media.api-sports.io/football/teams/${SA_TEAM_ID}.png`,
+  team: SA_TEAM_LOGO,
 } as const;
 
 function categorize(hay: string): LiveArticle["category"] {
@@ -671,15 +671,58 @@ function categorize(hay: string): LiveArticle["category"] {
   return "team";
 }
 
-function resolveImage(category: LiveArticle["category"], articleImage: string | null): string {
-  if (articleImage) return articleImage;
-  const map: Record<LiveArticle["category"], string> = {
-    match: NEWS_FALLBACK_IMAGES.match,
-    player: NEWS_FALLBACK_IMAGES.player,
-    team: NEWS_FALLBACK_IMAGES.team,
-    supporter: NEWS_FALLBACK_IMAGES.stadium,
-  };
-  return map[category] ?? NEWS_FALLBACK_IMAGES.default;
+/** Reject obviously invalid image URLs (non-http, tracking pixels, 1x1 spacers). */
+function isValidImageUrl(url: string | null | undefined): url is string {
+  if (!url) return false;
+  if (!/^https?:\/\//i.test(url)) return false;
+  if (/\/(1x1|spacer|pixel|blank)\.(gif|png)/i.test(url)) return false;
+  if (/doubleclick|adservice|googlesyndication/i.test(url)) return false;
+  return true;
+}
+
+type ImageCtx = {
+  players: Array<{ name: string; photo: string | null }>;
+  opponents: Array<{ name: string; logo: string | null }>;
+};
+
+/**
+ * Hardened image resolution — strict priority order:
+ *   1. Valid article image from source (RSS/og:image)
+ *   2. Player photo if article mentions a squad player
+ *   3. Opponent team logo if article mentions an upcoming opponent
+ *   4. SA national team logo if article mentions Bafana / South Africa
+ *   5. Generic stadium fallback (LAST RESORT — SA-related only)
+ */
+function resolveImage(
+  articleImage: string | null,
+  hay: string,
+  imgCtx: ImageCtx,
+): string {
+  // P1: trust the article's own image if it looks valid.
+  if (isValidImageUrl(articleImage)) return articleImage;
+
+  const lower = hay.toLowerCase();
+
+  // P2: player entity match → player photo.
+  for (const p of imgCtx.players) {
+    const last = p.name.split(/\s+/).slice(-1)[0]?.toLowerCase();
+    if (last && last.length > 3 && lower.includes(last) && isValidImageUrl(p.photo)) {
+      return p.photo;
+    }
+  }
+
+  // P3: upcoming opponent entity match → team logo.
+  for (const o of imgCtx.opponents) {
+    if (o.name && lower.includes(o.name.toLowerCase()) && isValidImageUrl(o.logo)) {
+      return o.logo;
+    }
+  }
+
+  // P4: Bafana / South Africa mention → SA national team logo.
+  if (/(bafana|south africa|safa)/i.test(hay)) return SA_TEAM_LOGO;
+
+  // P5: generic SA stadium fallback.
+  return NEWS_FALLBACK_IMAGES.stadium;
 }
 
 // Reject obvious club-only items unless they also mention Bafana / SA.
@@ -689,6 +732,7 @@ const SA_CONTEXT = /(bafana|safa|south africa(n)?\s+(national|men'?s|football|so
 type ScoreCtx = {
   playerNames: string[];
   upcomingOpponents: string[];
+  imgCtx: ImageCtx;
 };
 
 function scoreArticle(a: RawArticle, ctx: ScoreCtx): { score: number; matched: string[] } {
@@ -705,7 +749,7 @@ function scoreArticle(a: RawArticle, ctx: ScoreCtx): { score: number; matched: s
     if (last && last.length > 3 && hay.includes(last)) {
       score += 40;
       matched.push(name);
-      break; // cap one player bonus
+      break;
     }
   }
   for (const opp of ctx.upcomingOpponents) {
@@ -719,7 +763,6 @@ function scoreArticle(a: RawArticle, ctx: ScoreCtx): { score: number; matched: s
     score += 20;
     matched.push(a.source);
   }
-  // Recency: +10 if <24h, +5 if <3d
   const ageH = (Date.now() - new Date(a.publishedAt).getTime()) / 36e5;
   if (ageH < 24) score += 10;
   else if (ageH < 72) score += 5;
@@ -738,14 +781,27 @@ function dedupeByTitle<T extends { title: string; url: string }>(list: T[]): T[]
 }
 
 async function buildScoreContext(): Promise<ScoreCtx> {
-  const ctx: ScoreCtx = { playerNames: [], upcomingOpponents: [] };
+  const ctx: ScoreCtx = {
+    playerNames: [],
+    upcomingOpponents: [],
+    imgCtx: { players: [], opponents: [] },
+  };
   try {
     const squad = await readCache<LivePlayer[]>(`af:squad:${CURRENT_SEASON}:v8-api-headshots`);
-    if (squad?.payload) ctx.playerNames = squad.payload.map((p) => p.name);
+    if (squad?.payload) {
+      ctx.playerNames = squad.payload.map((p) => p.name);
+      ctx.imgCtx.players = squad.payload.map((p) => ({ name: p.name, photo: p.photo_url }));
+    }
   } catch { /* noop */ }
   try {
     const up = await readCache<LiveMatch[]>("af:fixtures:next:10:v7-sa-team-id");
-    if (up?.payload) ctx.upcomingOpponents = up.payload.map((m) => m.opponent);
+    if (up?.payload) {
+      ctx.upcomingOpponents = up.payload.map((m) => m.opponent);
+      ctx.imgCtx.opponents = up.payload.map((m) => ({
+        name: m.opponent,
+        logo: m.cover_url ?? m.opponent_flag,
+      }));
+    }
   } catch { /* noop */ }
   return ctx;
 }
