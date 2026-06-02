@@ -147,7 +147,22 @@ function HomePage() {
       {/* HERO — Stadium broadcast */}
       <section className="relative noise overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img src={heroPlayer} alt="" className="slow-zoom h-[540px] w-full object-cover" />
+          <div className="relative h-[540px] w-full overflow-hidden">
+            {HERO_IMAGES.map((src, i) => (
+              <img
+                key={src}
+                src={src}
+                alt=""
+                aria-hidden="true"
+                className={`slow-zoom absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-[1600ms] ease-in-out ${
+                  i === heroIdx ? "opacity-100" : "opacity-0"
+                }`}
+                style={{ willChange: "opacity" }}
+                loading={i === 0 ? "eager" : "lazy"}
+                decoding="async"
+              />
+            ))}
+          </div>
           <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/55 to-background" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_20%,color-mix(in_oklab,var(--sa-gold)_22%,transparent),transparent_70%)]" />
           <div
