@@ -10,7 +10,6 @@ import { getLivePastMatches } from "@/lib/live.functions";
 import { useAuth } from "@/lib/auth";
 import heroPlayer from "@/assets/hero-player.jpg";
 import playerTau from "@/assets/player-tau.jpg";
-import playerTau from "@/assets/player-tau.jpg";
 
 
 export const Route = createFileRoute("/")({
