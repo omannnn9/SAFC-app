@@ -5,7 +5,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { getManager, getPlayers, type Manager, type Player } from "@/lib/data";
 
-export const Route = createFileRoute("/squad")({
+export const Route = createFileRoute("/squad/")({
   head: () => ({ meta: [{ title: "Squad — Bafana Bafana" }] }),
   component: SquadPage,
 });
