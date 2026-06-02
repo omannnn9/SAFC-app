@@ -203,6 +203,37 @@ function onlySAFixtures(list: AFFixture[]): AFFixture[] {
   return list.filter(validFixture);
 }
 
+const VERIFIED_RECENT_COMPLETED_MATCHES: LiveMatch[] = [
+  verifyFixtureTeams(
+    {
+      id: "verified-2026-05-29-nicaragua",
+      opponent: "Nicaragua",
+      opponent_flag: null,
+      cover_url: null,
+      kickoff: "2026-05-29T18:30:00+02:00",
+      venue: "Orlando Stadium",
+      competition: "International Friendly",
+      is_home: true,
+      home_team: {
+        id: SA_TEAM_ID,
+        name: "South Africa",
+        logo: teamLogo(SA_TEAM_ID),
+        country_code: "ZA",
+      },
+      away_team: {
+        id: null,
+        name: "Nicaragua",
+        logo: null,
+        country_code: "NI",
+      },
+      home_score: 0,
+      away_score: 0,
+      status: "completed",
+    },
+    "verified-result",
+  ),
+];
+
 // Build a synthetic LiveMatch from a SAFA-only fixture (when API-Football
 // hasn't published it yet). SAFA is the authoritative source for upcoming
 // Bafana matches, so we surface it even without API data.
@@ -323,7 +354,7 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
 });
 
 export const getLivePastMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v6-season-fallback", 60 * 30, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v8-verified-recent", 60 * 30, async () => {
     const accessibleSeasons = [2024, 2023, 2022];
     const seasonResults = await Promise.all(
       accessibleSeasons.map(async (season) => {
@@ -351,8 +382,23 @@ export const getLivePastMatches = createServerFn({ method: "GET" }).handler(asyn
       .sort((a, b) => new Date(b.fixture.date).getTime() - new Date(a.fixture.date).getTime())
       .slice(0, 10);
 
-    console.log(`[live] past: ${raw.length} raw season fixtures → ${filtered.length} SA-only completed`);
-    return filtered.map(mapFixture);
+    const apiMatches = filtered.map(mapFixture);
+    const verifiedMatches = VERIFIED_RECENT_COMPLETED_MATCHES.filter(
+      (match) => new Date(match.kickoff).getTime() <= Date.now(),
+    );
+    const seen = new Set<string>();
+    const merged = [...verifiedMatches, ...apiMatches]
+      .filter((match) => {
+        const key = `${match.kickoff.slice(0, 10)}|${normalizeName(match.opponent)}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => new Date(b.kickoff).getTime() - new Date(a.kickoff).getTime())
+      .slice(0, 10);
+
+    console.log(`[live] past: ${raw.length} raw season fixtures → ${merged.length} merged completed`);
+    return merged;
   });
 });
 
