@@ -65,7 +65,6 @@ function ProfilePage() {
         day: "numeric",
         month: "long",
         year: "numeric",
-,
       })
 
     : "—";
@@ -140,7 +139,6 @@ function ProfilePage() {
                 day: "numeric",
                 month: "short",
                 year: "numeric",
-,
               })}
 
             />

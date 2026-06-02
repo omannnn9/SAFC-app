@@ -114,7 +114,6 @@ function ArticlePage() {
               day: "numeric",
               month: "long",
               year: "numeric",
-,
             })}
 
             {article.source && <span className="ml-2">· {article.source}</span>}

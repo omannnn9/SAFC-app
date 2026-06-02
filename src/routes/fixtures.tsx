@@ -103,7 +103,6 @@ function MatchCard({ m, live }: { m: Match; live?: boolean }) {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-,
   });
   return (
     <Link
