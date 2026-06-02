@@ -87,23 +87,12 @@ function MatchPage() {
   );
 }
 
-function Side({ logo, name }: { logo: string | null; name: string }) {
-  const [imgFailed, setImgFailed] = useState(false);
+function Side({ name }: { logo?: string | null; name: string }) {
   const flag = nameToFlag(name);
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-xl bg-black/40">
-        {logo && !imgFailed ? (
-          <img
-            src={logo}
-            alt={name}
-            loading="lazy"
-            className="h-14 w-14 object-contain"
-            onError={() => setImgFailed(true)}
-          />
-        ) : (
-          <span className="text-3xl leading-none">{flag}</span>
-        )}
+      <div className="grid h-16 w-16 place-items-center rounded-xl bg-black/40">
+        <span className="text-3xl leading-none">{flag}</span>
       </div>
       <div className="max-w-[90px] text-center text-xs font-semibold">{name}</div>
     </div>
