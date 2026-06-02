@@ -38,11 +38,11 @@ type ApiFixture = {
 
 async function isMatchLikelyLive(): Promise<boolean> {
   try {
-    const fixtures = await fetchSafaUpcomingFixtures();
+    const res = await getLiveUpcomingMatches();
+    const fixtures = res.data ?? [];
     const now = Date.now();
     return fixtures.some((f) => {
-      const verified = verifyKickoff(f);
-      const ko = new Date(verified.kickoff).getTime();
+      const ko = new Date(f.kickoff).getTime();
       return now >= ko - 5 * 60 * 1000 && now <= ko + 3 * 60 * 60 * 1000;
     });
   } catch {
