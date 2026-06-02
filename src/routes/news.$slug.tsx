@@ -5,6 +5,7 @@ import { Lock, Bookmark, ArrowLeft, ExternalLink, Clock } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { getArticle, getNews, type Article } from "@/lib/data";
+import { getArticleContent } from "@/lib/news.functions";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
