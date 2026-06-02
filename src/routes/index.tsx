@@ -388,27 +388,61 @@ function TeamBadge({ name, logo, accent }: { name: string; logo?: string | null;
 }
 
 
-function InsightCard({
+type Tint = "green" | "blue" | "gold" | "red";
+
+const TINT_STYLES: Record<Tint, { bg: string; ring: string; label: string; chip: string }> = {
+  green: {
+    bg: "bg-[linear-gradient(135deg,oklch(0.45_0.14_155)_0%,oklch(0.32_0.12_155)_100%)]",
+    ring: "shadow-[0_18px_40px_-12px_oklch(0.45_0.14_155_/_0.55)]",
+    label: "text-white/80",
+    chip: "bg-white/15 text-white",
+  },
+  blue: {
+    bg: "bg-[linear-gradient(135deg,oklch(0.48_0.16_245)_0%,oklch(0.28_0.13_255)_100%)]",
+    ring: "shadow-[0_18px_40px_-12px_oklch(0.48_0.16_245_/_0.55)]",
+    label: "text-white/80",
+    chip: "bg-white/15 text-white",
+  },
+  gold: {
+    bg: "bg-[linear-gradient(135deg,oklch(0.88_0.18_90)_0%,oklch(0.72_0.18_70)_100%)]",
+    ring: "shadow-[0_18px_40px_-12px_oklch(0.78_0.18_85_/_0.65)]",
+    label: "text-black/70",
+    chip: "bg-black/15 text-black",
+  },
+  red: {
+    bg: "bg-[linear-gradient(135deg,oklch(0.55_0.22_25)_0%,oklch(0.38_0.18_15)_100%)]",
+    ring: "shadow-[0_18px_40px_-12px_oklch(0.55_0.22_25_/_0.55)]",
+    label: "text-white/80",
+    chip: "bg-white/15 text-white",
+  },
+};
+
+function PremiumCard({
   icon,
   label,
+  tint,
   children,
 }: {
   icon: React.ReactNode;
   label: string;
+  tint: Tint;
   children: React.ReactNode;
 }) {
+  const t = TINT_STYLES[tint];
   return (
-    <div className="glass relative rounded-2xl border border-border/60 bg-surface/40 p-4 shadow-[var(--shadow-card-lift)] min-h-[120px] flex flex-col">
-      <div className="mb-2 flex items-center gap-2">
-        <div className="grid h-6 w-6 place-items-center rounded-md bg-[color:var(--sa-gold)]/15 text-[color:var(--sa-gold)]">
-          {icon}
-        </div>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+    <div
+      className={`relative overflow-hidden rounded-2xl p-5 min-h-[150px] flex flex-col ring-1 ring-white/10 ${t.bg} ${t.ring}`}
+    >
+      <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+      <div className="relative mb-3 flex items-center gap-2">
+        <div className={`grid h-7 w-7 place-items-center rounded-lg ${t.chip}`}>{icon}</div>
+        <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${t.label}`}>
           {label}
         </span>
       </div>
-      <div className="flex-1">{children}</div>
+      <div className="relative flex-1">{children}</div>
     </div>
   );
 }
+
 
