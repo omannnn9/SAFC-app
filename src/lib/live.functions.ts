@@ -139,29 +139,32 @@ function mapFixture(f: AFFixture): LiveMatch {
       : ["1H", "2H", "HT", "ET", "P", "LIVE"].includes(ftStatus)
         ? "live"
         : "completed";
-  return {
-    id: `af-${f.fixture.id}`,
-    opponent: opponent.name,
-    opponent_flag: opponent.logo ?? teamLogo(opponent.id),
-    cover_url: opponent.logo ?? teamLogo(opponent.id),
-    kickoff: f.fixture.date,
-    venue: f.fixture.venue?.name ?? "TBD",
-    competition: f.league.name,
-    is_home: isHome,
-    home_team: {
-      id: f.teams.home.id,
-      name: f.teams.home.name,
-      logo: f.teams.home.logo ?? teamLogo(f.teams.home.id),
+  return verifyFixtureTeams(
+    {
+      id: `af-${f.fixture.id}`,
+      opponent: opponent.name,
+      opponent_flag: opponent.logo ?? teamLogo(opponent.id),
+      cover_url: opponent.logo ?? teamLogo(opponent.id),
+      kickoff: f.fixture.date,
+      venue: f.fixture.venue?.name ?? "TBD",
+      competition: f.league.name,
+      is_home: isHome,
+      home_team: {
+        id: f.teams.home.id,
+        name: f.teams.home.name,
+        logo: f.teams.home.logo ?? teamLogo(f.teams.home.id),
+      },
+      away_team: {
+        id: f.teams.away.id,
+        name: f.teams.away.name,
+        logo: f.teams.away.logo ?? teamLogo(f.teams.away.id),
+      },
+      home_score: f.goals.home,
+      away_score: f.goals.away,
+      status,
     },
-    away_team: {
-      id: f.teams.away.id,
-      name: f.teams.away.name,
-      logo: f.teams.away.logo ?? teamLogo(f.teams.away.id),
-    },
-    home_score: f.goals.home,
-    away_score: f.goals.away,
-    status,
-  };
+    "api-football",
+  );
 }
 
 // Validate: SA must be a participant, and league must be a national-team
