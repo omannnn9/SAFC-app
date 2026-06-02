@@ -36,7 +36,7 @@ function SignupPage() {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { full_name: fullName, favorite_team: favoriteTeam, country: "South Africa" },
+        data: { full_name: fullName, country: "South Africa" },
       },
     });
     setLoading(false);
