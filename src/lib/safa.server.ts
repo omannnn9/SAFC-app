@@ -148,7 +148,10 @@ function applyVerifiedKickoffs(fixtures: SafaFixture[]): SafaFixture[] {
  */
 export function verifyKickoff(opponent: string, kickoffIso: string): string {
   if (!kickoffIso) return kickoffIso;
-  const slug = normalize(opponent);
+  // NFD-strip diacritics so "México" matches "mexico".
+  const slug = normalize(
+    opponent.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+  );
   const d = new Date(kickoffIso);
   if (Number.isNaN(d.getTime())) return kickoffIso;
   const sastDay = d.toLocaleDateString("en-CA", { timeZone: "Africa/Johannesburg" });
