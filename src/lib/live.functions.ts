@@ -185,11 +185,18 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
     const fromApi = verified.map(mapFixture);
 
     // Step 3: include SAFA-only fixtures that API-Football hasn't published.
-    const apiKeys = new Set(fromApi.map((m) => `${m.kickoff.slice(0, 10)}|${normalizeName(m.opponent)}`));
+    const apiPairs = fromApi.map((m) => ({
+      day: m.kickoff.slice(0, 10),
+      opp: normalizeName(m.opponent),
+    }));
     const safaOnly = safa
       .filter((s) => {
-        const key = `${s.startUtc.slice(0, 10)}|${s.opponentSlug}`;
-        return !Array.from(apiKeys).some((k) => k.includes(s.opponentSlug) || s.opponentSlug.includes(k.split("|")[1]) ? k.slice(0, 10) === s.startUtc.slice(0, 10) : false) && !apiKeys.has(key);
+        const day = s.startUtc.slice(0, 10);
+        return !apiPairs.some(
+          (p) =>
+            p.day === day &&
+            (p.opp.includes(s.opponentSlug) || s.opponentSlug.includes(p.opp)),
+        );
       })
       .map(safaToLiveMatch);
 
