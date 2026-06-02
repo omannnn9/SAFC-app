@@ -69,6 +69,12 @@ async function apiFootball(path: string): Promise<unknown> {
 
 // ============= FIXTURES =============
 
+export type LiveTeam = {
+  id: number | null;
+  name: string;
+  logo: string | null;
+};
+
 export type LiveMatch = {
   id: string;
   opponent: string;
@@ -79,6 +85,8 @@ export type LiveMatch = {
   venue: string;
   competition: string;
   is_home: boolean;
+  home_team: LiveTeam;
+  away_team: LiveTeam;
   home_score: number | null;
   away_score: number | null;
   status: "upcoming" | "live" | "completed";
@@ -114,6 +122,16 @@ function mapFixture(f: AFFixture): LiveMatch {
     venue: f.fixture.venue?.name ?? "TBD",
     competition: f.league.name,
     is_home: isHome,
+    home_team: {
+      id: f.teams.home.id,
+      name: f.teams.home.name,
+      logo: f.teams.home.logo ?? teamLogo(f.teams.home.id),
+    },
+    away_team: {
+      id: f.teams.away.id,
+      name: f.teams.away.name,
+      logo: f.teams.away.logo ?? teamLogo(f.teams.away.id),
+    },
     home_score: f.goals.home,
     away_score: f.goals.away,
     status,
@@ -158,6 +176,16 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
     venue: s.location || "TBD",
     competition: s.summary.split(" - ")[1] ?? "International",
     is_home: isBafanaHome,
+    home_team: {
+      id: isBafanaHome ? SA_TEAM_ID : null,
+      name: isBafanaHome ? "South Africa" : opp,
+      logo: isBafanaHome ? teamLogo(SA_TEAM_ID) : null,
+    },
+    away_team: {
+      id: isBafanaHome ? null : SA_TEAM_ID,
+      name: isBafanaHome ? opp : "South Africa",
+      logo: isBafanaHome ? null : teamLogo(SA_TEAM_ID),
+    },
     home_score: null,
     away_score: null,
     status: "upcoming",

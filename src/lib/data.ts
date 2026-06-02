@@ -19,6 +19,12 @@ export type Player = {
   bio: string | null;
 };
 
+export type MatchTeam = {
+  id: number | null;
+  name: string;
+  logo: string | null;
+};
+
 export type Match = {
   id: string;
   opponent: string;
@@ -29,6 +35,8 @@ export type Match = {
   venue: string;
   competition: string;
   is_home: boolean;
+  home_team?: MatchTeam;
+  away_team?: MatchTeam;
   home_score: number | null;
   away_score: number | null;
   status: "upcoming" | "live" | "completed";

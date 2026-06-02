@@ -33,16 +33,21 @@ function MatchPage() {
       <section className="px-4 pt-4">
         <div className="text-[10px] uppercase tracking-[0.2em] text-primary">{m.competition}</div>
         <div className="mt-2 flex items-center justify-between rounded-2xl border border-primary/30 bg-gradient-to-br from-[var(--sa-green)]/40 via-black to-black p-5">
-          <Side flag="🇿🇦" name="South Africa" />
+          <Side
+            logo={m.home_team?.logo ?? (m.is_home ? "https://media.api-sports.io/football/teams/1097.png" : m.opponent_flag)}
+            name={m.home_team?.name ?? (m.is_home ? "South Africa" : m.opponent)}
+          />
           {m.status === "completed" ? (
             <div className="font-display text-4xl font-black tabular-nums">
-              {m.is_home ? m.home_score : m.away_score}–
-              {m.is_home ? m.away_score : m.home_score}
+              {m.home_score}–{m.away_score}
             </div>
           ) : (
             <div className="font-display text-lg font-bold text-muted-foreground">VS</div>
           )}
-          <Side flag="🏳️" name={m.opponent} />
+          <Side
+            logo={m.away_team?.logo ?? (m.is_home ? m.opponent_flag : "https://media.api-sports.io/football/teams/1097.png")}
+            name={m.away_team?.name ?? (m.is_home ? m.opponent : "South Africa")}
+          />
         </div>
 
         <div className="mt-4 space-y-2 rounded-xl border border-border bg-surface/60 p-4 text-sm">
@@ -80,10 +85,22 @@ function MatchPage() {
   );
 }
 
-function Side({ flag, name }: { flag: string; name: string }) {
+function Side({ logo, name }: { logo: string | null; name: string }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="grid h-16 w-16 place-items-center rounded-xl bg-black/40 text-2xl">{flag}</div>
+      <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-xl bg-black/40">
+        {logo ? (
+          <img
+            src={logo}
+            alt={name}
+            loading="lazy"
+            className="h-14 w-14 object-contain"
+            onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+          />
+        ) : (
+          <span className="text-2xl">🏳️</span>
+        )}
+      </div>
       <div className="max-w-[90px] text-center text-xs font-semibold">{name}</div>
     </div>
   );
