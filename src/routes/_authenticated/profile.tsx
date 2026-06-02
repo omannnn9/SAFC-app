@@ -61,7 +61,7 @@ function ProfilePage() {
 
   const isPremium = !!profile?.is_premium;
   const joinDate = user?.created_at
-    ? new Date(user.created_at).toLocaleDateString("en-ZA", {
+    ? new Date(user.created_at).toLocaleDateString(undefined, {
         day: "numeric",
         month: "long",
         year: "numeric",
@@ -135,7 +135,7 @@ function ProfilePage() {
           {isPremium && profile?.premium_until && (
             <KV
               label="Renews"
-              value={new Date(profile.premium_until).toLocaleDateString("en-ZA", {
+              value={new Date(profile.premium_until).toLocaleDateString(undefined, {
                 day: "numeric",
                 month: "short",
                 year: "numeric",

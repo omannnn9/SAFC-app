@@ -110,7 +110,7 @@ function ArticlePage() {
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            {new Date(article.published_at).toLocaleDateString("en-ZA", {
+            {new Date(article.published_at).toLocaleDateString(undefined, {
               day: "numeric",
               month: "long",
               year: "numeric",
@@ -217,7 +217,7 @@ function RelatedCard({ a }: { a: Article }) {
         <div className="text-[10px] uppercase tracking-wider text-primary">{a.category}</div>
         <div className="line-clamp-2 font-display text-sm font-bold leading-snug">{a.title}</div>
         <div className="mt-1 text-[10px] text-muted-foreground">
-          {new Date(a.published_at).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })}
+          {new Date(a.published_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
           {a.source && ` · ${a.source}`}
         </div>
       </div>
