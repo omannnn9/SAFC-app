@@ -1,20 +1,37 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Crown, ChevronRight, Receipt, LogOut, Bell, Settings as Cog } from "lucide-react";
+import {
+  Crown,
+  ChevronRight,
+  Receipt,
+  LogOut,
+  User as UserIcon,
+  KeyRound,
+  Sparkles,
+  CalendarDays,
+  Mail,
+  X,
+  Loader2,
+  CheckCircle2,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/profile")({
-  head: () => ({ meta: [{ title: "Profile — Bafana" }] }),
+  head: () => ({ meta: [{ title: "Account — Bafana Supporters Club" }] }),
   component: ProfilePage,
 });
 
+type Dialog = null | "edit" | "password";
+
 function ProfilePage() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const [dialog, setDialog] = useState<Dialog>(null);
 
   const { data: payments } = useQuery({
     queryKey: ["payments", user?.id],
@@ -42,109 +59,135 @@ function ProfilePage() {
     navigate({ to: "/" });
   };
 
-  const tierLabel = profile?.is_premium ? "VIP" : "Bronze";
+  const isPremium = !!profile?.is_premium;
+  const joinDate = user?.created_at
+    ? new Date(user.created_at).toLocaleDateString("en-ZA", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "—";
 
   return (
     <PageContainer>
-      <AppHeader title="Profile" />
+      <AppHeader title="Account" />
 
-      {/* Digital Fan ID */}
+      {/* Hero */}
       <section className="px-4 pt-5">
         <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">
-          Digital Fan ID
+          My Account
         </div>
         <h1 className="mt-1 font-display text-3xl font-black tracking-tight">
-          Your <span className="text-gradient-gold">supporter card</span>
+          Manage your <span className="text-gradient-gold">membership</span>
         </h1>
       </section>
 
+      {/* Profile card */}
       <section className="px-4 pt-4">
-        <div
-          className={`noise relative overflow-hidden rounded-2xl p-5 ${
-            profile?.is_premium
-              ? "border border-primary/50 bg-gradient-to-br from-[oklch(0.2_0.06_85)] via-black to-black shadow-[var(--shadow-glow-gold)]"
-              : "border border-primary/20 bg-gradient-to-br from-[var(--sa-green)] via-black to-black shadow-[var(--shadow-glow-green)]"
-          }`}
-        >
-          {/* shimmer border */}
-          {profile?.is_premium && (
-            <div className="pointer-events-none absolute inset-0">
-              <div className="absolute inset-x-0 -top-px h-px shimmer-gold" />
-              <div className="absolute inset-x-0 -bottom-px h-px shimmer-gold" />
-            </div>
-          )}
-          <div className="absolute -top-12 -right-12 h-40 w-40 rounded-full bg-primary/25 blur-3xl breathe" />
-
-          <div className="relative flex items-start justify-between">
-            <div>
-              <div className="text-[9px] font-bold uppercase tracking-[0.24em] text-primary/90">
-                Bafana Supporters Club
-              </div>
-              <div className="mt-1.5 font-display text-2xl font-black leading-tight text-white">
-                {profile?.full_name || "Supporter"}
-              </div>
-              <div className="mt-0.5 text-[11px] text-white/60">{profile?.country || "South Africa"}</div>
-            </div>
+        <div className="glass relative overflow-hidden rounded-2xl p-5">
+          <div className="flex items-center gap-4">
             <div
-              className={`grid h-16 w-16 place-items-center rounded-full font-display text-xl font-black ${
-                profile?.is_premium
+              className={`grid h-16 w-16 shrink-0 place-items-center rounded-full font-display text-xl font-black ${
+                isPremium
                   ? "shimmer-gold text-black ring-glow-gold"
-                  : "bg-primary text-primary-foreground ring-glow-gold"
+                  : "bg-[var(--sa-green)] text-white"
               }`}
             >
               {initials}
             </div>
-          </div>
-
-          <div className="relative mt-6 flex items-end justify-between">
-            <div>
-              <div className="text-[9px] font-bold uppercase tracking-[0.22em] text-white/50">Tier</div>
-              <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-primary">
-                {profile?.is_premium && <Crown className="h-3 w-3" />} {tierLabel}
+            <div className="min-w-0 flex-1">
+              <div className="truncate font-display text-lg font-black">
+                {profile?.full_name || "Supporter"}
               </div>
-              <div className="mt-3 text-[9px] font-mono uppercase tracking-widest text-white/40">
-                ID · {(user?.id ?? "").slice(0, 8).toUpperCase()}
+              <div className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                <Mail className="h-3 w-3 shrink-0" />
+                <span className="truncate">{user?.email}</span>
+              </div>
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary">
+                {isPremium ? <Crown className="h-3 w-3" /> : <Sparkles className="h-3 w-3" />}{" "}
+                {isPremium ? "Premium Plan" : "Free Plan"}
               </div>
             </div>
-            <QrCodePlaceholder value={user?.id ?? ""} glow={!!profile?.is_premium} />
           </div>
         </div>
       </section>
 
-      {/* Fan stats */}
+      {/* Membership card */}
       <section className="mt-5 px-4">
-        <div className="grid grid-cols-3 gap-2">
-          <StatTile label="Matches" value="24" />
-          <StatTile label="Points" value="1.2K" />
-          <StatTile label="Streak" value="7d" />
+        <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+          Membership
+        </h2>
+        <div className="glass rounded-2xl p-4">
+          <KV label="Plan" value={isPremium ? "Premium Pass" : "Free"} />
+          <KV
+            label="Status"
+            value={
+              <span
+                className={
+                  isPremium ? "text-primary font-bold" : "text-muted-foreground font-semibold"
+                }
+              >
+                {isPremium ? "Active" : "Inactive"}
+              </span>
+            }
+          />
+          {isPremium && profile?.premium_until && (
+            <KV
+              label="Renews"
+              value={new Date(profile.premium_until).toLocaleDateString("en-ZA", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            />
+          )}
+          <KV
+            label={
+              <span className="inline-flex items-center gap-1">
+                <CalendarDays className="h-3 w-3" /> Joined
+              </span>
+            }
+            value={joinDate}
+            last
+          />
+
+          {!isPremium && (
+            <Link
+              to="/premium"
+              className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-[12px] font-black uppercase tracking-wider text-primary-foreground"
+            >
+              <Crown className="h-4 w-4" /> Upgrade to Premium
+            </Link>
+          )}
         </div>
       </section>
 
-      {!profile?.is_premium && (
-        <section className="px-4 pt-5">
-          <Link
-            to="/premium"
-            className="relative flex items-center justify-between overflow-hidden rounded-2xl border border-primary/40 bg-gradient-to-r from-[oklch(0.15_0.05_85)] to-black p-4 ring-glow-gold transition"
-          >
-            <div className="relative">
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">Upgrade</div>
-              <div className="mt-0.5 font-display text-base font-black">
-                Become a <span className="text-gradient-gold">VIP supporter</span>
-              </div>
-            </div>
-            <ChevronRight className="h-5 w-5 text-primary" />
-          </Link>
-        </section>
-      )}
-
-      <section className="mt-6 px-4">
+      {/* Manage account */}
+      <section className="mt-5 px-4">
         <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-          Account
+          Manage Account
         </h2>
         <div className="glass overflow-hidden rounded-2xl">
-          <Row icon={<Cog className="h-4 w-4" />} label="Personal details" hint={user?.email ?? ""} />
-          <Row icon={<Bell className="h-4 w-4" />} label="Notifications" hint="Manage alerts" />
-          <Row
+          <RowButton
+            icon={<UserIcon className="h-4 w-4" />}
+            label="Edit profile"
+            hint="Name & contact details"
+            onClick={() => setDialog("edit")}
+          />
+          <RowButton
+            icon={<KeyRound className="h-4 w-4" />}
+            label="Change password"
+            hint="Update your sign-in password"
+            onClick={() => setDialog("password")}
+          />
+          <RowLink
+            to="/premium"
+            icon={<Crown className="h-4 w-4" />}
+            label={isPremium ? "Manage subscription" : "View premium plans"}
+            hint={isPremium ? "Premium Pass · Active" : "Unlock VIP perks"}
+          />
+          <RowLink
+            to="/premium"
             icon={<Receipt className="h-4 w-4" />}
             label="Payment history"
             hint={`${payments?.length ?? 0} transactions`}
@@ -152,6 +195,7 @@ function ProfilePage() {
         </div>
       </section>
 
+      {/* Logout */}
       <section className="mt-6 px-4">
         <button
           onClick={onLogout}
@@ -160,24 +204,65 @@ function ProfilePage() {
           <LogOut className="h-4 w-4" /> Sign out
         </button>
       </section>
+
+      {dialog === "edit" && (
+        <EditProfileDialog
+          initialName={profile?.full_name ?? ""}
+          initialPhone={profile?.phone ?? ""}
+          userId={user!.id}
+          onClose={() => setDialog(null)}
+          onSaved={async () => {
+            await refreshProfile();
+            setDialog(null);
+          }}
+        />
+      )}
+      {dialog === "password" && (
+        <ChangePasswordDialog onClose={() => setDialog(null)} />
+      )}
     </PageContainer>
   );
 }
 
-function StatTile({ label, value }: { label: string; value: string }) {
+function KV({
+  label,
+  value,
+  last,
+}: {
+  label: React.ReactNode;
+  value: React.ReactNode;
+  last?: boolean;
+}) {
   return (
-    <div className="glass rounded-xl p-3 text-center">
-      <div className="font-display text-xl font-black">{value}</div>
-      <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+    <div
+      className={`flex items-center justify-between py-2.5 ${
+        last ? "" : "border-b border-border/40"
+      }`}
+    >
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </div>
+      <div className="text-sm font-semibold">{value}</div>
     </div>
   );
 }
 
-function Row({ icon, label, hint }: { icon: React.ReactNode; label: string; hint?: string }) {
+function RowButton({
+  icon,
+  label,
+  hint,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  hint?: string;
+  onClick: () => void;
+}) {
   return (
-    <div className="flex items-center gap-3 border-b border-border/60 px-4 py-3 last:border-b-0">
+    <button
+      onClick={onClick}
+      className="flex w-full items-center gap-3 border-b border-border/60 px-4 py-3 text-left transition hover:bg-white/5 last:border-b-0"
+    >
       <div className="grid h-8 w-8 place-items-center rounded-md bg-surface-2 text-muted-foreground">
         {icon}
       </div>
@@ -186,24 +271,166 @@ function Row({ icon, label, hint }: { icon: React.ReactNode; label: string; hint
         {hint && <div className="truncate text-[11px] text-muted-foreground">{hint}</div>}
       </div>
       <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    </button>
+  );
+}
+
+function RowLink({
+  to,
+  icon,
+  label,
+  hint,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  hint?: string;
+}) {
+  return (
+    <Link
+      to={to}
+      className="flex items-center gap-3 border-b border-border/60 px-4 py-3 transition hover:bg-white/5 last:border-b-0"
+    >
+      <div className="grid h-8 w-8 place-items-center rounded-md bg-surface-2 text-muted-foreground">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-semibold">{label}</div>
+        {hint && <div className="truncate text-[11px] text-muted-foreground">{hint}</div>}
+      </div>
+      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    </Link>
+  );
+}
+
+function DialogShell({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 sm:items-center">
+      <div className="glass-strong w-full max-w-md rounded-2xl p-5">
+        <div className="flex items-center justify-between">
+          <h3 className="font-display text-lg font-black">{title}</h3>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="mt-4">{children}</div>
+      </div>
     </div>
   );
 }
 
-function QrCodePlaceholder({ value, glow }: { value: string; glow?: boolean }) {
-  const cells = Array.from({ length: 49 }, (_, i) => {
-    const code = value.charCodeAt(i % Math.max(value.length, 1)) || 0;
-    return (code + i) % 3 === 0;
-  });
+function EditProfileDialog({
+  initialName,
+  initialPhone,
+  userId,
+  onClose,
+  onSaved,
+}: {
+  initialName: string;
+  initialPhone: string;
+  userId: string;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [name, setName] = useState(initialName);
+  const [phone, setPhone] = useState(initialPhone);
+  const [loading, setLoading] = useState(false);
+
+  const save = async () => {
+    setLoading(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ full_name: name, phone: phone || null })
+      .eq("id", userId);
+    setLoading(false);
+    if (error) return toast.error(error.message);
+    toast.success("Profile updated");
+    onSaved();
+  };
+
   return (
-    <div
-      className={`grid h-16 w-16 grid-cols-7 gap-[2px] rounded-md bg-white p-1.5 ${
-        glow ? "ring-glow-gold" : "ring-glow-green"
-      }`}
-    >
-      {cells.map((on, i) => (
-        <div key={i} className={on ? "bg-black" : "bg-white"} />
-      ))}
-    </div>
+    <DialogShell title="Edit profile" onClose={onClose}>
+      <label className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        Full name
+      </label>
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="mt-1 w-full rounded-lg bg-surface-2 px-3 py-2.5 text-sm outline-none ring-1 ring-border focus:ring-primary"
+      />
+      <label className="mt-3 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        Phone
+      </label>
+      <input
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        className="mt-1 w-full rounded-lg bg-surface-2 px-3 py-2.5 text-sm outline-none ring-1 ring-border focus:ring-primary"
+        placeholder="+27 …"
+      />
+      <button
+        onClick={save}
+        disabled={loading || !name.trim()}
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-black uppercase tracking-wider text-primary-foreground disabled:opacity-60"
+      >
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+        Save changes
+      </button>
+    </DialogShell>
+  );
+}
+
+function ChangePasswordDialog({ onClose }: { onClose: () => void }) {
+  const [pw, setPw] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const save = async () => {
+    if (pw.length < 8) return toast.error("Password must be at least 8 characters");
+    if (pw !== confirm) return toast.error("Passwords do not match");
+    setLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: pw });
+    setLoading(false);
+    if (error) return toast.error(error.message);
+    toast.success("Password updated");
+    onClose();
+  };
+
+  return (
+    <DialogShell title="Change password" onClose={onClose}>
+      <label className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        New password
+      </label>
+      <input
+        type="password"
+        value={pw}
+        onChange={(e) => setPw(e.target.value)}
+        className="mt-1 w-full rounded-lg bg-surface-2 px-3 py-2.5 text-sm outline-none ring-1 ring-border focus:ring-primary"
+      />
+      <label className="mt-3 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        Confirm password
+      </label>
+      <input
+        type="password"
+        value={confirm}
+        onChange={(e) => setConfirm(e.target.value)}
+        className="mt-1 w-full rounded-lg bg-surface-2 px-3 py-2.5 text-sm outline-none ring-1 ring-border focus:ring-primary"
+      />
+      <button
+        onClick={save}
+        disabled={loading}
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-black uppercase tracking-wider text-primary-foreground disabled:opacity-60"
+      >
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+        Update password
+      </button>
+    </DialogShell>
   );
 }
