@@ -1,7 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, MapPin, Trophy, Activity, CalendarDays, History, Lightbulb } from "lucide-react";
+import {
+  ArrowRight,
+  MapPin,
+  Trophy,
+  Activity,
+  CalendarDays,
+  History,
+  Lightbulb,
+} from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { getNextMatch, getNews, getFeaturedPlayer } from "@/lib/data";
@@ -10,7 +18,6 @@ import { getLivePastMatches } from "@/lib/live.functions";
 import { useAuth } from "@/lib/auth";
 import heroPlayer from "@/assets/hero-player.jpg";
 import playerTau from "@/assets/player-tau.jpg";
-
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -59,8 +66,14 @@ function HomePage() {
   const { profile } = useAuth();
   const { data: next } = useQuery({ queryKey: ["next-match"], queryFn: getNextMatch });
   const { data: news } = useQuery({ queryKey: ["news", "home"], queryFn: () => getNews() });
-  const { data: featured } = useQuery({ queryKey: ["featured-player"], queryFn: getFeaturedPlayer });
-  const { data: pastRes } = useQuery({ queryKey: ["past-matches"], queryFn: () => getLivePastMatches() });
+  const { data: featured } = useQuery({
+    queryKey: ["featured-player"],
+    queryFn: getFeaturedPlayer,
+  });
+  const { data: pastRes } = useQuery({
+    queryKey: ["past-matches"],
+    queryFn: () => getLivePastMatches(),
+  });
   const past = pastRes?.data ?? [];
   const c = useCountdown(next?.kickoff);
   const nextHome = next?.home_team ?? null;
@@ -128,18 +141,27 @@ function HomePage() {
                   <span className="text-muted-foreground">Next match</span>
                 </div>
                 <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                  <TeamBadge name={nextHome?.name ?? "TBD"} logo={nextHome?.logo} accent={nextHome?.is_bafana} />
+                  <TeamBadge
+                    name={nextHome?.name ?? "TBD"}
+                    logo={nextHome?.logo}
+                    accent={nextHome?.is_bafana}
+                  />
                   <div className="text-center">
                     {c && (
                       <div className="font-mono text-2xl font-black tabular-nums leading-none text-primary">
-                        {String(c.days).padStart(2, "0")}:{String(c.hrs).padStart(2, "0")}:{String(c.mins).padStart(2, "0")}
+                        {String(c.days).padStart(2, "0")}:{String(c.hrs).padStart(2, "0")}:
+                        {String(c.mins).padStart(2, "0")}
                       </div>
                     )}
                     <div className="mt-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
                       Days · Hrs · Min
                     </div>
                   </div>
-                  <TeamBadge name={nextAway?.name ?? "TBD"} logo={nextAway?.logo} accent={nextAway?.is_bafana} />
+                  <TeamBadge
+                    name={nextAway?.name ?? "TBD"}
+                    logo={nextAway?.logo}
+                    accent={nextAway?.is_bafana}
+                  />
                 </div>
 
                 <div className="mt-3 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
@@ -164,18 +186,16 @@ function HomePage() {
       <section className="mt-10 px-4">
         <div className="mb-4 flex items-end justify-between">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-primary">Bafana Bafana</div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-primary">
+              Bafana Bafana
+            </div>
             <h2 className="mt-1 font-display text-xl font-black tracking-tight">Team Insights</h2>
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4">
           {/* FORM — green */}
-          <PremiumCard
-            icon={<Activity className="h-4 w-4" />}
-            label="Team Form"
-            tint="green"
-          >
+          <PremiumCard icon={<Activity className="h-4 w-4" />} label="Team Form" tint="green">
             {form.length === 0 ? (
               <div className="text-sm text-white/70">Form data unavailable</div>
             ) : (
@@ -204,75 +224,78 @@ function HomePage() {
           </PremiumCard>
 
           {/* LAST MATCH — blue */}
-          <PremiumCard
-            icon={<History className="h-4 w-4" />}
-            label="Last Match"
-            tint="blue"
-          >
-            {lastMatch ? (() => {
-              const our = (lastMatch.is_home ? lastMatch.home_score : lastMatch.away_score) ?? null;
-              const their = (lastMatch.is_home ? lastMatch.away_score : lastMatch.home_score) ?? null;
-              const result =
-                our === null || their === null
-                  ? null
-                  : our > their
-                    ? "W"
-                    : our === their
-                      ? "D"
-                      : "L";
-              const resultLabel = result === "W" ? "Win" : result === "D" ? "Draw" : result === "L" ? "Loss" : "";
-              const resultClass =
-                result === "W"
-                  ? "bg-white text-[color:var(--sa-green)]"
-                  : result === "D"
-                    ? "bg-white/25 text-white"
-                    : "bg-black/50 text-white";
-              return (
-                <>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/65">
-                        {lastMatch.is_home ? "Home" : "Away"}
+          <PremiumCard icon={<History className="h-4 w-4" />} label="Last Match" tint="blue">
+            {lastMatch ? (
+              (() => {
+                const our =
+                  (lastMatch.is_home ? lastMatch.home_score : lastMatch.away_score) ?? null;
+                const their =
+                  (lastMatch.is_home ? lastMatch.away_score : lastMatch.home_score) ?? null;
+                const result =
+                  our === null || their === null
+                    ? null
+                    : our > their
+                      ? "W"
+                      : our === their
+                        ? "D"
+                        : "L";
+                const resultLabel =
+                  result === "W" ? "Win" : result === "D" ? "Draw" : result === "L" ? "Loss" : "";
+                const resultClass =
+                  result === "W"
+                    ? "bg-white text-[color:var(--sa-green)]"
+                    : result === "D"
+                      ? "bg-white/25 text-white"
+                      : "bg-black/50 text-white";
+                return (
+                  <>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/65">
+                          {lastMatch.is_home ? "Home" : "Away"}
+                        </div>
+                        <div className="break-words font-display text-2xl font-black leading-tight text-white">
+                          South Africa {lastMatch.is_home ? "vs" : "@"} {lastMatch.opponent}
+                        </div>
                       </div>
-                      <div className="break-words font-display text-2xl font-black leading-tight text-white">
-                        South Africa {lastMatch.is_home ? "vs" : "@"} {lastMatch.opponent}
-                      </div>
+                      {result && (
+                        <span
+                          className={`grid h-9 min-w-9 shrink-0 place-items-center rounded-lg px-3 text-sm font-black shadow ${resultClass}`}
+                        >
+                          {result}
+                        </span>
+                      )}
                     </div>
-                    {result && (
-                      <span className={`grid h-9 min-w-9 shrink-0 place-items-center rounded-lg px-3 text-sm font-black shadow ${resultClass}`}>
-                        {result}
+                    <div className="mt-3 flex flex-wrap items-end gap-x-3 gap-y-1">
+                      <span className="font-mono text-5xl font-black leading-none tabular-nums text-white">
+                        {our ?? "—"}–{their ?? "—"}
                       </span>
-                    )}
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-end gap-x-3 gap-y-1">
-                    <span className="font-mono text-5xl font-black leading-none tabular-nums text-white">
-                      {our ?? "—"}–{their ?? "—"}
-                    </span>
-                    {resultLabel && (
-                      <span className="pb-1 text-xs font-bold uppercase tracking-[0.16em] text-white/80">
-                        {resultLabel}
+                      {resultLabel && (
+                        <span className="pb-1 text-xs font-bold uppercase tracking-[0.16em] text-white/80">
+                          {resultLabel}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-3 flex flex-col gap-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="break-words">{lastMatch.competition}</span>
+                      <span className="shrink-0">
+                        {new Date(lastMatch.kickoff).toLocaleDateString("en-ZA", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
                       </span>
-                    )}
-                  </div>
-                  <div className="mt-3 flex flex-col gap-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 sm:flex-row sm:items-center sm:justify-between">
-                    <span className="break-words">{lastMatch.competition}</span>
-                    <span className="shrink-0">
-                      {new Date(lastMatch.kickoff).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}
-                    </span>
-                  </div>
-                </>
-              );
-            })() : (
+                    </div>
+                  </>
+                );
+              })()
+            ) : (
               <div className="text-sm text-white/70">Last match data not available</div>
             )}
           </PremiumCard>
 
           {/* NEXT MATCH — gold */}
-          <PremiumCard
-            icon={<CalendarDays className="h-4 w-4" />}
-            label="Next Match"
-            tint="gold"
-          >
+          <PremiumCard icon={<CalendarDays className="h-4 w-4" />} label="Next Match" tint="gold">
             {next ? (
               <>
                 <div className="break-words font-display text-2xl font-black leading-tight text-black">
@@ -282,8 +305,15 @@ function HomePage() {
                   {next.competition}
                 </div>
                 <div className="mt-2 text-[11px] font-semibold text-black/80">
-                  {new Date(next.kickoff).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })} ·{" "}
-                  {new Date(next.kickoff).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" })}
+                  {new Date(next.kickoff).toLocaleDateString("en-ZA", {
+                    day: "numeric",
+                    month: "short",
+                  })}{" "}
+                  ·{" "}
+                  {new Date(next.kickoff).toLocaleTimeString("en-ZA", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </div>
               </>
             ) : (
@@ -292,21 +322,16 @@ function HomePage() {
           </PremiumCard>
 
           {/* FUN FACT — red */}
-          <PremiumCard
-            icon={<Lightbulb className="h-4 w-4" />}
-            label="Did You Know?"
-            tint="red"
-          >
-            <div key={factIdx} className="animate-[fade-in_0.5s_ease-out] text-sm leading-snug text-white">
+          <PremiumCard icon={<Lightbulb className="h-4 w-4" />} label="Did You Know?" tint="red">
+            <div
+              key={factIdx}
+              className="animate-[fade-in_0.5s_ease-out] text-sm leading-snug text-white"
+            >
               {FUN_FACTS[factIdx]}
             </div>
           </PremiumCard>
         </div>
       </section>
-
-
-
-
 
       {/* Player spotlight */}
       {featured && (
@@ -329,14 +354,21 @@ function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent" />
               <div className="absolute bottom-3 left-4 right-4">
                 <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
-                  {featured.flag_url && <img src={featured.flag_url} alt="" className="h-3 w-4 rounded-sm object-cover" />}
+                  {featured.flag_url && (
+                    <img
+                      src={featured.flag_url}
+                      alt=""
+                      className="h-3 w-4 rounded-sm object-cover"
+                    />
+                  )}
                   <span>{featured.position_label || featured.position}</span>
                 </div>
-                <div className="font-display text-3xl font-black leading-tight">{featured.name}</div>
+                <div className="font-display text-3xl font-black leading-tight">
+                  {featured.name}
+                </div>
               </div>
             </div>
           </Link>
-
         </section>
       )}
 
@@ -349,11 +381,15 @@ function HomePage() {
           >
             <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/30 blur-3xl breathe" />
             <div className="relative">
-              <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">VIP Pass</div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">
+                VIP Pass
+              </div>
               <div className="mt-1 font-display text-2xl font-black leading-tight">
                 Unlock the <span className="text-gradient-gold">premium experience</span>
               </div>
-              <div className="mt-1 text-xs text-foreground/70">Exclusive content · Early tickets · Premium card</div>
+              <div className="mt-1 text-xs text-foreground/70">
+                Exclusive content · Early tickets · Premium card
+              </div>
               <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-[11px] font-black uppercase tracking-wider text-primary-foreground">
                 Get Premium Pass <ArrowRight className="h-3 w-3" />
               </div>
@@ -404,8 +440,15 @@ function HomePage() {
   );
 }
 
-
-function TeamBadge({ name, logo, accent }: { name: string; logo?: string | null; accent?: boolean }) {
+function TeamBadge({
+  name,
+  logo,
+  accent,
+}: {
+  name: string;
+  logo?: string | null;
+  accent?: boolean;
+}) {
   const short = name.length <= 3 ? name.toUpperCase() : name.slice(0, 3).toUpperCase();
   return (
     <div className="flex flex-col items-center gap-1">
@@ -424,7 +467,6 @@ function TeamBadge({ name, logo, accent }: { name: string; logo?: string | null;
     </div>
   );
 }
-
 
 type Tint = "green" | "blue" | "gold" | "red";
 
@@ -473,8 +515,12 @@ function PremiumCard({
     >
       <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
       <div className="relative mb-4 flex items-center gap-2">
-        <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${t.chip}`}>{icon}</div>
-        <span className={`min-w-0 break-words text-[10px] font-bold uppercase tracking-[0.14em] ${t.label}`}>
+        <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${t.chip}`}>
+          {icon}
+        </div>
+        <span
+          className={`min-w-0 break-words text-[10px] font-bold uppercase tracking-[0.14em] ${t.label}`}
+        >
           {label}
         </span>
       </div>
@@ -482,5 +528,3 @@ function PremiumCard({
     </div>
   );
 }
-
-

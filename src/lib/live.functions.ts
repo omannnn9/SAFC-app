@@ -1,6 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { fetchSafaUpcomingFixtures, safaConfirms, normalizeName, enrichSafaFixturesWithImages, type SafaFixture } from "@/lib/safa.server";
+import {
+  fetchSafaUpcomingFixtures,
+  safaConfirms,
+  normalizeName,
+  enrichSafaFixturesWithImages,
+  type SafaFixture,
+} from "@/lib/safa.server";
 import { canonicalCountryName, nameToCountryCode, validateFixtureFlagData } from "@/lib/flags";
 
 // South Africa national team (Bafana Bafana) in API-Football.
@@ -28,7 +34,12 @@ async function writeCache(key: string, payload: unknown, ttlSeconds: number) {
   const expires_at = new Date(Date.now() + ttlSeconds * 1000).toISOString();
   await supabaseAdmin
     .from("api_cache")
-    .upsert({ cache_key: key, payload: payload as never, expires_at, updated_at: new Date().toISOString() });
+    .upsert({
+      cache_key: key,
+      payload: payload as never,
+      expires_at,
+      updated_at: new Date().toISOString(),
+    });
 }
 
 async function cachedFetch<T>(
@@ -95,9 +106,17 @@ export type LiveMatch = {
 };
 
 type AFFixture = {
-  fixture: { id: number; date: string; venue?: { name?: string | null }; status: { short: string } };
+  fixture: {
+    id: number;
+    date: string;
+    venue?: { name?: string | null };
+    status: { short: string };
+  };
   league: { name: string };
-  teams: { home: { id: number; name: string; logo?: string }; away: { id: number; name: string; logo?: string } };
+  teams: {
+    home: { id: number; name: string; logo?: string };
+    away: { id: number; name: string; logo?: string };
+  };
   goals: { home: number | null; away: number | null };
 };
 
@@ -131,10 +150,10 @@ function verifyFixtureTeams(m: LiveMatch, source: string): LiveMatch {
       issues.push(`duplicate team name "${h.name}"`);
   }
   if (issues.length > 0) {
-    console.warn(
-      `[fixture-verify:${source}] ${m.id} ${m.kickoff} — ${issues.join("; ")}`,
-      { home: h, away: a },
-    );
+    console.warn(`[fixture-verify:${source}] ${m.id} ${m.kickoff} — ${issues.join("; ")}`, {
+      home: h,
+      away: a,
+    });
   }
   validateFixtureFlagData(m.id, h, a, source);
   return m;
@@ -185,8 +204,10 @@ function mapFixture(f: AFFixture): LiveMatch {
 // Validate: SA must be a participant, and league must be a national-team
 // competition (AFCON, World Cup, qualifiers, Nations League, friendlies).
 // Club leagues are rejected outright.
-const ALLOWED_COMP = /(africa cup of nations|afcon|world cup|qualif|friendl|nations league|cosafa|olympic)/i;
-const CLUB_LEAGUE = /(premier league|la liga|serie a|bundesliga|ligue 1|champions league|europa|psl|cup of south africa|nedbank|carling)/i;
+const ALLOWED_COMP =
+  /(africa cup of nations|afcon|world cup|qualif|friendl|nations league|cosafa|olympic)/i;
+const CLUB_LEAGUE =
+  /(premier league|la liga|serie a|bundesliga|ligue 1|champions league|europa|psl|cup of south africa|nedbank|carling)/i;
 
 function validFixture(f: AFFixture): boolean {
   const hasSA = f.teams.home.id === SA_TEAM_ID || f.teams.away.id === SA_TEAM_ID;
@@ -290,7 +311,10 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
     const verified = afValid.filter((f) => {
       const opp = f.teams.home.id === SA_TEAM_ID ? f.teams.away.name : f.teams.home.name;
       const ok = safaConfirms(safa, opp, f.fixture.date);
-      if (!ok) console.log(`[live] dropping unverified fixture vs ${opp} on ${f.fixture.date.slice(0, 10)}`);
+      if (!ok)
+        console.log(
+          `[live] dropping unverified fixture vs ${opp} on ${f.fixture.date.slice(0, 10)}`,
+        );
       return ok;
     });
 
@@ -306,8 +330,7 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
         const day = s.startUtc.slice(0, 10);
         return !apiPairs.some(
           (p) =>
-            p.day === day &&
-            (p.opp.includes(s.opponentSlug) || s.opponentSlug.includes(p.opp)),
+            p.day === day && (p.opp.includes(s.opponentSlug) || s.opponentSlug.includes(p.opp)),
         );
       })
       .map(safaToLiveMatch);
@@ -359,7 +382,9 @@ export const getLivePastMatches = createServerFn({ method: "GET" }).handler(asyn
     const seasonResults = await Promise.all(
       accessibleSeasons.map(async (season) => {
         try {
-          const fixtures = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&season=${season}&status=FT`)) as AFFixture[];
+          const fixtures = (await apiFootball(
+            `/fixtures?team=${SA_TEAM_ID}&season=${season}&status=FT`,
+          )) as AFFixture[];
           return { ok: true, fixtures };
         } catch (err) {
           console.error(`[live] past season ${season} failed:`, err);
@@ -397,7 +422,9 @@ export const getLivePastMatches = createServerFn({ method: "GET" }).handler(asyn
       .sort((a, b) => new Date(b.kickoff).getTime() - new Date(a.kickoff).getTime())
       .slice(0, 10);
 
-    console.log(`[live] past: ${raw.length} raw season fixtures → ${merged.length} merged completed`);
+    console.log(
+      `[live] past: ${raw.length} raw season fixtures → ${merged.length} merged completed`,
+    );
     return merged;
   });
 });
@@ -484,8 +511,7 @@ async function fetchPlayerStats(playerId: number, season: number) {
     const entry = res[0];
     if (!entry) return null;
     // Prefer the club statistics (not the national-team aggregation) for "club".
-    const clubStat =
-      entry.statistics.find((s) => s.team.id !== SA_TEAM_ID) ?? entry.statistics[0];
+    const clubStat = entry.statistics.find((s) => s.team.id !== SA_TEAM_ID) ?? entry.statistics[0];
     // National-team stats for caps/goals if available
     const natStat = entry.statistics.find((s) => s.team.id === SA_TEAM_ID);
     return {
@@ -503,58 +529,69 @@ async function fetchPlayerStats(playerId: number, season: number) {
 }
 
 export const getLivePlayers = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LivePlayer[]>(`af:squad:${CURRENT_SEASON}:v8-api-headshots`, 60 * 60 * 24, async () => {
-    const res = (await apiFootball(`/players/squads?team=${SA_TEAM_ID}`)) as AFSquadResponse;
-    const team = res[0];
-    if (!team || team.team.id !== SA_TEAM_ID) {
-      console.error(`[live] squad: unexpected team id ${team?.team.id}`);
-      return [];
-    }
-    const players = team.players ?? [];
-    console.log(`[live] squad: ${players.length} players for ${team.team.name}`);
+  return cachedFetch<LivePlayer[]>(
+    `af:squad:${CURRENT_SEASON}:v8-api-headshots`,
+    60 * 60 * 24,
+    async () => {
+      const res = (await apiFootball(`/players/squads?team=${SA_TEAM_ID}`)) as AFSquadResponse;
+      const team = res[0];
+      if (!team || team.team.id !== SA_TEAM_ID) {
+        console.error(`[live] squad: unexpected team id ${team?.team.id}`);
+        return [];
+      }
+      const players = team.players ?? [];
+      console.log(`[live] squad: ${players.length} players for ${team.team.name}`);
 
-    // De-dupe by id
-    const seen = new Set<number>();
-    const unique = players.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
+      // De-dupe by id
+      const seen = new Set<number>();
+      const unique = players.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
 
-    // Enrich in parallel but capped to avoid rate limits
-    const enriched: LivePlayer[] = [];
-    const BATCH = 5;
-    for (let i = 0; i < unique.length; i += BATCH) {
-      const batch = unique.slice(i, i + BATCH);
-      const results = await Promise.all(
-        batch.map(async (p) => {
-          const stats = await fetchPlayerStats(p.id, CURRENT_SEASON);
-          return {
-            id: `af-${p.id}`,
-            name: p.name,
-            position: mapPosition(p.position),
-            club: stats?.club ?? "—",
-            jersey_number: p.number,
-            caps: stats?.caps ?? 0,
-            goals: stats?.goals ?? 0,
-            assists: stats?.assists ?? 0,
-            // Photo chain: SAFA (official national-team page) → API-Football
-            // stats photo → squad photo → API-Football CDN by id.
-            photo_url: stats?.photo ?? p.photo ?? `https://media.api-sports.io/football/players/${p.id}.png`,
-            bio: null,
-          } satisfies LivePlayer;
-        }),
-      );
-      enriched.push(...results);
-    }
+      // Enrich in parallel but capped to avoid rate limits
+      const enriched: LivePlayer[] = [];
+      const BATCH = 5;
+      for (let i = 0; i < unique.length; i += BATCH) {
+        const batch = unique.slice(i, i + BATCH);
+        const results = await Promise.all(
+          batch.map(async (p) => {
+            const stats = await fetchPlayerStats(p.id, CURRENT_SEASON);
+            return {
+              id: `af-${p.id}`,
+              name: p.name,
+              position: mapPosition(p.position),
+              club: stats?.club ?? "—",
+              jersey_number: p.number,
+              caps: stats?.caps ?? 0,
+              goals: stats?.goals ?? 0,
+              assists: stats?.assists ?? 0,
+              // Photo chain: SAFA (official national-team page) → API-Football
+              // stats photo → squad photo → API-Football CDN by id.
+              photo_url:
+                stats?.photo ??
+                p.photo ??
+                `https://media.api-sports.io/football/players/${p.id}.png`,
+              bio: null,
+            } satisfies LivePlayer;
+          }),
+        );
+        enriched.push(...results);
+      }
 
-    console.log(`[live] squad: ${enriched.length}/${enriched.length} API headshots`);
-    return enriched;
-  });
+      console.log(`[live] squad: ${enriched.length}/${enriched.length} API headshots`);
+      return enriched;
+    },
+  );
 });
 
 export const getLiveManager = createServerFn({ method: "GET" }).handler(async () => {
   return cachedFetch<LiveManager>("af:manager:v2-sa-team-id-photo", 60 * 60 * 24, async () => {
     const coaches = (await apiFootball(`/coachs?team=${SA_TEAM_ID}`)) as AFCoachResponse;
     const current =
-      coaches.find((coach) => /broos/i.test(`${coach.firstname ?? ""} ${coach.lastname ?? ""} ${coach.name}`)) ??
-      coaches.find((coach) => coach.career?.some((job) => job.team.id === SA_TEAM_ID && !job.end)) ??
+      coaches.find((coach) =>
+        /broos/i.test(`${coach.firstname ?? ""} ${coach.lastname ?? ""} ${coach.name}`),
+      ) ??
+      coaches.find((coach) =>
+        coach.career?.some((job) => job.team.id === SA_TEAM_ID && !job.end),
+      ) ??
       coaches[0];
 
     if (!current) {
@@ -572,7 +609,9 @@ export const getLiveManager = createServerFn({ method: "GET" }).handler(async ()
       name: `${current.firstname ?? ""} ${current.lastname ?? current.name}`.trim() || current.name,
       role: "Manager",
       nationality: current.nationality,
-      photo_url: /broos/i.test(`${current.firstname ?? ""} ${current.lastname ?? ""} ${current.name}`)
+      photo_url: /broos/i.test(
+        `${current.firstname ?? ""} ${current.lastname ?? ""} ${current.name}`,
+      )
         ? "https://upload.wikimedia.org/wikipedia/commons/f/f0/Hugo_Broos_1.jpg"
         : (current.photo ?? `https://media.api-sports.io/football/coachs/${current.id}.png`),
     };
@@ -628,7 +667,9 @@ function decodeEntities(s: string) {
 }
 
 function stripTags(s: string) {
-  return decodeEntities(s.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim();
+  return decodeEntities(s.replace(/<[^>]+>/g, ""))
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function pick(xml: string, tag: string): string {
@@ -677,10 +718,17 @@ function parseRss(xml: string, source: string): RawArticle[] {
     .filter((x): x is RawArticle => !!x);
 }
 
-async function fetchRss(url: string, source: string, weight: number): Promise<{ articles: RawArticle[]; weight: number }> {
+async function fetchRss(
+  url: string,
+  source: string,
+  weight: number,
+): Promise<{ articles: RawArticle[]; weight: number }> {
   try {
     const res = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 BafanaSupportersBot/1.0", Accept: "application/rss+xml, application/xml, text/xml" },
+      headers: {
+        "User-Agent": "Mozilla/5.0 BafanaSupportersBot/1.0",
+        Accept: "application/rss+xml, application/xml, text/xml",
+      },
     });
     if (!res.ok) throw new Error(`${res.status}`);
     const xml = await res.text();
@@ -734,8 +782,14 @@ const NEWS_FALLBACK_IMAGES = {
 } as const;
 
 function categorize(hay: string): LiveArticle["category"] {
-  if (/\b(vs|v\.|match|fixture|kick.?off|goal|draw|win|defeat|final|qualif)\b/i.test(hay)) return "match";
-  if (/\b(player|striker|defender|midfielder|keeper|coach|hugo broos|squad call|call.?up)\b/i.test(hay)) return "player";
+  if (/\b(vs|v\.|match|fixture|kick.?off|goal|draw|win|defeat|final|qualif)\b/i.test(hay))
+    return "match";
+  if (
+    /\b(player|striker|defender|midfielder|keeper|coach|hugo broos|squad call|call.?up)\b/i.test(
+      hay,
+    )
+  )
+    return "player";
   if (/\b(supporter|fan|fans|stadium|crowd|ticket)\b/i.test(hay)) return "supporter";
   return "team";
 }
@@ -762,11 +816,7 @@ type ImageCtx = {
  *   4. SA national team logo if article mentions Bafana / South Africa
  *   5. Generic stadium fallback (LAST RESORT — SA-related only)
  */
-function resolveImage(
-  articleImage: string | null,
-  hay: string,
-  imgCtx: ImageCtx,
-): string {
+function resolveImage(articleImage: string | null, hay: string, imgCtx: ImageCtx): string {
   // P1: trust the article's own image if it looks valid.
   if (isValidImageUrl(articleImage)) return articleImage;
 
@@ -795,8 +845,10 @@ function resolveImage(
 }
 
 // Reject obvious club-only items unless they also mention Bafana / SA.
-const CLUB_NOISE = /\b(epl|premier league|la liga|serie a|bundesliga|champions league|psl match|chiefs vs|pirates vs|man utd|liverpool|arsenal|chelsea|barcelona|real madrid)\b/i;
-const SA_CONTEXT = /(bafana|safa|south africa(n)?\s+(national|men'?s|football|soccer|team)|hugo broos|banyana)/i;
+const CLUB_NOISE =
+  /\b(epl|premier league|la liga|serie a|bundesliga|champions league|psl match|chiefs vs|pirates vs|man utd|liverpool|arsenal|chelsea|barcelona|real madrid)\b/i;
+const SA_CONTEXT =
+  /(bafana|safa|south africa(n)?\s+(national|men'?s|football|soccer|team)|hugo broos|banyana)/i;
 
 type ScoreCtx = {
   playerNames: string[];
@@ -809,7 +861,10 @@ function scoreArticle(a: RawArticle, ctx: ScoreCtx): { score: number; matched: s
   let score = 0;
   const matched: string[] = [];
 
-  if (/\bbafana\b/.test(hay) || /south africa(n)? (national|men'?s|football|soccer|team)/.test(hay)) {
+  if (
+    /\bbafana\b/.test(hay) ||
+    /south africa(n)? (national|men'?s|football|soccer|team)/.test(hay)
+  ) {
     score += 50;
     matched.push("Bafana Bafana");
   }
@@ -861,7 +916,9 @@ async function buildScoreContext(): Promise<ScoreCtx> {
       ctx.playerNames = squad.payload.map((p) => p.name);
       ctx.imgCtx.players = squad.payload.map((p) => ({ name: p.name, photo: p.photo_url }));
     }
-  } catch { /* noop */ }
+  } catch {
+    /* noop */
+  }
   try {
     const up = await readCache<LiveMatch[]>("af:fixtures:next:10:v7-sa-team-id");
     if (up?.payload) {
@@ -871,7 +928,9 @@ async function buildScoreContext(): Promise<ScoreCtx> {
         logo: m.cover_url ?? m.opponent_flag,
       }));
     }
-  } catch { /* noop */ }
+  } catch {
+    /* noop */
+  }
   return ctx;
 }
 
@@ -907,10 +966,13 @@ export const getLiveNews = createServerFn({ method: "GET" }).handler(async () =>
       // must mention SA context OR a known player/opponent
       if (SA_CONTEXT.test(hay)) return true;
       const lower = hay.toLowerCase();
-      if (ctx.playerNames.some((n) => {
-        const last = n.split(/\s+/).slice(-1)[0]?.toLowerCase();
-        return last && last.length > 3 && lower.includes(last);
-      })) return true;
+      if (
+        ctx.playerNames.some((n) => {
+          const last = n.split(/\s+/).slice(-1)[0]?.toLowerCase();
+          return last && last.length > 3 && lower.includes(last);
+        })
+      )
+        return true;
       if (ctx.upcomingOpponents.some((o) => o && lower.includes(o.toLowerCase()))) return true;
       return false;
     });
@@ -922,7 +984,8 @@ export const getLiveNews = createServerFn({ method: "GET" }).handler(async () =>
         const { score, matched } = scoreArticle(a, ctx);
         const hay = `${a.title} ${a.description}`;
         const category = categorize(hay);
-        const relevance: LiveArticle["relevance"] = score >= 60 ? "high" : score >= 30 ? "medium" : "low";
+        const relevance: LiveArticle["relevance"] =
+          score >= 60 ? "high" : score >= 30 ? "medium" : "low";
         const slug = `${slugify(a.title)}-${slugify(a.source).slice(0, 12)}`;
         return {
           id: slug,
@@ -941,7 +1004,11 @@ export const getLiveNews = createServerFn({ method: "GET" }).handler(async () =>
           matched_entities: matched,
         } satisfies LiveArticle;
       })
-      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
+      .sort(
+        (a, b) =>
+          (b.score ?? 0) - (a.score ?? 0) ||
+          new Date(b.published_at).getTime() - new Date(a.published_at).getTime(),
+      )
       .slice(0, 60);
 
     console.log(
