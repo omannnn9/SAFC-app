@@ -21,12 +21,16 @@ const CATEGORIES: { key: Article["category"] | "all"; label: string }[] = [
 
 function NewsPage() {
   const [cat, setCat] = useState<(typeof CATEGORIES)[number]["key"]>("all");
+  const [highOnly, setHighOnly] = useState(true);
   const { data, isLoading } = useQuery({
     queryKey: ["news", cat],
     queryFn: () => getNews(cat === "all" ? undefined : cat),
+    refetchInterval: 1000 * 60 * 20,
+    staleTime: 1000 * 60 * 15,
   });
 
-  const [hero, ...rest] = data ?? [];
+  const filtered = (data ?? []).filter((a) => (highOnly ? a.relevance === "high" : true));
+  const [hero, ...rest] = filtered.length ? filtered : (data ?? []);
 
   return (
     <PageContainer>
@@ -52,13 +56,24 @@ function NewsPage() {
             {c.label}
           </button>
         ))}
+        <button
+          onClick={() => setHighOnly((v) => !v)}
+          className={`ml-auto shrink-0 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition ${
+            highOnly
+              ? "bg-primary/20 text-primary ring-1 ring-primary/40"
+              : "glass text-muted-foreground"
+          }`}
+          title="Show only high-relevance Bafana stories"
+        >
+          {highOnly ? "Top stories" : "All"}
+        </button>
       </div>
 
       <div className="space-y-4 px-4 pt-3">
         {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
-        {!isLoading && (data?.length ?? 0) === 0 && (
+        {!isLoading && filtered.length === 0 && (
           <div className="glass rounded-xl p-6 text-center text-sm text-muted-foreground">
-            No articles yet.
+            {highOnly ? "No high-relevance stories right now." : "No articles yet."}
           </div>
         )}
 
@@ -106,11 +121,14 @@ function HeroArticle({ a }: { a: Article }) {
         className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-110"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-      {a.is_premium && (
-        <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full shimmer-gold px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-black">
-          <Lock className="h-3 w-3" /> Premium
-        </div>
-      )}
+      <div className="absolute right-3 top-3 flex items-center gap-2">
+        <RelevanceBadge r={a.relevance} />
+        {a.is_premium && (
+          <div className="inline-flex items-center gap-1 rounded-full shimmer-gold px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-black">
+            <Lock className="h-3 w-3" /> Premium
+          </div>
+        )}
+      </div>
       <div className="absolute inset-x-0 bottom-0 p-5">
         <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
           Featured · {a.category}
@@ -141,11 +159,14 @@ function FeedCard({ a }: { a: Article }) {
           className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-        {a.is_premium && (
-          <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full shimmer-gold px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-black">
-            <Lock className="h-2.5 w-2.5" /> Premium
-          </div>
-        )}
+        <div className="absolute right-3 top-3 flex items-center gap-1.5">
+          <RelevanceBadge r={a.relevance} small />
+          {a.is_premium && (
+            <div className="inline-flex items-center gap-1 rounded-full shimmer-gold px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-black">
+              <Lock className="h-2.5 w-2.5" /> Premium
+            </div>
+          )}
+        </div>
         <div className="absolute bottom-3 left-4 right-4">
           <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
             {a.category}
@@ -162,5 +183,25 @@ function FeedCard({ a }: { a: Article }) {
         </span>
       </div>
     </Link>
+  );
+}
+
+function RelevanceBadge({ r, small }: { r?: Article["relevance"]; small?: boolean }) {
+  if (!r) return null;
+  const styles =
+    r === "high"
+      ? "bg-primary text-primary-foreground"
+      : r === "medium"
+        ? "bg-amber-500/20 text-amber-200 ring-1 ring-amber-400/40"
+        : "bg-muted/40 text-muted-foreground";
+  const label = r === "high" ? "High" : r === "medium" ? "Med" : "Low";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full font-black uppercase tracking-wider ${
+        small ? "px-2 py-0.5 text-[9px]" : "px-2.5 py-1 text-[10px]"
+      } ${styles}`}
+    >
+      {label}
+    </span>
   );
 }
