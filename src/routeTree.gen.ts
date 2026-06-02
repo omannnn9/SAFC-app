@@ -85,9 +85,9 @@ const SquadIdRoute = SquadIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const NewsSlugRoute = NewsSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => NewsRoute,
+  id: '/news/$slug',
+  path: '/news/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const FixturesIdRoute = FixturesIdRouteImport.update({
   id: '/$id',
@@ -212,6 +212,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  NewsSlugRoute: typeof NewsSlugRoute
   SquadIdRoute: typeof SquadIdRoute
   NewsIndexRoute: typeof NewsIndexRoute
   SquadIndexRoute: typeof SquadIndexRoute
@@ -305,10 +306,10 @@ declare module '@tanstack/react-router' {
     }
     '/news/$slug': {
       id: '/news/$slug'
-      path: '/$slug'
+      path: '/news/$slug'
       fullPath: '/news/$slug'
       preLoaderRoute: typeof NewsSlugRouteImport
-      parentRoute: typeof NewsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/fixtures/$id': {
       id: '/fixtures/$id'
@@ -361,6 +362,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  NewsSlugRoute: NewsSlugRoute,
   SquadIdRoute: SquadIdRoute,
   NewsIndexRoute: NewsIndexRoute,
   SquadIndexRoute: SquadIndexRoute,
