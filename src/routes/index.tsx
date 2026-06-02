@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, MapPin, Trophy, Sparkles, Flame, Users2 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
+import { SignupBadge } from "@/components/SignupBadge";
 import { getNextMatch, getNews, getFeaturedPlayer } from "@/lib/data";
 
 import { getLiveStats } from "@/lib/live.functions";
@@ -47,7 +48,7 @@ function useCountdown(target?: string) {
 }
 
 function HomePage() {
-  const { profile } = useAuth();
+  const { profile, session } = useAuth();
   const { data: next } = useQuery({ queryKey: ["next-match"], queryFn: getNextMatch });
   const { data: news } = useQuery({ queryKey: ["news", "home"], queryFn: () => getNews() });
   const { data: featured } = useQuery({ queryKey: ["featured-player"], queryFn: getFeaturedPlayer });
@@ -60,6 +61,7 @@ function HomePage() {
 
   return (
     <PageContainer>
+      {!session && <SignupBadge />}
       <AppHeader title="Home" />
 
       {/* HERO — Stadium broadcast */}
