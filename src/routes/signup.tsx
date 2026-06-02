@@ -22,7 +22,9 @@ function SignupPage() {
   const [confirm, setConfirm] = useState("");
   const [favoriteTeam, setFavoriteTeam] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
