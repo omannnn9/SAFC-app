@@ -85,12 +85,13 @@ function TimelineDot({ m }: { m: Match }) {
       >
         <div className="text-center leading-none">
           <div className="font-display text-[11px] font-black">
-            {k.toLocaleDateString("en-ZA", { day: "2-digit" })}
+            {k.toLocaleDateString("en-ZA", { day: "2-digit", timeZone: "Africa/Johannesburg" })}
           </div>
           <div className="text-[8px] uppercase tracking-wider text-muted-foreground">
-            {k.toLocaleDateString("en-ZA", { month: "short" })}
+            {k.toLocaleDateString("en-ZA", { month: "short", timeZone: "Africa/Johannesburg" })}
           </div>
         </div>
+
       </div>
     </div>
   );
@@ -98,6 +99,12 @@ function TimelineDot({ m }: { m: Match }) {
 
 function MatchCard({ m, live }: { m: Match; live?: boolean }) {
   const k = new Date(m.kickoff);
+  const timeSA = k.toLocaleTimeString("en-ZA", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Africa/Johannesburg",
+  });
   return (
     <Link
       to="/fixtures/$id"
@@ -107,18 +114,19 @@ function MatchCard({ m, live }: { m: Match; live?: boolean }) {
       } ${m.status === "completed" ? "opacity-90" : ""}`}
     >
       {live && (
-        <div className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--sa-green)] px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white live-dot">
-          <span className="h-1.5 w-1.5 rounded-full bg-white" /> Up next
+        <div className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--sa-green)] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-white tabular-nums">
+          <span className="h-1.5 w-1.5 rounded-full bg-white" /> {timeSA} SAST
         </div>
       )}
       <div className="flex items-center justify-between">
         <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
           {m.competition}
         </div>
-        <div className="text-[10px] font-mono text-muted-foreground">
-          {k.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" })}
+        <div className="text-[10px] font-mono text-muted-foreground tabular-nums">
+          {timeSA} SAST
         </div>
       </div>
+
 
       <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
         <Team team={m.home_team} />

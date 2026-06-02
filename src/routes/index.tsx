@@ -306,7 +306,9 @@ function HomePage() {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
+                          timeZone: "Africa/Johannesburg",
                         })}
+
                       </span>
                     </div>
                   </>
@@ -327,17 +329,22 @@ function HomePage() {
                 <div className="mt-2 break-words text-[11px] font-bold uppercase tracking-[0.12em] text-black/70">
                   {next.competition}
                 </div>
-                <div className="mt-2 text-[11px] font-semibold text-black/80">
+                <div className="mt-2 text-[11px] font-semibold tabular-nums text-black/80">
                   {new Date(next.kickoff).toLocaleDateString("en-ZA", {
                     day: "numeric",
                     month: "short",
+                    timeZone: "Africa/Johannesburg",
                   })}{" "}
                   ·{" "}
                   {new Date(next.kickoff).toLocaleTimeString("en-ZA", {
                     hour: "2-digit",
                     minute: "2-digit",
-                  })}
+                    hour12: false,
+                    timeZone: "Africa/Johannesburg",
+                  })}{" "}
+                  SAST
                 </div>
+
               </>
             ) : (
               <div className="text-sm text-black/70">Next fixture to be confirmed</div>
