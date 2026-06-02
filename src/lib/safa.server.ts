@@ -195,3 +195,85 @@ export async function enrichSafaFixturesWithImages(
   }
   return out;
 }
+
+// ============= PLAYER PHOTOS (via Firecrawl) =============
+//
+// SAFA player pages live at https://www.safa.net/player/{slug}/. The photo is
+// embedded in inline CSS as `--match-centre-primary-background-pattern-image:
+// url(...)`. We scrape via Firecrawl (rawHtml) which handles WAF/CDN edges
+// more reliably than plain fetch, then regex-extract the URL.
+
+export function safaPlayerSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/['']/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export function safaPlayerUrl(name: string): string {
+  return `https://www.safa.net/player/${safaPlayerSlug(name)}/`;
+}
+
+const playerPhotoCache = new Map<string, string | null>();
+
+function extractPlayerPhoto(html: string): string | null {
+  // 1) Match-centre pattern image (canonical location for the hero photo).
+  const m1 = /--match-centre-primary-background-pattern-image:\s*url\(([^)]+)\)/i.exec(html);
+  if (m1?.[1]) return m1[1].replace(/^["']|["']$/g, "").trim();
+  // 2) og:image fallback.
+  const m2 = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i.exec(html);
+  if (m2?.[1]) return m2[1];
+  return null;
+}
+
+export async function fetchSafaPlayerPhoto(name: string): Promise<string | null> {
+  const slug = safaPlayerSlug(name);
+  if (!slug) return null;
+  if (playerPhotoCache.has(slug)) return playerPhotoCache.get(slug) ?? null;
+
+  const apiKey = process.env.FIRECRAWL_API_KEY;
+  if (!apiKey) {
+    console.warn("[safa] FIRECRAWL_API_KEY not configured; skipping player photo");
+    playerPhotoCache.set(slug, null);
+    return null;
+  }
+
+  const url = `https://www.safa.net/player/${slug}/`;
+  try {
+    const { default: Firecrawl } = await import("@mendable/firecrawl-js");
+    const firecrawl = new Firecrawl({ apiKey });
+    const res = await firecrawl.scrape(url, {
+      formats: ["rawHtml"],
+      onlyMainContent: false,
+    });
+    const html =
+      (res as { rawHtml?: string }).rawHtml ??
+      (res as { data?: { rawHtml?: string } }).data?.rawHtml ??
+      "";
+    const photo = html ? extractPlayerPhoto(html) : null;
+    playerPhotoCache.set(slug, photo);
+    return photo;
+  } catch (err) {
+    console.error(`[safa] firecrawl player photo failed for ${slug}:`, err);
+    playerPhotoCache.set(slug, null);
+    return null;
+  }
+}
+
+// Resolve photos for a batch of players with bounded concurrency.
+export async function fetchSafaPlayerPhotos(names: string[]): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const BATCH = 3;
+  for (let i = 0; i < names.length; i += BATCH) {
+    const slice = names.slice(i, i + BATCH);
+    const photos = await Promise.all(slice.map((n) => fetchSafaPlayerPhoto(n)));
+    slice.forEach((n, idx) => {
+      const p = photos[idx];
+      if (p) out.set(normalize(n), p);
+    });
+  }
+  return out;
+}
