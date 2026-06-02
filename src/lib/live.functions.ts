@@ -322,7 +322,7 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
 }
 
 export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v7-sa-team-id", 60 * 10, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v8-verified-kickoffs", 60 * 10, async () => {
     const [afRes, safa] = await Promise.all([
       apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=15`) as Promise<AFFixture[]>,
       fetchSafaUpcomingFixtures(),
