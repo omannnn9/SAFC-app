@@ -175,7 +175,7 @@ function PersonImage({ name, photoUrl, compact = false }: { name: string; photoU
         className={
           compact
             ? "h-full w-full object-cover object-top"
-            : "absolute inset-x-0 bottom-0 mx-auto h-[72%] w-[88%] object-contain object-bottom drop-shadow-[0_24px_30px_rgb(0_0_0/0.75)] transition duration-300 group-hover:scale-105"
+            : "absolute inset-x-0 top-16 mx-auto h-34 w-34 rounded-full object-cover object-top drop-shadow-[0_24px_30px_rgb(0_0_0/0.75)] transition duration-300 group-hover:scale-105"
         }
       />
     );
