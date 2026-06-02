@@ -187,24 +187,23 @@ function HomePage() {
             className="group glass relative block overflow-hidden rounded-2xl ring-glow-gold transition"
           >
             <div className="relative h-64 w-full overflow-hidden">
-              <img src={playerTau} alt={featured.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+              <img
+                src={featured.photo_url ?? playerTau}
+                alt={featured.name}
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover object-top transition duration-700 group-hover:scale-105"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent" />
-              <div className="absolute right-3 top-3 glass rounded-md px-2 py-1 font-mono text-[10px] font-bold text-primary">
-                #{featured.jersey_number}
-              </div>
               <div className="absolute bottom-3 left-4 right-4">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
-                  {featured.position} · {featured.club}
+                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
+                  {featured.flag_url && <img src={featured.flag_url} alt="" className="h-3 w-4 rounded-sm object-cover" />}
+                  <span>{featured.position_label || featured.position}</span>
                 </div>
                 <div className="font-display text-3xl font-black leading-tight">{featured.name}</div>
               </div>
             </div>
-            <div className="grid grid-cols-3 divide-x divide-border/60 border-t border-border/60">
-              <Stat compact label="Goals" value={featured.goals} />
-              <Stat compact label="Caps" value={featured.caps} />
-              <Stat compact label="Assists" value={featured.assists} />
-            </div>
           </Link>
+
         </section>
       )}
 
