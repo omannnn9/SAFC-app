@@ -46,8 +46,17 @@ function MatchPage() {
 
         <div className="mt-4 space-y-2 rounded-xl border border-border bg-surface/60 p-4 text-sm">
           <Row icon={<Calendar className="h-4 w-4" />} label="Kick-off">
-            {k.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "long" })} ·{" "}
-            {k.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false })}
+            <div className="flex flex-col gap-0.5">
+              <div className="tabular-nums">
+                {k.toLocaleDateString("en-ZA", { weekday: "short", day: "numeric", month: "long", timeZone: "Africa/Johannesburg" })} ·{" "}
+                {k.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Africa/Johannesburg" })} <span className="text-muted-foreground">SAST</span>
+              </div>
+              {-k.getTimezoneOffset() !== 120 && (
+                <div className="text-xs text-muted-foreground tabular-nums">
+                  {k.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })} · {k.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false })} your time
+                </div>
+              )}
+            </div>
           </Row>
 
           <Row icon={<MapPin className="h-4 w-4" />} label="Venue">
