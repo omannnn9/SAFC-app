@@ -364,40 +364,27 @@ function TeamBadge({ name, logo, accent }: { name: string; logo?: string | null;
 }
 
 
-function IntelCard({
-  tone,
+function InsightCard({
   icon,
   label,
-  value,
-  sub,
+  children,
 }: {
-  tone: "green" | "gold" | "blue";
   icon: React.ReactNode;
   label: string;
-  value: string;
-  sub: string;
+  children: React.ReactNode;
 }) {
-  const ring = tone === "green" ? "ring-glow-green" : tone === "gold" ? "ring-glow-gold" : "ring-glow-blue";
-  const dot = tone === "green" ? "bg-[var(--sa-green)]" : tone === "gold" ? "bg-primary" : "bg-[oklch(0.7_0.18_240)]";
   return (
-    <div className={`glass relative w-[180px] shrink-0 snap-start rounded-2xl p-4 ${ring}`}>
-      <div className="flex items-center justify-between">
-        <div className={`grid h-7 w-7 place-items-center rounded-lg ${dot} text-black`}>{icon}</div>
-        <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+    <div className="glass relative rounded-2xl border border-border/60 bg-surface/40 p-4 shadow-[var(--shadow-card-lift)] min-h-[120px] flex flex-col">
+      <div className="mb-2 flex items-center gap-2">
+        <div className="grid h-6 w-6 place-items-center rounded-md bg-[color:var(--sa-gold)]/15 text-[color:var(--sa-gold)]">
+          {icon}
+        </div>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           {label}
         </span>
       </div>
-      <div className="mt-3 font-display text-3xl font-black tracking-tight">{value}</div>
-      <div className="text-[10px] text-muted-foreground">{sub}</div>
+      <div className="flex-1">{children}</div>
     </div>
   );
 }
 
-function Stat({ label, value, compact }: { label: string; value: string | number; compact?: boolean }) {
-  return (
-    <div className={`text-center ${compact ? "py-3" : "glass rounded-xl p-3"}`}>
-      <div className="font-display text-lg font-black">{value}</div>
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
-    </div>
-  );
-}
