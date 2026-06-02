@@ -85,10 +85,22 @@ function MatchPage() {
   );
 }
 
-function Side({ flag, name }: { flag: string; name: string }) {
+function Side({ logo, name }: { logo: string | null; name: string }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="grid h-16 w-16 place-items-center rounded-xl bg-black/40 text-2xl">{flag}</div>
+      <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-xl bg-black/40">
+        {logo ? (
+          <img
+            src={logo}
+            alt={name}
+            loading="lazy"
+            className="h-14 w-14 object-contain"
+            onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+          />
+        ) : (
+          <span className="text-2xl">🏳️</span>
+        )}
+      </div>
       <div className="max-w-[90px] text-center text-xs font-semibold">{name}</div>
     </div>
   );
