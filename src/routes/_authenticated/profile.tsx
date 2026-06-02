@@ -65,7 +65,9 @@ function ProfilePage() {
         day: "numeric",
         month: "long",
         year: "numeric",
+        timeZone: "Africa/Johannesburg",
       })
+
     : "—";
 
   return (
