@@ -8,13 +8,12 @@ import { nitro } from "nitro/vite";
 // Standard TanStack Start + Vercel config.
 // - tanstackStart: file-based routing, SSR, server functions
 // - nitro preset "vercel": emits .vercel/output for Vercel serverless deploy
-// - server entry: src/server.ts (our SSR error wrapper)
+// - default start entry: src/start.ts
 export default defineConfig({
   plugins: [
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
     tailwindcss(),
     tanstackStart({
-      start: { entry: "server" },
       importProtection: {
         behavior: "error",
         client: {
