@@ -56,7 +56,7 @@ const FUN_FACTS = [
 ];
 
 function HomePage() {
-  const { profile, session } = useAuth();
+  const { profile } = useAuth();
   const { data: next } = useQuery({ queryKey: ["next-match"], queryFn: getNextMatch });
   const { data: news } = useQuery({ queryKey: ["news", "home"], queryFn: () => getNews() });
   const { data: featured } = useQuery({ queryKey: ["featured-player"], queryFn: getFeaturedPlayer });
