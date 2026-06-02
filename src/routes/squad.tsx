@@ -18,23 +18,6 @@ const FILTERS: { key: Player["position"] | "ALL"; label: string }[] = [
   { key: "FWD", label: "FWD" },
 ];
 
-const POS_RING: Record<Player["position"], string> = {
-  GK: "ring-glow-blue",
-  DEF: "ring-glow-green",
-  MID: "ring-glow-gold",
-  FWD: "ring-glow-red",
-};
-const POS_GRAD: Record<Player["position"], string> = {
-  GK: "from-[oklch(0.5_0.18_240)]/50 to-black",
-  DEF: "from-[var(--sa-green)]/50 to-black",
-  MID: "from-[var(--sa-gold)]/40 to-black",
-  FWD: "from-[var(--sa-red)]/45 to-black",
-};
-
-function rating(p: Player) {
-  return Math.min(99, 60 + p.caps + p.goals * 2 + p.assists);
-}
-
 function SquadPage() {
   const [pos, setPos] = useState<Player["position"] | "ALL">("ALL");
   const { data, isLoading } = useQuery({ queryKey: ["players"], queryFn: getPlayers });
@@ -52,7 +35,7 @@ function SquadPage() {
           The <span className="text-gradient-gold">Squad</span>
         </h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          {filtered.length} players · Manager · FIFA player card view
+          {filtered.length} players · Pulled live from safa.net
         </p>
       </div>
 
@@ -78,61 +61,50 @@ function SquadPage() {
         <div className="px-4 pt-4 text-sm text-muted-foreground">Loading…</div>
       ) : (
         <ul className="grid grid-cols-2 gap-3 px-4 pt-3">
-          {filtered.map((p) => {
-            const r = rating(p);
-            return (
-              <li key={p.id}>
-                <Link
-                  to="/squad/$id"
-                  params={{ id: p.id }}
-                  className={`group block overflow-hidden rounded-2xl glass transition duration-300 hover:-translate-y-1 ${POS_RING[p.position]}`}
-                >
-                  <div className={`relative aspect-[3/4] overflow-hidden bg-gradient-to-br ${POS_GRAD[p.position]}`}>
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.18),transparent_60%)]" />
-                    {/* rating tile */}
-                    <div className="absolute left-2 top-2 flex flex-col items-center leading-none">
-                      <div className="font-display text-2xl font-black text-white drop-shadow">{r}</div>
-                      <div className="mt-0.5 text-[9px] font-bold tracking-wider text-white/80">
-                        {p.position}
-                      </div>
-                      <div className="mt-1 h-[1px] w-5 bg-white/40" />
-                      <div className="mt-1 text-[10px]">🇿🇦</div>
+          {filtered.map((p) => (
+            <li key={p.id}>
+              <Link
+                to="/squad/$id"
+                params={{ id: p.id }}
+                className="group block overflow-hidden rounded-2xl glass transition duration-300 hover:-translate-y-1 ring-glow-gold"
+              >
+                <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-b from-white to-white/90">
+                  {p.photo_url ? (
+                    <img
+                      src={p.photo_url}
+                      alt={p.name}
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      className="absolute inset-0 h-full w-full object-cover object-top transition duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 grid place-items-center text-3xl font-black text-black/20">
+                      {p.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .slice(0, 2)
+                        .join("")}
                     </div>
-                    {/* jersey number giant */}
-                    <div className="absolute right-1 top-0 font-display text-[80px] font-black text-white/10 leading-none">
-                      {p.jersey_number}
+                  )}
+                  {/* Bottom dark wedge with name + position */}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[oklch(0.18_0.05_140)] via-[oklch(0.18_0.05_140)]/85 to-transparent pt-10 pb-3 px-3">
+                    <div className="font-display text-sm font-black uppercase tracking-wide leading-tight text-white">
+                      {p.name}
                     </div>
-                    <PersonImage name={p.name} photoUrl={p.photo_url} />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-3">
-                      <div className="font-display text-sm font-black uppercase tracking-wide leading-tight">
-                        {p.name}
-                      </div>
-                      <div className="truncate text-[9px] uppercase tracking-wider text-white/60">
-                        {p.club}
-                      </div>
+                    <div className="mt-1 flex items-center gap-1.5 text-[10px] text-white/80">
+                      {p.flag_url && (
+                        <img src={p.flag_url} alt="" className="h-3 w-4 rounded-sm object-cover" />
+                      )}
+                      <span className="uppercase tracking-wider">{p.position_label || p.position}</span>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 divide-x divide-border/60 border-t border-border/60 bg-black/40 text-center">
-                    <Mini v={p.caps} l="Caps" />
-                    <Mini v={p.goals} l="Gls" />
-                    <Mini v={p.assists} l="Ast" />
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
+                </div>
+              </Link>
+            </li>
+          ))}
         </ul>
       )}
     </PageContainer>
-  );
-}
-
-function Mini({ v, l }: { v: number; l: string }) {
-  return (
-    <div className="py-1.5">
-      <div className="font-display text-sm font-black">{v}</div>
-      <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{l}</div>
-    </div>
   );
 }
 
@@ -143,49 +115,22 @@ function ManagerCard({ manager }: { manager: Manager }) {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,color-mix(in_oklab,var(--sa-gold)_22%,transparent),transparent_58%)]" />
         <div className="relative grid grid-cols-[96px_1fr] items-center gap-4 p-3">
           <div className="relative h-24 overflow-hidden rounded-xl bg-gradient-to-br from-[var(--sa-green)]/45 to-black">
-            <PersonImage name={manager.name} photoUrl={manager.photo_url} compact />
+            {manager.photo_url && (
+              <img
+                src={manager.photo_url}
+                alt={manager.name}
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover object-top"
+              />
+            )}
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Manager</div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Head Coach</div>
             <h2 className="mt-1 truncate font-display text-2xl font-black leading-none">{manager.name}</h2>
-            <p className="mt-1 text-xs text-muted-foreground">{manager.nationality ?? "South Africa"}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{manager.nationality ?? "—"}</p>
           </div>
         </div>
       </div>
     </section>
-  );
-}
-
-function PersonImage({ name, photoUrl, compact = false }: { name: string; photoUrl: string | null; compact?: boolean }) {
-  const [failed, setFailed] = useState(false);
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("");
-
-  if (photoUrl && !failed) {
-    return (
-      <img
-        src={photoUrl}
-        alt={name}
-        loading="lazy"
-        referrerPolicy="no-referrer"
-        onError={() => setFailed(true)}
-        className={
-          compact
-            ? "h-full w-full object-cover object-top"
-            : "absolute inset-x-0 top-16 mx-auto h-34 w-34 rounded-full object-cover object-top drop-shadow-[0_24px_30px_rgb(0_0_0/0.75)] transition duration-300 group-hover:scale-105"
-        }
-      />
-    );
-  }
-
-  return (
-    <div className="absolute inset-x-0 bottom-0 grid place-items-center">
-      <div className="mb-8 grid h-24 w-24 place-items-center rounded-full bg-white/5 font-display text-3xl font-black text-white/30">
-        {initials}
-      </div>
-    </div>
   );
 }

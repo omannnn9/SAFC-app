@@ -4,8 +4,7 @@ import { useState } from "react";
 import { MapPin } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
-import { getUpcomingMatches, getPastMatches, type Match } from "@/lib/data";
-import { SOUTH_AFRICA_TEAM_ID, validateCountryFlag, validateFixtureFlagData } from "@/lib/flags";
+import { getUpcomingMatches, getPastMatches, type Match, type MatchTeam } from "@/lib/data";
 
 export const Route = createFileRoute("/fixtures")({
   head: () => ({ meta: [{ title: "Fixtures & Results — Bafana" }] }),
@@ -45,7 +44,6 @@ function FixturesPage() {
       </div>
 
       <ol className="relative mt-6 px-4">
-        {/* timeline rail */}
         <div className="absolute left-9 top-0 bottom-0 w-px bg-gradient-to-b from-primary/40 via-border to-transparent" />
         {list.length === 0 && (
           <li className="glass rounded-xl p-6 text-center text-sm text-muted-foreground">
@@ -90,19 +88,6 @@ function TimelineDot({ m }: { m: Match }) {
 
 function MatchCard({ m, live }: { m: Match; live?: boolean }) {
   const k = new Date(m.kickoff);
-  const home = m.home_team ?? {
-    id: m.is_home ? SOUTH_AFRICA_TEAM_ID : null,
-    name: m.is_home ? "South Africa" : m.opponent,
-    logo: m.is_home ? `https://media.api-sports.io/football/teams/${SOUTH_AFRICA_TEAM_ID}.png` : m.opponent_flag,
-    country_code: m.is_home ? "ZA" : null,
-  };
-  const away = m.away_team ?? {
-    id: m.is_home ? null : SOUTH_AFRICA_TEAM_ID,
-    name: m.is_home ? m.opponent : "South Africa",
-    logo: m.is_home ? m.opponent_flag : `https://media.api-sports.io/football/teams/${SOUTH_AFRICA_TEAM_ID}.png`,
-    country_code: m.is_home ? null : "ZA",
-  };
-  validateFixtureFlagData(m.id, home, away, "fixtures-ui");
   return (
     <Link
       to="/fixtures/$id"
@@ -113,7 +98,7 @@ function MatchCard({ m, live }: { m: Match; live?: boolean }) {
     >
       {live && (
         <div className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--sa-green)] px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white live-dot">
-          <span className="h-1.5 w-1.5 rounded-full bg-white" /> Live soon
+          <span className="h-1.5 w-1.5 rounded-full bg-white" /> Up next
         </div>
       )}
       <div className="flex items-center justify-between">
@@ -126,19 +111,19 @@ function MatchCard({ m, live }: { m: Match; live?: boolean }) {
       </div>
 
       <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-        <Team logo={home.logo} name={home.name} countryCode={home.country_code} accent={home.id === SOUTH_AFRICA_TEAM_ID} />
+        <Team team={m.home_team} />
         {m.status === "completed" ? (
           <div className="font-display text-3xl font-black tabular-nums">
-            <span className={home.id === SOUTH_AFRICA_TEAM_ID ? "text-primary" : ""}>{m.home_score}</span>
+            <span className={m.home_team.is_bafana ? "text-primary" : ""}>{m.home_score}</span>
             <span className="px-1 text-muted-foreground">–</span>
-            <span className={away.id === SOUTH_AFRICA_TEAM_ID ? "text-primary" : ""}>{m.away_score}</span>
+            <span className={m.away_team.is_bafana ? "text-primary" : ""}>{m.away_score}</span>
           </div>
         ) : (
           <div className="font-display text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
             VS
           </div>
         )}
-        <Team logo={away.logo} name={away.name} countryCode={away.country_code} accent={away.id === SOUTH_AFRICA_TEAM_ID} />
+        <Team team={m.away_team} />
       </div>
 
       <div className="mt-3 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
@@ -148,19 +133,22 @@ function MatchCard({ m, live }: { m: Match; live?: boolean }) {
   );
 }
 
-function Team({ name, countryCode, accent }: { logo?: string | null; name: string; countryCode?: string | null; accent?: boolean }) {
-  const { flag } = validateCountryFlag(name, countryCode);
+function Team({ team }: { team: MatchTeam }) {
   return (
     <div className="flex flex-col items-center gap-1.5">
       <div
-        className={`grid h-12 w-12 place-items-center rounded-xl ${
-          accent ? "bg-[var(--sa-green)] ring-glow-green" : "bg-surface-2"
+        className={`grid h-14 w-14 place-items-center overflow-hidden rounded-xl ${
+          team.is_bafana ? "bg-[var(--sa-green)] ring-glow-green" : "bg-surface-2"
         }`}
       >
-        <span className="text-2xl leading-none">{flag}</span>
+        {team.logo ? (
+          <img src={team.logo} alt={team.name} className="h-10 w-10 object-contain" />
+        ) : (
+          <span className="font-display text-xs font-black">{team.name.slice(0, 3).toUpperCase()}</span>
+        )}
       </div>
       <div className="max-w-[88px] truncate text-center font-display text-[10px] font-black uppercase tracking-wider">
-        {name}
+        {team.name}
       </div>
     </div>
   );

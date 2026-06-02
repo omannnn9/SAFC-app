@@ -5,7 +5,7 @@ import { ArrowRight, MapPin, Trophy, Sparkles, Flame, Users2 } from "lucide-reac
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { getNextMatch, getNews, getFeaturedPlayer } from "@/lib/data";
-import { SOUTH_AFRICA_TEAM_ID, validateCountryFlag, validateFixtureFlagData } from "@/lib/flags";
+
 import { getLiveStats } from "@/lib/live.functions";
 import { useAuth } from "@/lib/auth";
 import heroPlayer from "@/assets/hero-player.jpg";
@@ -54,19 +54,9 @@ function HomePage() {
   const { data: statsRes } = useQuery({ queryKey: ["live-stats"], queryFn: () => getLiveStats() });
   const stats = statsRes?.data;
   const c = useCountdown(next?.kickoff);
-  const nextHome = next?.home_team ?? (next ? {
-    id: next.is_home ? SOUTH_AFRICA_TEAM_ID : null,
-    name: next.is_home ? "South Africa" : next.opponent,
-    logo: null,
-    country_code: next.is_home ? "ZA" : null,
-  } : null);
-  const nextAway = next?.away_team ?? (next ? {
-    id: next.is_home ? null : SOUTH_AFRICA_TEAM_ID,
-    name: next.is_home ? next.opponent : "South Africa",
-    logo: null,
-    country_code: next.is_home ? null : "ZA",
-  } : null);
-  if (next && nextHome && nextAway) validateFixtureFlagData(next.id, nextHome, nextAway, "home-next-match");
+  const nextHome = next?.home_team ?? null;
+  const nextAway = next?.away_team ?? null;
+
 
   return (
     <PageContainer>
@@ -113,11 +103,7 @@ function HomePage() {
                   <span className="text-muted-foreground">Next match</span>
                 </div>
                 <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                  <TeamBadge
-                    name={nextHome?.name ?? "TBD"}
-                    countryCode={nextHome?.country_code}
-                    accent={nextHome?.id === SOUTH_AFRICA_TEAM_ID}
-                  />
+                  <TeamBadge name={nextHome?.name ?? "TBD"} logo={nextHome?.logo} accent={nextHome?.is_bafana} />
                   <div className="text-center">
                     {c && (
                       <div className="font-mono text-2xl font-black tabular-nums leading-none text-primary">
@@ -128,12 +114,9 @@ function HomePage() {
                       Days · Hrs · Min
                     </div>
                   </div>
-                  <TeamBadge
-                    name={nextAway?.name ?? "TBD"}
-                    countryCode={nextAway?.country_code}
-                    accent={nextAway?.id === SOUTH_AFRICA_TEAM_ID}
-                  />
+                  <TeamBadge name={nextAway?.name ?? "TBD"} logo={nextAway?.logo} accent={nextAway?.is_bafana} />
                 </div>
+
                 <div className="mt-3 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
                   <MapPin className="h-3 w-3" /> {next.venue}
                 </div>
@@ -204,24 +187,23 @@ function HomePage() {
             className="group glass relative block overflow-hidden rounded-2xl ring-glow-gold transition"
           >
             <div className="relative h-64 w-full overflow-hidden">
-              <img src={playerTau} alt={featured.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+              <img
+                src={featured.photo_url ?? playerTau}
+                alt={featured.name}
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover object-top transition duration-700 group-hover:scale-105"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent" />
-              <div className="absolute right-3 top-3 glass rounded-md px-2 py-1 font-mono text-[10px] font-bold text-primary">
-                #{featured.jersey_number}
-              </div>
               <div className="absolute bottom-3 left-4 right-4">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
-                  {featured.position} · {featured.club}
+                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
+                  {featured.flag_url && <img src={featured.flag_url} alt="" className="h-3 w-4 rounded-sm object-cover" />}
+                  <span>{featured.position_label || featured.position}</span>
                 </div>
                 <div className="font-display text-3xl font-black leading-tight">{featured.name}</div>
               </div>
             </div>
-            <div className="grid grid-cols-3 divide-x divide-border/60 border-t border-border/60">
-              <Stat compact label="Goals" value={featured.goals} />
-              <Stat compact label="Caps" value={featured.caps} />
-              <Stat compact label="Assists" value={featured.assists} />
-            </div>
           </Link>
+
         </section>
       )}
 
@@ -290,22 +272,26 @@ function HomePage() {
 }
 
 
-function TeamBadge({ name, countryCode, accent }: { name: string; countryCode?: string | null; accent?: boolean }) {
-  const { flag } = validateCountryFlag(name, countryCode);
+function TeamBadge({ name, logo, accent }: { name: string; logo?: string | null; accent?: boolean }) {
   const short = name.length <= 3 ? name.toUpperCase() : name.slice(0, 3).toUpperCase();
   return (
     <div className="flex flex-col items-center gap-1">
       <div
-        className={`grid h-14 w-14 place-items-center rounded-xl text-2xl ${
+        className={`grid h-14 w-14 place-items-center overflow-hidden rounded-xl ${
           accent ? "bg-[var(--sa-green)] ring-glow-green" : "bg-surface-2"
         }`}
       >
-        {flag}
+        {logo ? (
+          <img src={logo} alt={name} className="h-10 w-10 object-contain" />
+        ) : (
+          <span className="font-display text-sm font-black">{short}</span>
+        )}
       </div>
       <div className="font-display text-[11px] font-black tracking-wider">{short}</div>
     </div>
   );
 }
+
 
 function IntelCard({
   tone,
