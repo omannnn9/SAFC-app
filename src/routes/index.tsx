@@ -272,22 +272,26 @@ function HomePage() {
 }
 
 
-function TeamBadge({ name, countryCode, accent }: { name: string; countryCode?: string | null; accent?: boolean }) {
-  const { flag } = validateCountryFlag(name, countryCode);
+function TeamBadge({ name, logo, accent }: { name: string; logo?: string | null; accent?: boolean }) {
   const short = name.length <= 3 ? name.toUpperCase() : name.slice(0, 3).toUpperCase();
   return (
     <div className="flex flex-col items-center gap-1">
       <div
-        className={`grid h-14 w-14 place-items-center rounded-xl text-2xl ${
+        className={`grid h-14 w-14 place-items-center overflow-hidden rounded-xl ${
           accent ? "bg-[var(--sa-green)] ring-glow-green" : "bg-surface-2"
         }`}
       >
-        {flag}
+        {logo ? (
+          <img src={logo} alt={name} className="h-10 w-10 object-contain" />
+        ) : (
+          <span className="font-display text-sm font-black">{short}</span>
+        )}
       </div>
       <div className="font-display text-[11px] font-black tracking-wider">{short}</div>
     </div>
   );
 }
+
 
 function IntelCard({
   tone,
