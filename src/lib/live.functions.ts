@@ -673,7 +673,13 @@ function categorize(hay: string): LiveArticle["category"] {
 
 function resolveImage(category: LiveArticle["category"], articleImage: string | null): string {
   if (articleImage) return articleImage;
-  return NEWS_FALLBACK_IMAGES[category] ?? NEWS_FALLBACK_IMAGES.default;
+  const map: Record<LiveArticle["category"], string> = {
+    match: NEWS_FALLBACK_IMAGES.match,
+    player: NEWS_FALLBACK_IMAGES.player,
+    team: NEWS_FALLBACK_IMAGES.team,
+    supporter: NEWS_FALLBACK_IMAGES.stadium,
+  };
+  return map[category] ?? NEWS_FALLBACK_IMAGES.default;
 }
 
 // Reject obvious club-only items unless they also mention Bafana / SA.
