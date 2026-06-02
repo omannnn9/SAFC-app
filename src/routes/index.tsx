@@ -86,7 +86,7 @@ function HomePage() {
 
   return (
     <PageContainer>
-      {!session && <SignupBadge />}
+      {/* SignupBadge removed per request — keep auth clean */}
       <AppHeader title="Home" />
 
       {/* HERO — Stadium broadcast */}
