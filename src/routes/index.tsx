@@ -208,7 +208,7 @@ function Home() {
 
           <div className="space-y-4">
             {tiers.map((tier) => {
-              const isVip = "vip" in tier && tier.vip;
+              const isVip = !!tier.vip;
               return (
                 <div
                   key={tier.name}
