@@ -493,6 +493,34 @@ export const getLivePlayers = createServerFn({ method: "GET" }).handler(async ()
   });
 });
 
+export const getLiveManager = createServerFn({ method: "GET" }).handler(async () => {
+  return cachedFetch<LiveManager>("af:manager:v1-sa-team-id", 60 * 60 * 24, async () => {
+    const coaches = (await apiFootball(`/coachs?team=${SA_TEAM_ID}`)) as AFCoachResponse;
+    const current =
+      coaches.find((coach) => coach.career?.some((job) => job.team.id === SA_TEAM_ID && !job.end)) ??
+      coaches.find((coach) => /broos/i.test(`${coach.firstname ?? ""} ${coach.lastname ?? ""} ${coach.name}`)) ??
+      coaches[0];
+
+    if (!current) {
+      return {
+        id: "manager-fallback",
+        name: "Hugo Broos",
+        role: "Manager",
+        nationality: "Belgium",
+        photo_url: "https://media.api-sports.io/football/coachs/2883.png",
+      };
+    }
+
+    return {
+      id: `coach-${current.id}`,
+      name: `${current.firstname ?? ""} ${current.lastname ?? current.name}`.trim() || current.name,
+      role: "Manager",
+      nationality: current.nationality,
+      photo_url: current.photo ?? `https://media.api-sports.io/football/coachs/${current.id}.png`,
+    };
+  });
+});
+
 // ============= NEWS =============
 
 export type LiveArticle = {
