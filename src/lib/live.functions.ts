@@ -103,6 +103,32 @@ function teamLogo(id: number): string {
   return `https://media.api-sports.io/football/teams/${id}.png`;
 }
 
+/**
+ * Dev-time integrity check: every fixture must have two DISTINCT teams,
+ * each with its own id+logo derived from fixture.teams.home / fixture.teams.away.
+ * Logs a warning if SA appears on both sides, ids collide, or logos duplicate.
+ */
+function verifyFixtureTeams(m: LiveMatch, source: string): LiveMatch {
+  const h = m.home_team;
+  const a = m.away_team;
+  const issues: string[] = [];
+  if (!h || !a) issues.push("missing home_team/away_team");
+  else {
+    if (h.id != null && a.id != null && h.id === a.id) issues.push(`duplicate team id ${h.id}`);
+    if (h.id === SA_TEAM_ID && a.id === SA_TEAM_ID) issues.push("South Africa on both sides");
+    if (h.logo && a.logo && h.logo === a.logo) issues.push("duplicate team logo");
+    if (h.name && a.name && h.name.trim().toLowerCase() === a.name.trim().toLowerCase())
+      issues.push(`duplicate team name "${h.name}"`);
+  }
+  if (issues.length > 0) {
+    console.warn(
+      `[fixture-verify:${source}] ${m.id} ${m.kickoff} — ${issues.join("; ")}`,
+      { home: h, away: a },
+    );
+  }
+  return m;
+}
+
 function mapFixture(f: AFFixture): LiveMatch {
   const isHome = f.teams.home.id === SA_TEAM_ID;
   const opponent = isHome ? f.teams.away : f.teams.home;
