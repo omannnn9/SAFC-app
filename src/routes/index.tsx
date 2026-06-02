@@ -458,7 +458,9 @@ function HomePage() {
                     {new Date(a.published_at).toLocaleDateString("en-ZA", {
                       day: "numeric",
                       month: "short",
+                      timeZone: "Africa/Johannesburg",
                     })}
+
                   </div>
                 </div>
               </Link>
