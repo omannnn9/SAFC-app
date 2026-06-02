@@ -5,6 +5,7 @@ import { ArrowRight, MapPin, Trophy, Sparkles, Flame, Users2 } from "lucide-reac
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { getNextMatch, getNews, getFeaturedPlayer } from "@/lib/data";
+import { nameToFlag } from "@/lib/flags";
 import { getLiveStats } from "@/lib/live.functions";
 import { useAuth } from "@/lib/auth";
 import heroPlayer from "@/assets/hero-player.jpg";
