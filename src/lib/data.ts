@@ -1,23 +1,24 @@
 import { supabase } from "@/integrations/supabase/client";
-import {
-  getLiveUpcomingMatches,
-  getLivePastMatches,
-  getLivePlayers,
-  getLiveManager,
-  getLiveNews,
-} from "./live.functions";
+import { getLiveNews } from "./live.functions";
+import { getSafaSquad, getSafaPlayer, getSafaMatches } from "./safa.functions";
 
 export type Player = {
-  id: string;
+  id: string; // SAFA slug
+  slug: string;
   name: string;
   position: "GK" | "DEF" | "MID" | "FWD";
-  club: string;
-  jersey_number: number | null;
-  caps: number;
-  goals: number;
-  assists: number;
+  position_label: string;
+  club: string | null;
   photo_url: string | null;
-  bio: string | null;
+  flag_url: string | null;
+  flag_code: string | null;
+  // Optional rich details (only present on detail page)
+  nickname?: string | null;
+  born?: string | null;
+  height?: string | null;
+  province?: string | null;
+  background?: string | null;
+  quote?: string | null;
 };
 
 export type Manager = {
@@ -29,27 +30,26 @@ export type Manager = {
 };
 
 export type MatchTeam = {
-  id: number | null;
   name: string;
   logo: string | null;
-  country_code?: string | null;
+  is_bafana: boolean;
 };
 
 export type Match = {
   id: string;
   opponent: string;
-  opponent_flag: string | null;
-  /** Large match visual. Prefers SAFA Match Centre og:image, falls back to API-Football team logo. */
   cover_url?: string | null;
   kickoff: string;
   venue: string;
   competition: string;
+  competition_logo: string | null;
   is_home: boolean;
-  home_team?: MatchTeam;
-  away_team?: MatchTeam;
+  home_team: MatchTeam;
+  away_team: MatchTeam;
   home_score: number | null;
   away_score: number | null;
   status: "upcoming" | "live" | "completed";
+  url?: string;
 };
 
 export type Article = {
@@ -70,25 +70,55 @@ export type Article = {
 
 export async function getPlayers(): Promise<Player[]> {
   try {
-    const res = await getLivePlayers();
-    if (res?.data && res.data.length > 0) return res.data as Player[];
-  } catch {
-    /* fall through */
+    const res = await getSafaSquad();
+    const list = res?.data ?? [];
+    return list.map((p) => ({
+      id: p.slug,
+      slug: p.slug,
+      name: p.name,
+      position: p.position,
+      position_label: p.position_label,
+      club: null,
+      photo_url: p.photo_url,
+      flag_url: p.flag_url,
+      flag_code: p.flag_code,
+    }));
+  } catch (err) {
+    console.error("[data] getPlayers failed:", err);
+    return [];
   }
-  const { data } = await supabase
-    .from("players")
-    .select("*")
-    .order("jersey_number", { ascending: true });
-  return (data ?? []) as Player[];
 }
 
-export async function getPlayer(id: string): Promise<Player | null> {
-  if (id.startsWith("af-")) {
-    const list = await getPlayers();
-    return list.find((p) => p.id === id) ?? null;
+export async function getPlayer(slug: string): Promise<Player | null> {
+  try {
+    const [listRes, detailRes] = await Promise.all([
+      getSafaSquad(),
+      getSafaPlayer({ data: slug }),
+    ]);
+    const listItem = (listRes?.data ?? []).find((p) => p.slug === slug);
+    const d = detailRes?.data;
+    if (!listItem && !d) return null;
+    return {
+      id: slug,
+      slug,
+      name: d?.name ?? listItem?.name ?? slug.replace(/-/g, " "),
+      position: listItem?.position ?? d?.position ?? "FWD",
+      position_label: listItem?.position_label ?? d?.position_label ?? "",
+      club: d?.club ?? null,
+      photo_url: listItem?.photo_url ?? d?.photo_url ?? null,
+      flag_url: listItem?.flag_url ?? null,
+      flag_code: listItem?.flag_code ?? "ZA",
+      nickname: d?.nickname ?? null,
+      born: d?.born ?? null,
+      height: d?.height ?? null,
+      province: d?.province ?? null,
+      background: d?.background ?? null,
+      quote: d?.quote ?? null,
+    };
+  } catch (err) {
+    console.error(`[data] getPlayer(${slug}) failed:`, err);
+    return null;
   }
-  const { data } = await supabase.from("players").select("*").eq("id", id).maybeSingle();
-  return (data as Player) ?? null;
 }
 
 export async function getFeaturedPlayer(): Promise<Player | null> {
@@ -96,52 +126,64 @@ export async function getFeaturedPlayer(): Promise<Player | null> {
   return list.find((p) => p.position === "FWD") ?? list[0] ?? null;
 }
 
-export async function getManager(): Promise<Manager | null> {
-  try {
-    const res = await getLiveManager();
-    if (res?.data) return res.data as Manager;
-  } catch {
-    /* fall through */
-  }
+export async function getManager(): Promise<Manager> {
   return {
-    id: "manager-fallback",
+    id: "manager-broos",
     name: "Hugo Broos",
     role: "Manager",
     nationality: "Belgium",
-    photo_url: "https://media.api-sports.io/football/coachs/2883.png",
+    photo_url: "https://upload.wikimedia.org/wikipedia/commons/f/f0/Hugo_Broos_1.jpg",
   };
 }
 
 // ============= MATCHES =============
 
-export async function getUpcomingMatches(): Promise<Match[]> {
+async function getAllMatches(): Promise<Match[]> {
   try {
-    const res = await getLiveUpcomingMatches();
-    if (res?.data && res.data.length > 0) return res.data as Match[];
-  } catch {
-    /* fall through */
+    const res = await getSafaMatches();
+    const list = res?.data ?? [];
+    return list.map((m) => ({
+      id: m.id,
+      opponent: m.opponent,
+      cover_url: m.home_logo && m.away_logo ? (m.is_home ? m.away_logo : m.home_logo) : null,
+      kickoff: m.kickoff_iso,
+      venue: m.venue || "TBD",
+      competition: m.competition ?? "International",
+      competition_logo: m.competition_logo,
+      is_home: m.is_home,
+      home_team: {
+        name: m.home_name,
+        logo: m.home_logo,
+        is_bafana: /bafana|south africa/i.test(m.home_name),
+      },
+      away_team: {
+        name: m.away_name,
+        logo: m.away_logo,
+        is_bafana: /bafana|south africa/i.test(m.away_name),
+      },
+      home_score: m.home_score,
+      away_score: m.away_score,
+      status: m.status,
+      url: m.url,
+    }));
+  } catch (err) {
+    console.error("[data] getAllMatches failed:", err);
+    return [];
   }
-  const { data } = await supabase
-    .from("matches")
-    .select("*")
-    .eq("status", "upcoming")
-    .order("kickoff", { ascending: true });
-  return (data ?? []) as Match[];
+}
+
+export async function getUpcomingMatches(): Promise<Match[]> {
+  const all = await getAllMatches();
+  return all
+    .filter((m) => m.status === "upcoming")
+    .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime());
 }
 
 export async function getPastMatches(): Promise<Match[]> {
-  try {
-    const res = await getLivePastMatches();
-    if (res?.data && res.data.length > 0) return res.data as Match[];
-  } catch {
-    /* fall through */
-  }
-  const { data } = await supabase
-    .from("matches")
-    .select("*")
-    .eq("status", "completed")
-    .order("kickoff", { ascending: false });
-  return (data ?? []) as Match[];
+  const all = await getAllMatches();
+  return all
+    .filter((m) => m.status === "completed")
+    .sort((a, b) => new Date(b.kickoff).getTime() - new Date(a.kickoff).getTime());
 }
 
 export async function getNextMatch(): Promise<Match | null> {
@@ -150,12 +192,8 @@ export async function getNextMatch(): Promise<Match | null> {
 }
 
 export async function getMatch(id: string): Promise<Match | null> {
-  if (id.startsWith("af-")) {
-    const [up, past] = await Promise.all([getUpcomingMatches(), getPastMatches()]);
-    return [...up, ...past].find((m) => m.id === id) ?? null;
-  }
-  const { data } = await supabase.from("matches").select("*").eq("id", id).maybeSingle();
-  return (data as Match) ?? null;
+  const all = await getAllMatches();
+  return all.find((m) => m.id === id) ?? null;
 }
 
 // ============= NEWS =============
