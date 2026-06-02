@@ -85,12 +85,13 @@ function TimelineDot({ m }: { m: Match }) {
       >
         <div className="text-center leading-none">
           <div className="font-display text-[11px] font-black">
-            {k.toLocaleDateString("en-ZA", { day: "2-digit" })}
+            {k.toLocaleDateString("en-ZA", { day: "2-digit", timeZone: "Africa/Johannesburg" })}
           </div>
           <div className="text-[8px] uppercase tracking-wider text-muted-foreground">
-            {k.toLocaleDateString("en-ZA", { month: "short" })}
+            {k.toLocaleDateString("en-ZA", { month: "short", timeZone: "Africa/Johannesburg" })}
           </div>
         </div>
+
       </div>
     </div>
   );
