@@ -175,9 +175,20 @@ export function verifyKickoff(opponent: string, kickoffIso: string): string {
   if (Number.isNaN(d.getTime())) return kickoffIso;
   const sastDay = d.toLocaleDateString("en-CA", { timeZone: "Africa/Johannesburg" });
   const utcDay = kickoffIso.slice(0, 10);
-  for (const candidateDay of [sastDay, utcDay]) {
-    const key = `${candidateDay}|${slug}`;
-    const override = VERIFIED_KICKOFFS[key];
+  // Try the exact day, plus ±1 day, so a wrong SAFA time that lands on the
+  // neighbouring calendar day still matches the verified override.
+  const candidateDays = new Set<string>([sastDay, utcDay]);
+  for (const base of [sastDay, utcDay]) {
+    const bd = new Date(`${base}T00:00:00Z`);
+    if (!Number.isNaN(bd.getTime())) {
+      const prev = new Date(bd.getTime() - 86400000).toISOString().slice(0, 10);
+      const next = new Date(bd.getTime() + 86400000).toISOString().slice(0, 10);
+      candidateDays.add(prev);
+      candidateDays.add(next);
+    }
+  }
+  for (const candidateDay of candidateDays) {
+    const override = VERIFIED_KICKOFFS[`${candidateDay}|${slug}`];
     if (override) return override.utc;
   }
   return kickoffIso;
