@@ -269,7 +269,7 @@ const VERIFIED_RECENT_COMPLETED_MATCHES: LiveMatch[] = VERIFIED_RECENT_SEEDS.map
       opponent: s.opponent,
       opponent_flag: null,
       cover_url: null,
-      kickoff: s.date,
+      kickoff: verifyKickoff(s.opponent, s.date),
       venue: s.venue,
       competition: s.competition,
       is_home: s.isHome,
