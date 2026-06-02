@@ -155,7 +155,8 @@ export async function fetchSafaUpcomingFixtures(): Promise<SafaFixture[]> {
       return memCache?.data ?? [];
     }
     const text = await res.text();
-    const data = parseIcs(text);
+    const parsed = parseIcs(text);
+    const data = applyVerifiedKickoffs(parsed);
     console.log(`[safa] parsed ${data.length} upcoming fixtures`);
     memCache = { at: Date.now(), data };
     return data;
