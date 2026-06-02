@@ -104,22 +104,41 @@ function parseIcs(text: string): SafaFixture[] {
 let memCache: { at: number; data: SafaFixture[] } | null = null;
 const TTL_MS = 10 * 60 * 1000;
 
-// ============= VERIFIED KICKOFF OVERRIDES =============
+// ============= VERIFIED KICKOFF TIMES (AUTHORITATIVE) =============
 //
-// SAFA's iCal feed occasionally publishes incorrect kickoff times for matches
-// hosted abroad (timezone math drift). When a fixture's SAFA time disagrees
-// with FIFA + multiple independent sources (kickoffclock, matchtimes,
-// whatisthetime, Al Jazeera, FoxSports, etc.), we override to the canonical
-// UTC time below. Each entry MUST cite ≥2 independent sources in the comment.
+// SAFA's iCal feed publishes incorrect kickoff times for matches hosted
+// abroad (timezone math drift). We do NOT trust SAFA for time anymore — we
+// override with canonical UTC times verified against FIFA + multiple
+// independent sources (Google, LiveScore, ESPN, kickoffclock, Flashscore).
+// Each entry MUST cite ≥2 independent sources.
 //
 // Key: `${YYYY-MM-DD}|${opponentSlug}` (date in Africa/Johannesburg).
 const VERIFIED_KICKOFFS: Record<string, { utc: string; sources: string[] }> = {
-  // Mexico vs South Africa, WC 2026 opener, Estadio Azteca.
-  // FIFA: 1:00 PM CDT Mexico City = 19:00 UTC = 21:00 SAST.
-  // SAFA incorrectly publishes 22:00 SAST (20:00 UTC). Off by +1h.
+  // Mexico vs South Africa — WC 2026 opener, Estadio Azteca, Mexico City.
+  // 13:00 CDT = 19:00 UTC = 21:00 SAST.
   "2026-06-11|mexico": {
     utc: "2026-06-11T19:00:00.000Z",
-    sources: ["fifa.com", "kickoffclock.com", "matchtimes.app", "whatisthetime.now"],
+    sources: ["fifa.com", "google.com", "livescore.com", "kickoffclock.com", "espn.com"],
+  },
+  // Czechia vs South Africa — WC 2026, Mercedes-Benz Stadium, Atlanta.
+  // 12:00 ET = 16:00 UTC = 18:00 SAST.
+  "2026-06-18|czechia": {
+    utc: "2026-06-18T16:00:00.000Z",
+    sources: ["fifa.com", "google.com", "livescore.com", "kickoffclock.com", "flashscore.com"],
+  },
+  // South Africa vs South Korea — WC 2026, Estadio BBVA, Monterrey.
+  // Wed 24 Jun 21:00 ET = Thu 25 Jun 01:00 UTC = Thu 25 Jun 03:00 SAST.
+  "2026-06-25|southkorea": {
+    utc: "2026-06-25T01:00:00.000Z",
+    sources: ["fifa.com", "google.com", "livescore.com", "kickoffclock.com", "espn.com"],
+  },
+  "2026-06-25|korearepublic": {
+    utc: "2026-06-25T01:00:00.000Z",
+    sources: ["fifa.com", "google.com", "livescore.com", "kickoffclock.com", "espn.com"],
+  },
+  "2026-06-25|korea": {
+    utc: "2026-06-25T01:00:00.000Z",
+    sources: ["fifa.com", "google.com", "livescore.com", "kickoffclock.com", "espn.com"],
   },
 };
 
@@ -156,9 +175,20 @@ export function verifyKickoff(opponent: string, kickoffIso: string): string {
   if (Number.isNaN(d.getTime())) return kickoffIso;
   const sastDay = d.toLocaleDateString("en-CA", { timeZone: "Africa/Johannesburg" });
   const utcDay = kickoffIso.slice(0, 10);
-  for (const candidateDay of [sastDay, utcDay]) {
-    const key = `${candidateDay}|${slug}`;
-    const override = VERIFIED_KICKOFFS[key];
+  // Try the exact day, plus ±1 day, so a wrong SAFA time that lands on the
+  // neighbouring calendar day still matches the verified override.
+  const candidateDays = new Set<string>([sastDay, utcDay]);
+  for (const base of [sastDay, utcDay]) {
+    const bd = new Date(`${base}T00:00:00Z`);
+    if (!Number.isNaN(bd.getTime())) {
+      const prev = new Date(bd.getTime() - 86400000).toISOString().slice(0, 10);
+      const next = new Date(bd.getTime() + 86400000).toISOString().slice(0, 10);
+      candidateDays.add(prev);
+      candidateDays.add(next);
+    }
+  }
+  for (const candidateDay of candidateDays) {
+    const override = VERIFIED_KICKOFFS[`${candidateDay}|${slug}`];
     if (override) return override.utc;
   }
   return kickoffIso;

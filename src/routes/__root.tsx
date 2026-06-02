@@ -128,7 +128,7 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-const HIDE_NAV = ["/login", "/signup", "/forgot-password", "/reset-password"];
+const HIDE_NAV = ["/login", "/signup"];
 
 function Shell() {
   const router = useRouter();

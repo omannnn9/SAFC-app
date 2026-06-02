@@ -114,14 +114,6 @@ function LoginPage() {
             }
           />
 
-          <div className="flex justify-end">
-            <Link
-              to="/forgot-password"
-              className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-            >
-              Forgot password?
-            </Link>
-          </div>
 
           <button
             type="submit"
