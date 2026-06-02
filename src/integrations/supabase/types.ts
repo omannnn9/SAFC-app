@@ -14,16 +14,345 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookmarks: {
+        Row: {
+          article_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          article_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          article_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookmarks_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "news_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          away_score: number | null
+          competition: string
+          created_at: string
+          highlights_url: string | null
+          home_score: number | null
+          id: string
+          is_home: boolean
+          kickoff: string
+          opponent: string
+          opponent_flag: string | null
+          status: Database["public"]["Enums"]["match_status"]
+          venue: string
+        }
+        Insert: {
+          away_score?: number | null
+          competition: string
+          created_at?: string
+          highlights_url?: string | null
+          home_score?: number | null
+          id?: string
+          is_home?: boolean
+          kickoff: string
+          opponent: string
+          opponent_flag?: string | null
+          status?: Database["public"]["Enums"]["match_status"]
+          venue: string
+        }
+        Update: {
+          away_score?: number | null
+          competition?: string
+          created_at?: string
+          highlights_url?: string | null
+          home_score?: number | null
+          id?: string
+          is_home?: boolean
+          kickoff?: string
+          opponent?: string
+          opponent_flag?: string | null
+          status?: Database["public"]["Enums"]["match_status"]
+          venue?: string
+        }
+        Relationships: []
+      }
+      news_articles: {
+        Row: {
+          author_id: string | null
+          body: string
+          category: Database["public"]["Enums"]["news_category"]
+          cover_url: string | null
+          created_at: string
+          excerpt: string
+          id: string
+          is_premium: boolean
+          published_at: string
+          slug: string
+          title: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          category?: Database["public"]["Enums"]["news_category"]
+          cover_url?: string | null
+          created_at?: string
+          excerpt: string
+          id?: string
+          is_premium?: boolean
+          published_at?: string
+          slug: string
+          title: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          category?: Database["public"]["Enums"]["news_category"]
+          cover_url?: string | null
+          created_at?: string
+          excerpt?: string
+          id?: string
+          is_premium?: boolean
+          published_at?: string
+          slug?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          id: string
+          provider: string | null
+          provider_ref: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          id?: string
+          provider?: string | null
+          provider_ref?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          provider?: string | null
+          provider_ref?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      players: {
+        Row: {
+          assists: number
+          bio: string | null
+          caps: number
+          club: string
+          created_at: string
+          date_of_birth: string | null
+          goals: number
+          id: string
+          jersey_number: number | null
+          name: string
+          photo_url: string | null
+          position: Database["public"]["Enums"]["player_position"]
+        }
+        Insert: {
+          assists?: number
+          bio?: string | null
+          caps?: number
+          club: string
+          created_at?: string
+          date_of_birth?: string | null
+          goals?: number
+          id?: string
+          jersey_number?: number | null
+          name: string
+          photo_url?: string | null
+          position: Database["public"]["Enums"]["player_position"]
+        }
+        Update: {
+          assists?: number
+          bio?: string | null
+          caps?: number
+          club?: string
+          created_at?: string
+          date_of_birth?: string | null
+          goals?: number
+          id?: string
+          jersey_number?: number | null
+          name?: string
+          photo_url?: string | null
+          position?: Database["public"]["Enums"]["player_position"]
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          country: string
+          created_at: string
+          full_name: string
+          id: string
+          is_premium: boolean
+          phone: string | null
+          premium_until: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          country?: string
+          created_at?: string
+          full_name?: string
+          id: string
+          is_premium?: boolean
+          phone?: string | null
+          premium_until?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          country?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_premium?: boolean
+          phone?: string | null
+          premium_until?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          id: string
+          plan: string
+          provider: string | null
+          provider_ref: string | null
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan?: string
+          provider?: string | null
+          provider_ref?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan?: string
+          provider?: string | null
+          provider_ref?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      match_status: "upcoming" | "live" | "completed"
+      news_category: "team" | "match" | "player" | "supporter"
+      player_position: "GK" | "DEF" | "MID" | "FWD"
+      subscription_status: "active" | "cancelled" | "expired" | "pending"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +479,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      match_status: ["upcoming", "live", "completed"],
+      news_category: ["team", "match", "player", "supporter"],
+      player_position: ["GK", "DEF", "MID", "FWD"],
+      subscription_status: ["active", "cancelled", "expired", "pending"],
+    },
   },
 } as const
