@@ -63,5 +63,5 @@ export const getSafaPlayer = createServerFn({ method: "GET" })
   });
 
 export const getSafaMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cached<SafaMatch[]>("safa:matches:v1", 60 * 15, fetchSafaAllMatches);
+  return cached<SafaMatch[]>("safa:matches:v2-verified-times", 60 * 15, fetchSafaAllMatches);
 });

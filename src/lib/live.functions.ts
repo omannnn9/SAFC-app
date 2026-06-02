@@ -283,9 +283,8 @@ const VERIFIED_RECENT_COMPLETED_MATCHES: LiveMatch[] = VERIFIED_RECENT_SEEDS.map
   );
 });
 
-// Build a synthetic LiveMatch from a SAFA-only fixture (when API-Football
-// hasn't published it yet). SAFA is the authoritative source for upcoming
-// Bafana matches, so we surface it even without API data.
+// Build a synthetic LiveMatch from SAFA fixture metadata when API-Football
+// hasn't published it yet. Kickoff time is still verified independently.
 function safaToLiveMatch(s: SafaFixture): LiveMatch {
   const opponent = s.summary.replace(/®/g, "").split(" - ")[0];
   const parts = opponent.split(/\s+vs\s+/i).map((p) => p.trim());
@@ -322,7 +321,7 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
 }
 
 export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v8-verified-kickoffs", 60 * 10, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v9-verified-times", 60 * 10, async () => {
     const [afRes, safa] = await Promise.all([
       apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=15`) as Promise<AFFixture[]>,
       fetchSafaUpcomingFixtures(),
@@ -334,8 +333,8 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
       .filter((f) => ["NS", "TBD", "PST"].includes(f.fixture.status.short))
       .sort((a, b) => new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime());
 
-    // Step 2: cross-validate against SAFA. If SAFA is reachable but doesn't
-    // confirm an AF fixture, drop it (truth layer override).
+    // Step 2: cross-check fixture existence against SAFA metadata. Kickoff
+    // times still come from the verified multi-source override layer.
     const verified = afValid.filter((f) => {
       const opp = f.teams.home.id === SA_TEAM_ID ? f.teams.away.name : f.teams.home.name;
       const ok = safaConfirms(safa, opp, f.fixture.date);
