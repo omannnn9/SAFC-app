@@ -20,7 +20,6 @@ function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [favoriteTeam, setFavoriteTeam] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,7 +36,7 @@ function SignupPage() {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { full_name: fullName, favorite_team: favoriteTeam, country: "South Africa" },
+        data: { full_name: fullName, country: "South Africa" },
       },
     });
     setLoading(false);
@@ -154,14 +153,6 @@ function SignupPage() {
             }
           />
 
-          <FloatField
-            icon={<Trophy className="h-4 w-4" />}
-            label="Favorite team (optional)"
-            type="text"
-            value={favoriteTeam}
-            onChange={setFavoriteTeam}
-            required={false}
-          />
 
           <button
             type="submit"

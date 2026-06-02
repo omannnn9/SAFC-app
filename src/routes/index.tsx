@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, MapPin, Trophy, Sparkles, CalendarDays, History } from "lucide-react";
+import { ArrowRight, MapPin, Trophy, Activity, CalendarDays, History, Lightbulb } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
-import { SignupBadge } from "@/components/SignupBadge";
 import { getNextMatch, getNews, getFeaturedPlayer } from "@/lib/data";
 
 import { getLivePastMatches } from "@/lib/live.functions";
@@ -57,7 +56,7 @@ const FUN_FACTS = [
 ];
 
 function HomePage() {
-  const { profile, session } = useAuth();
+  const { profile } = useAuth();
   const { data: next } = useQuery({ queryKey: ["next-match"], queryFn: getNextMatch });
   const { data: news } = useQuery({ queryKey: ["news", "home"], queryFn: () => getNews() });
   const { data: featured } = useQuery({ queryKey: ["featured-player"], queryFn: getFeaturedPlayer });
@@ -87,7 +86,7 @@ function HomePage() {
 
   return (
     <PageContainer>
-      {!session && <SignupBadge />}
+      {/* SignupBadge removed per request — keep auth clean */}
       <AppHeader title="Home" />
 
       {/* HERO — Stadium broadcast */}
@@ -161,88 +160,113 @@ function HomePage() {
         </div>
       </section>
 
-      {/* TEAM INSIGHTS — clean 4-card panel */}
-      <section className="mt-8 px-4">
-        <div className="mb-3 flex items-end justify-between">
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-            Team insights
-          </h2>
-          <span className="text-[10px] text-muted-foreground/70">Bafana Bafana</span>
+      {/* TEAM INSIGHTS — premium standout cards */}
+      <section className="mt-10 px-4">
+        <div className="mb-4 flex items-end justify-between">
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-primary">Bafana Bafana</div>
+            <h2 className="mt-1 font-display text-xl font-black tracking-tight">Team Insights</h2>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <InsightCard icon={<Sparkles className="h-3.5 w-3.5" />} label="Form">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* FORM — green */}
+          <PremiumCard
+            icon={<Activity className="h-4 w-4" />}
+            label="Team Form"
+            tint="green"
+          >
             {form.length === 0 ? (
-              <div className="text-xs text-muted-foreground">No recent matches</div>
+              <div className="text-sm text-white/70">Form data unavailable</div>
             ) : (
               <>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   {form.map((r, i) => (
                     <span
                       key={i}
-                      className={`grid h-7 w-7 place-items-center rounded-md text-[11px] font-black ${
+                      className={`grid h-9 w-9 place-items-center rounded-lg text-sm font-black shadow-md ${
                         r === "W"
-                          ? "bg-[color:var(--sa-green)] text-white"
+                          ? "bg-white text-[color:var(--sa-green)]"
                           : r === "D"
-                            ? "bg-muted text-foreground"
-                            : "bg-destructive/80 text-white"
+                            ? "bg-white/25 text-white"
+                            : "bg-black/40 text-white"
                       }`}
                     >
                       {r}
                     </span>
                   ))}
                 </div>
-                <div className="mt-2 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                <div className="mt-3 text-[10px] uppercase tracking-[0.18em] text-white/70">
                   Last {form.length} matches
                 </div>
               </>
             )}
-          </InsightCard>
+          </PremiumCard>
 
-          <InsightCard icon={<History className="h-3.5 w-3.5" />} label="Last match">
+          {/* LAST MATCH — blue */}
+          <PremiumCard
+            icon={<History className="h-4 w-4" />}
+            label="Last Match"
+            tint="blue"
+          >
             {lastMatch ? (
               <>
-                <div className="truncate font-display text-lg font-black leading-tight">
-                  {lastMatch.opponent}
+                <div className="truncate font-display text-lg font-black leading-tight text-white">
+                  vs {lastMatch.opponent}
                 </div>
-                <div className="mt-0.5 font-mono text-xl font-black tabular-nums text-primary">
+                <div className="mt-1 font-mono text-3xl font-black tabular-nums text-white">
                   {lastMatch.home_score ?? "—"}–{lastMatch.away_score ?? "—"}
                 </div>
-                <div className="mt-1 text-[10px] text-muted-foreground">
-                  {new Date(lastMatch.kickoff).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })}
+                <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-white/70">
+                  <span className="truncate">{lastMatch.competition}</span>
+                  <span>
+                    {new Date(lastMatch.kickoff).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}
+                  </span>
                 </div>
               </>
             ) : (
-              <div className="text-xs text-muted-foreground">—</div>
+              <div className="text-sm text-white/70">Last match data not available</div>
             )}
-          </InsightCard>
+          </PremiumCard>
 
-          <InsightCard icon={<CalendarDays className="h-3.5 w-3.5" />} label="Next match">
+          {/* NEXT MATCH — gold */}
+          <PremiumCard
+            icon={<CalendarDays className="h-4 w-4" />}
+            label="Next Match"
+            tint="gold"
+          >
             {next ? (
               <>
-                <div className="truncate font-display text-lg font-black leading-tight">
-                  {nextHome?.is_bafana ? nextAway?.name : nextHome?.name}
+                <div className="truncate font-display text-lg font-black leading-tight text-black">
+                  vs {nextHome?.is_bafana ? nextAway?.name : nextHome?.name}
                 </div>
-                <div className="mt-0.5 truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+                <div className="mt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-black/70">
                   {next.competition}
                 </div>
-                <div className="mt-1 text-[10px] text-muted-foreground">
+                <div className="mt-2 text-[11px] font-semibold text-black/80">
                   {new Date(next.kickoff).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })} ·{" "}
                   {new Date(next.kickoff).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" })}
                 </div>
               </>
             ) : (
-              <div className="text-xs text-muted-foreground">TBD</div>
+              <div className="text-sm text-black/70">Next fixture to be confirmed</div>
             )}
-          </InsightCard>
+          </PremiumCard>
 
-          <InsightCard icon={<Trophy className="h-3.5 w-3.5" />} label="Did you know?">
-            <div key={factIdx} className="animate-[fade-in_0.5s_ease-out] text-[11px] leading-snug text-foreground/85">
+          {/* FUN FACT — red */}
+          <PremiumCard
+            icon={<Lightbulb className="h-4 w-4" />}
+            label="Did You Know?"
+            tint="red"
+          >
+            <div key={factIdx} className="animate-[fade-in_0.5s_ease-out] text-sm leading-snug text-white">
               {FUN_FACTS[factIdx]}
             </div>
-          </InsightCard>
+          </PremiumCard>
         </div>
       </section>
+
+
 
 
 
@@ -364,27 +388,61 @@ function TeamBadge({ name, logo, accent }: { name: string; logo?: string | null;
 }
 
 
-function InsightCard({
+type Tint = "green" | "blue" | "gold" | "red";
+
+const TINT_STYLES: Record<Tint, { bg: string; ring: string; label: string; chip: string }> = {
+  green: {
+    bg: "bg-[linear-gradient(135deg,oklch(0.45_0.14_155)_0%,oklch(0.32_0.12_155)_100%)]",
+    ring: "shadow-[0_18px_40px_-12px_oklch(0.45_0.14_155_/_0.55)]",
+    label: "text-white/80",
+    chip: "bg-white/15 text-white",
+  },
+  blue: {
+    bg: "bg-[linear-gradient(135deg,oklch(0.48_0.16_245)_0%,oklch(0.28_0.13_255)_100%)]",
+    ring: "shadow-[0_18px_40px_-12px_oklch(0.48_0.16_245_/_0.55)]",
+    label: "text-white/80",
+    chip: "bg-white/15 text-white",
+  },
+  gold: {
+    bg: "bg-[linear-gradient(135deg,oklch(0.88_0.18_90)_0%,oklch(0.72_0.18_70)_100%)]",
+    ring: "shadow-[0_18px_40px_-12px_oklch(0.78_0.18_85_/_0.65)]",
+    label: "text-black/70",
+    chip: "bg-black/15 text-black",
+  },
+  red: {
+    bg: "bg-[linear-gradient(135deg,oklch(0.55_0.22_25)_0%,oklch(0.38_0.18_15)_100%)]",
+    ring: "shadow-[0_18px_40px_-12px_oklch(0.55_0.22_25_/_0.55)]",
+    label: "text-white/80",
+    chip: "bg-white/15 text-white",
+  },
+};
+
+function PremiumCard({
   icon,
   label,
+  tint,
   children,
 }: {
   icon: React.ReactNode;
   label: string;
+  tint: Tint;
   children: React.ReactNode;
 }) {
+  const t = TINT_STYLES[tint];
   return (
-    <div className="glass relative rounded-2xl border border-border/60 bg-surface/40 p-4 shadow-[var(--shadow-card-lift)] min-h-[120px] flex flex-col">
-      <div className="mb-2 flex items-center gap-2">
-        <div className="grid h-6 w-6 place-items-center rounded-md bg-[color:var(--sa-gold)]/15 text-[color:var(--sa-gold)]">
-          {icon}
-        </div>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+    <div
+      className={`relative overflow-hidden rounded-2xl p-5 min-h-[150px] flex flex-col ring-1 ring-white/10 ${t.bg} ${t.ring}`}
+    >
+      <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+      <div className="relative mb-3 flex items-center gap-2">
+        <div className={`grid h-7 w-7 place-items-center rounded-lg ${t.chip}`}>{icon}</div>
+        <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${t.label}`}>
           {label}
         </span>
       </div>
-      <div className="flex-1">{children}</div>
+      <div className="relative flex-1">{children}</div>
     </div>
   );
 }
+
 
