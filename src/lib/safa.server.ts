@@ -149,3 +149,49 @@ export function safaConfirms(
 }
 
 export { normalize as normalizeName };
+
+// Look up the og:image for a SAFA match page. Cached in-memory for the
+// lifetime of the server instance (URLs are immutable per fixture).
+const ogCache = new Map<string, string | null>();
+
+export async function fetchSafaFixtureImage(matchUrl: string): Promise<string | null> {
+  if (!matchUrl) return null;
+  if (ogCache.has(matchUrl)) return ogCache.get(matchUrl) ?? null;
+  try {
+    const res = await fetch(matchUrl, {
+      headers: { "User-Agent": "BafanaSupportersClub/1.0" },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) {
+      ogCache.set(matchUrl, null);
+      return null;
+    }
+    const html = await res.text();
+    const m = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i.exec(html);
+    const url = m?.[1] ?? null;
+    ogCache.set(matchUrl, url);
+    return url;
+  } catch (err) {
+    console.error(`[safa] og:image fetch failed for ${matchUrl}:`, err);
+    ogCache.set(matchUrl, null);
+    return null;
+  }
+}
+
+// Enrich a list of SAFA fixtures with their og:image URLs in parallel,
+// bounded concurrency so we don't hammer safa.net.
+export async function enrichSafaFixturesWithImages(
+  fixtures: SafaFixture[],
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const BATCH = 4;
+  for (let i = 0; i < fixtures.length; i += BATCH) {
+    const slice = fixtures.slice(i, i + BATCH);
+    const imgs = await Promise.all(slice.map((f) => fetchSafaFixtureImage(f.url)));
+    slice.forEach((f, idx) => {
+      const img = imgs[idx];
+      if (img) out.set(f.uid, img);
+    });
+  }
+  return out;
+}

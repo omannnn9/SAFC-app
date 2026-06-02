@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { fetchSafaUpcomingFixtures, safaConfirms, normalizeName, type SafaFixture } from "@/lib/safa.server";
+import { fetchSafaUpcomingFixtures, safaConfirms, normalizeName, enrichSafaFixturesWithImages, type SafaFixture } from "@/lib/safa.server";
 
 // South Africa national team (Bafana Bafana) in API-Football.
 // Verified via: GET https://v3.football.api-sports.io/teams?name=South%20Africa&type=national
@@ -73,6 +73,8 @@ export type LiveMatch = {
   id: string;
   opponent: string;
   opponent_flag: string | null;
+  /** Large match visual. Prefers SAFA Match Centre og:image, falls back to API-Football team logo. */
+  cover_url: string | null;
   kickoff: string;
   venue: string;
   competition: string;
@@ -107,6 +109,7 @@ function mapFixture(f: AFFixture): LiveMatch {
     id: `af-${f.fixture.id}`,
     opponent: opponent.name,
     opponent_flag: opponent.logo ?? teamLogo(opponent.id),
+    cover_url: opponent.logo ?? teamLogo(opponent.id),
     kickoff: f.fixture.date,
     venue: f.fixture.venue?.name ?? "TBD",
     competition: f.league.name,
@@ -150,6 +153,7 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
     id: `safa-${s.uid}`,
     opponent: opp,
     opponent_flag: null,
+    cover_url: null,
     kickoff: s.startUtc,
     venue: s.location || "TBD",
     competition: s.summary.split(" - ")[1] ?? "International",
@@ -161,7 +165,7 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
 }
 
 export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v4-safa", 60 * 10, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v5-safa-img", 60 * 10, async () => {
     const [afRes, safa] = await Promise.all([
       apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=15`) as Promise<AFFixture[]>,
       fetchSafaUpcomingFixtures(),
@@ -208,8 +212,36 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
       .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime())
       .slice(0, 10);
 
-    console.log(`[live] upcoming: api-verified=${fromApi.length} safa-only=${safaOnly.length} → ${dedup.length}`);
-    return dedup;
+    // Step 4: image enrichment — SAFA og:image per match overrides team logos.
+    // We build a (day|opponentSlug) lookup against the SAFA list so both
+    // API-derived and SAFA-derived fixtures get the official match visual.
+    const safaImages = await enrichSafaFixturesWithImages(safa);
+    const safaByKey = new Map<string, string>();
+    for (const f of safa) {
+      const img = safaImages.get(f.uid);
+      if (img) safaByKey.set(`${f.startUtc.slice(0, 10)}|${f.opponentSlug}`, img);
+    }
+    const withImages = dedup.map((m) => {
+      const oppSlug = normalizeName(m.opponent);
+      const day = m.kickoff.slice(0, 10);
+      // Try exact key, then loose contains match.
+      let cover = safaByKey.get(`${day}|${oppSlug}`) ?? null;
+      if (!cover) {
+        for (const [k, v] of safaByKey) {
+          const [d, slug] = k.split("|");
+          if (d === day && (slug.includes(oppSlug) || oppSlug.includes(slug))) {
+            cover = v;
+            break;
+          }
+        }
+      }
+      return cover ? { ...m, cover_url: cover } : m;
+    });
+
+    console.log(
+      `[live] upcoming: api-verified=${fromApi.length} safa-only=${safaOnly.length} → ${withImages.length} (safa-images=${safaImages.size})`,
+    );
+    return withImages;
   });
 });
 

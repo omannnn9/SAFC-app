@@ -23,6 +23,8 @@ export type Match = {
   id: string;
   opponent: string;
   opponent_flag: string | null;
+  /** Large match visual. Prefers SAFA Match Centre og:image, falls back to API-Football team logo. */
+  cover_url?: string | null;
   kickoff: string;
   venue: string;
   competition: string;
