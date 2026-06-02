@@ -1,6 +1,6 @@
-// SAFA Match Centre = the "truth layer" for South Africa national team
-// fixtures. We fetch the public iCal feed (no auth, server-rendered) and
-// expose verified fixture summaries the rest of the app can validate against.
+// SAFA Match Centre supplies South Africa national team fixture metadata.
+// Kickoff times from SAFA are not trusted; every fixture passes through the
+// verified multi-source kickoff override layer before reaching the app.
 //
 // Endpoint: https://www.safa.net/wp-json/afz/v1/fixtures/ical/upcoming/men
 
