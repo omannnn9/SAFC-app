@@ -209,22 +209,55 @@ function HomePage() {
             label="Last Match"
             tint="blue"
           >
-            {lastMatch ? (
-              <>
-                <div className="truncate font-display text-lg font-black leading-tight text-white">
-                  vs {lastMatch.opponent}
-                </div>
-                <div className="mt-1 font-mono text-3xl font-black tabular-nums text-white">
-                  {lastMatch.home_score ?? "—"}–{lastMatch.away_score ?? "—"}
-                </div>
-                <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-white/70">
-                  <span className="truncate">{lastMatch.competition}</span>
-                  <span>
-                    {new Date(lastMatch.kickoff).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}
-                  </span>
-                </div>
-              </>
-            ) : (
+            {lastMatch ? (() => {
+              const our = (lastMatch.is_home ? lastMatch.home_score : lastMatch.away_score) ?? null;
+              const their = (lastMatch.is_home ? lastMatch.away_score : lastMatch.home_score) ?? null;
+              const result =
+                our === null || their === null
+                  ? null
+                  : our > their
+                    ? "W"
+                    : our === their
+                      ? "D"
+                      : "L";
+              const resultLabel = result === "W" ? "Win" : result === "D" ? "Draw" : result === "L" ? "Loss" : "";
+              const resultClass =
+                result === "W"
+                  ? "bg-white text-[color:var(--sa-green)]"
+                  : result === "D"
+                    ? "bg-white/25 text-white"
+                    : "bg-black/50 text-white";
+              return (
+                <>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="truncate font-display text-lg font-black leading-tight text-white">
+                      {lastMatch.is_home ? "vs" : "@"} {lastMatch.opponent}
+                    </div>
+                    {result && (
+                      <span className={`grid h-7 min-w-7 place-items-center rounded-md px-2 text-xs font-black shadow ${resultClass}`}>
+                        {result}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="font-mono text-3xl font-black tabular-nums text-white">
+                      {our ?? "—"}–{their ?? "—"}
+                    </span>
+                    {resultLabel && (
+                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">
+                        {resultLabel}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-white/70">
+                    <span className="truncate">{lastMatch.competition}</span>
+                    <span>
+                      {new Date(lastMatch.kickoff).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}
+                    </span>
+                  </div>
+                </>
+              );
+            })() : (
               <div className="text-sm text-white/70">Last match data not available</div>
             )}
           </PremiumCard>
