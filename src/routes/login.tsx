@@ -6,8 +6,8 @@ import heroPlayer from "@/assets/hero-player.jpg";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — Bafana Supporters Club" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({
-    redirect: typeof s.redirect === "string" ? s.redirect : "/",
+  validateSearch: (s: Record<string, unknown>): { redirect?: string } => ({
+    redirect: typeof s.redirect === "string" ? s.redirect : undefined,
   }),
   beforeLoad: async ({ search }) => {
     const { data } = await supabase.auth.getSession();

@@ -88,7 +88,7 @@ async function writeCache(key: string, payload: ArticleContent, ttl: number) {
 export const getArticleContent = createServerFn({ method: "GET" })
   .inputValidator((d: { url: string }) => d)
   .handler(async ({ data }) => {
-    const url = data.url;
+    const url = (data as { url: string }).url;
     if (!/^https?:\/\//i.test(url)) throw new Error("Invalid url");
     const key = `article:${url}`;
     const cached = await readCache(key);

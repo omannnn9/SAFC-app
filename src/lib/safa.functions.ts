@@ -53,7 +53,8 @@ export const getSafaSquad = createServerFn({ method: "GET" }).handler(async () =
 
 export const getSafaPlayer = createServerFn({ method: "GET" })
   .inputValidator((slug: string) => slug)
-  .handler(async ({ data: slug }) => {
+  .handler(async ({ data }) => {
+    const slug = data as string;
     return cached<SafaPlayerDetails | null>(
       `safa:player:${slug}:v1`,
       60 * 60 * 6,
