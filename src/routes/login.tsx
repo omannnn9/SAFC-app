@@ -2,7 +2,9 @@ import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-ro
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Mail, Lock, Eye, EyeOff, Loader2, Trophy } from "lucide-react";
 import heroPlayer from "@/assets/hero-player.jpg";
+import { SignupBadge } from "@/components/SignupBadge";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — Bafana Supporters Club" }] }),
@@ -21,6 +23,7 @@ function LoginPage() {
   const search = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: FormEvent) => {
@@ -35,94 +38,179 @@ function LoginPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background">
+      <SignupBadge />
+
+      {/* Stadium backdrop */}
       <div className="absolute inset-0">
-        <img src={heroPlayer} alt="" className="h-full w-full object-cover opacity-40" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
+        <img src={heroPlayer} alt="" className="h-full w-full object-cover opacity-30 slow-zoom" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/85 to-background" />
+        <div
+          className="absolute inset-0 opacity-60"
+          style={{ background: "var(--gradient-stadium)" }}
+        />
+        <div
+          className="absolute inset-0 opacity-40"
+          style={{ background: "var(--gradient-spotlight)" }}
+        />
       </div>
-      <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-10">
-        <Link to="/" className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+
+      <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-10 animate-[reveal-up_0.7s_var(--ease-out-expo)]">
+        <Link to="/" className="text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition">
           ← Back
         </Link>
-        <div className="mt-12">
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-border/60 bg-surface/60 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Supporters Club
+
+        {/* Brand */}
+        <div className="mt-10 flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[color:var(--sa-green)] shadow-[var(--shadow-glow-green)]">
+            <Trophy className="h-4.5 w-4.5 text-white" strokeWidth={2.5} />
           </div>
-          <h1 className="font-display text-4xl font-bold leading-[0.95] tracking-tight">
-            Welcome back.
+          <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
+            Bafana <span className="text-foreground">Supporters Club</span>
+          </div>
+        </div>
+
+        <div className="mt-8">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--sa-green)] live-dot" />
+            Members area
+          </div>
+          <h1 className="font-display text-[2.6rem] font-bold leading-[0.95] tracking-tight">
+            Welcome <span className="text-gradient-gold">back.</span>
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to access your membership.
+            Sign in to access live match updates, exclusive news, and member perks.
           </p>
         </div>
 
-        <form onSubmit={onSubmit} className="mt-10 space-y-4">
-          <Field
+        {/* Card */}
+        <form
+          onSubmit={onSubmit}
+          className="glass-strong relative mt-8 space-y-4 rounded-2xl p-6 shadow-[var(--shadow-card-lift)]"
+        >
+          <FloatField
+            icon={<Mail className="h-4 w-4" />}
             label="Email"
             type="email"
             value={email}
             onChange={setEmail}
-            placeholder="you@example.com"
             autoComplete="email"
           />
-          <Field
+          <FloatField
+            icon={<Lock className="h-4 w-4" />}
             label="Password"
-            type="password"
+            type={showPw ? "text" : "password"}
             value={password}
             onChange={setPassword}
-            placeholder="••••••••"
             autoComplete="current-password"
+            trailing={
+              <button
+                type="button"
+                onClick={() => setShowPw((v) => !v)}
+                className="text-muted-foreground hover:text-foreground transition"
+                tabIndex={-1}
+              >
+                {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            }
           />
+
+          <div className="flex justify-end">
+            <Link
+              to="/forgot-password"
+              className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="mt-4 w-full rounded-xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="group relative mt-2 flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-[color:var(--sa-gold)] py-3.5 text-sm font-bold uppercase tracking-[0.14em] text-black shadow-[var(--shadow-glow-gold)] transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60"
           >
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Signing in…
+              </>
+            ) : (
+              "Sign in"
+            )}
           </button>
+
+          <Link
+            to="/signup"
+            className="block w-full rounded-xl border border-border bg-surface/40 py-3 text-center text-sm font-semibold text-foreground transition hover:bg-surface"
+          >
+            Create account
+          </Link>
         </form>
 
-        <div className="mt-6 flex items-center justify-between text-xs">
-          <Link to="/forgot-password" className="text-muted-foreground underline-offset-4 hover:underline">
-            Forgot password?
-          </Link>
-          <Link to="/signup" className="font-medium text-primary">
-            Create account →
-          </Link>
+        {/* Social proof */}
+        <div className="mt-8 space-y-2 text-center">
+          <p className="text-xs font-medium text-muted-foreground">
+            Join thousands of supporters
+          </p>
+          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
+            Live match updates · Exclusive news · Membership perks
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-function Field({
+function FloatField({
+  icon,
   label,
   type,
   value,
   onChange,
-  placeholder,
   autoComplete,
+  trailing,
 }: {
+  icon?: React.ReactNode;
   label: string;
   type: string;
   value: string;
   onChange: (v: string) => void;
-  placeholder?: string;
   autoComplete?: string;
+  trailing?: React.ReactNode;
 }) {
+  const [focused, setFocused] = useState(false);
+  const float = focused || value.length > 0;
   return (
-    <label className="block">
-      <span className="mb-1.5 block text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-        {label}
-      </span>
-      <input
-        type={type}
-        required
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        className="w-full rounded-xl border border-border bg-surface/60 px-4 py-3 text-sm text-foreground outline-none ring-primary/40 transition placeholder:text-muted-foreground/60 focus:ring-2"
-      />
+    <label className="relative block">
+      <div
+        className={`relative flex items-center gap-3 rounded-xl border bg-surface/60 px-3.5 pt-5 pb-2 transition-all ${
+          focused
+            ? "border-[color:var(--sa-gold)]/60 ring-2 ring-[color:var(--sa-gold)]/20"
+            : "border-border"
+        }`}
+      >
+        {icon && <span className="text-muted-foreground">{icon}</span>}
+        <div className="relative flex-1">
+          <span
+            className={`pointer-events-none absolute left-0 transition-all ${
+              float
+                ? "-top-3.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                : "top-0.5 text-sm text-muted-foreground/70"
+            }`}
+          >
+            {label}
+          </span>
+          <input
+            type={type}
+            required
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            autoComplete={autoComplete}
+            className="w-full bg-transparent text-sm text-foreground outline-none"
+          />
+        </div>
+        {trailing}
+      </div>
     </label>
   );
 }
