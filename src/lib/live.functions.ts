@@ -222,36 +222,65 @@ function onlySAFixtures(list: AFFixture[]): AFFixture[] {
   return list.filter(validFixture);
 }
 
-const VERIFIED_RECENT_COMPLETED_MATCHES: LiveMatch[] = [
-  verifyFixtureTeams(
+type VerifiedMatchSeed = {
+  date: string; // ISO
+  opponent: string;
+  opponentCode: string | null;
+  isHome: boolean;
+  ourScore: number;
+  theirScore: number;
+  competition: string;
+  venue: string;
+};
+
+// Verified recent completed Bafana Bafana matches (source: ESPN).
+// API-Football's free plan caps at season 2024, so we authoritatively
+// inject 2025–2026 results to keep Form + Last Match accurate.
+const VERIFIED_RECENT_SEEDS: VerifiedMatchSeed[] = [
+  { date: "2026-05-29T18:30:00+02:00", opponent: "Nicaragua", opponentCode: "NI", isHome: true, ourScore: 0, theirScore: 0, competition: "International Friendly", venue: "Orlando Stadium" },
+  { date: "2026-03-31T20:00:00+00:00", opponent: "Panama", opponentCode: "PA", isHome: true, ourScore: 1, theirScore: 2, competition: "International Friendly", venue: "TBD" },
+  { date: "2026-03-27T20:00:00+00:00", opponent: "Panama", opponentCode: "PA", isHome: true, ourScore: 1, theirScore: 1, competition: "International Friendly", venue: "TBD" },
+  { date: "2026-01-04T18:00:00+00:00", opponent: "Cameroon", opponentCode: "CM", isHome: true, ourScore: 1, theirScore: 2, competition: "Africa Cup of Nations", venue: "Morocco" },
+  { date: "2025-12-29T18:00:00+00:00", opponent: "Zimbabwe", opponentCode: "ZW", isHome: false, ourScore: 3, theirScore: 2, competition: "Africa Cup of Nations", venue: "Morocco" },
+  { date: "2025-12-26T18:00:00+00:00", opponent: "Egypt", opponentCode: "EG", isHome: false, ourScore: 0, theirScore: 1, competition: "Africa Cup of Nations", venue: "Morocco" },
+  { date: "2025-12-22T18:00:00+00:00", opponent: "Angola", opponentCode: "AO", isHome: true, ourScore: 2, theirScore: 1, competition: "Africa Cup of Nations", venue: "Morocco" },
+  { date: "2025-11-15T15:00:00+02:00", opponent: "Zambia", opponentCode: "ZM", isHome: true, ourScore: 3, theirScore: 1, competition: "International Friendly", venue: "TBD" },
+  { date: "2025-10-14T18:00:00+02:00", opponent: "Rwanda", opponentCode: "RW", isHome: true, ourScore: 3, theirScore: 0, competition: "FIFA World Cup Qualifying - CAF", venue: "Mbombela Stadium" },
+  { date: "2025-10-10T18:00:00+02:00", opponent: "Zimbabwe", opponentCode: "ZW", isHome: false, ourScore: 0, theirScore: 0, competition: "FIFA World Cup Qualifying - CAF", venue: "TBD" },
+];
+
+const VERIFIED_RECENT_COMPLETED_MATCHES: LiveMatch[] = VERIFIED_RECENT_SEEDS.map((s) => {
+  const saTeam: LiveTeam = {
+    id: SA_TEAM_ID,
+    name: "South Africa",
+    logo: teamLogo(SA_TEAM_ID),
+    country_code: "ZA",
+  };
+  const oppTeam: LiveTeam = {
+    id: null,
+    name: s.opponent,
+    logo: null,
+    country_code: s.opponentCode,
+  };
+  return verifyFixtureTeams(
     {
-      id: "verified-2026-05-29-nicaragua",
-      opponent: "Nicaragua",
+      id: `verified-${s.date.slice(0, 10)}-${normalizeName(s.opponent).replace(/\s+/g, "-")}`,
+      opponent: s.opponent,
       opponent_flag: null,
       cover_url: null,
-      kickoff: "2026-05-29T18:30:00+02:00",
-      venue: "Orlando Stadium",
-      competition: "International Friendly",
-      is_home: true,
-      home_team: {
-        id: SA_TEAM_ID,
-        name: "South Africa",
-        logo: teamLogo(SA_TEAM_ID),
-        country_code: "ZA",
-      },
-      away_team: {
-        id: null,
-        name: "Nicaragua",
-        logo: null,
-        country_code: "NI",
-      },
-      home_score: 0,
-      away_score: 0,
+      kickoff: s.date,
+      venue: s.venue,
+      competition: s.competition,
+      is_home: s.isHome,
+      home_team: s.isHome ? saTeam : oppTeam,
+      away_team: s.isHome ? oppTeam : saTeam,
+      home_score: s.isHome ? s.ourScore : s.theirScore,
+      away_score: s.isHome ? s.theirScore : s.ourScore,
       status: "completed",
     },
     "verified-result",
-  ),
-];
+  );
+});
 
 // Build a synthetic LiveMatch from a SAFA-only fixture (when API-Football
 // hasn't published it yet). SAFA is the authoritative source for upcoming
@@ -375,7 +404,7 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
 });
 
 export const getLivePastMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v8-verified-recent", 60 * 30, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v9-verified-recent", 60 * 30, async () => {
     const accessibleSeasons = [2024, 2023, 2022];
     const seasonResults = await Promise.all(
       accessibleSeasons.map(async (season) => {
@@ -391,14 +420,7 @@ export const getLivePastMatches = createServerFn({ method: "GET" }).handler(asyn
       }),
     );
 
-    if (!seasonResults.some((result) => result.ok)) {
-      throw new Error("Unable to load past fixtures from API-Football");
-    }
-
     const raw = seasonResults.flatMap((result) => result.fixtures);
-    if (raw.length === 0) {
-      throw new Error("API-Football returned no completed fixtures for accessible seasons");
-    }
 
     const filtered = onlySAFixtures(raw)
       .filter((f) => f.goals.home != null && f.goals.away != null)
