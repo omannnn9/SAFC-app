@@ -137,11 +137,23 @@ function SignupPage() {
           <FloatField
             icon={<Shield className="h-4 w-4" />}
             label="Confirm password"
-            type={showPw ? "text" : "password"}
+            type={showConfirm ? "text" : "password"}
             value={confirm}
             onChange={setConfirm}
             autoComplete="new-password"
+            trailing={
+              <button
+                type="button"
+                onClick={() => setShowConfirm((v) => !v)}
+                className="p-1 -m-1 text-muted-foreground hover:text-foreground transition"
+                tabIndex={-1}
+                aria-label={showConfirm ? "Hide password" : "Show password"}
+              >
+                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            }
           />
+
           <FloatField
             icon={<Trophy className="h-4 w-4" />}
             label="Favorite team (optional)"
