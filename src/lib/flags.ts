@@ -1,5 +1,3 @@
-import countries from "i18n-iso-countries";
-
 export const SOUTH_AFRICA_TEAM_ID = 1469;
 
 type CountryValidation = {
@@ -9,8 +7,18 @@ type CountryValidation = {
   valid: boolean;
 };
 
-const alpha2Codes = countries.getAlpha2Codes();
 const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+// Build alpha-2 set from Intl supported region codes
+const alpha2Codes: Record<string, string> = {};
+for (let i = 0; i < 26; i++) {
+  for (let j = 0; j < 26; j++) {
+    const code = String.fromCharCode(65 + i) + String.fromCharCode(65 + j);
+    try {
+      const name = regionNames.of(code);
+      if (name && name !== code) alpha2Codes[code] = name;
+    } catch {}
+  }
+}
 
 function normalizeCountryName(name: string): string {
   return name
