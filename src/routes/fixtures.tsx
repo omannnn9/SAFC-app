@@ -99,11 +99,20 @@ function TimelineDot({ m }: { m: Match }) {
 
 function MatchCard({ m, live }: { m: Match; live?: boolean }) {
   const k = new Date(m.kickoff);
-  const timeSA = k.toLocaleTimeString(undefined, {
+  const timeSA = k.toLocaleTimeString("en-ZA", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Africa/Johannesburg",
+  });
+  const timeLocal = k.toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
   });
+  // Detect if user's device tz is already SAST (UTC+2 with no DST) — avoid duplicate display
+  const userOffset = -k.getTimezoneOffset(); // minutes east of UTC
+  const sameAsSAST = userOffset === 120;
   return (
     <Link
       to="/fixtures/$id"
@@ -114,17 +123,25 @@ function MatchCard({ m, live }: { m: Match; live?: boolean }) {
     >
       {live && (
         <div className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--sa-green)] px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-white tabular-nums">
-          <span className="h-1.5 w-1.5 rounded-full bg-white" /> {timeSA}
+          <span className="h-1.5 w-1.5 rounded-full bg-white" /> {timeSA} SAST
         </div>
       )}
       <div className="flex items-center justify-between">
         <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
           {m.competition}
         </div>
-        <div className="text-[10px] font-mono text-muted-foreground tabular-nums">
-          {timeSA}
+        <div className="text-right">
+          <div className="text-[11px] font-mono font-bold text-foreground tabular-nums">
+            {timeSA} <span className="text-muted-foreground">SAST</span>
+          </div>
+          {!sameAsSAST && (
+            <div className="text-[9px] font-mono text-muted-foreground/80 tabular-nums">
+              {timeLocal} your time
+            </div>
+          )}
         </div>
       </div>
+
 
 
       <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
