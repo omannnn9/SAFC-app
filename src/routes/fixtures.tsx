@@ -5,7 +5,7 @@ import { MapPin } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { getUpcomingMatches, getPastMatches, type Match } from "@/lib/data";
-import { nameToFlag } from "@/lib/flags";
+import { SOUTH_AFRICA_TEAM_ID, validateCountryFlag, validateFixtureFlagData } from "@/lib/flags";
 
 export const Route = createFileRoute("/fixtures")({
   head: () => ({ meta: [{ title: "Fixtures & Results — Bafana" }] }),
@@ -91,15 +91,18 @@ function TimelineDot({ m }: { m: Match }) {
 function MatchCard({ m, live }: { m: Match; live?: boolean }) {
   const k = new Date(m.kickoff);
   const home = m.home_team ?? {
-    id: m.is_home ? 1097 : null,
+    id: m.is_home ? SOUTH_AFRICA_TEAM_ID : null,
     name: m.is_home ? "South Africa" : m.opponent,
-    logo: m.is_home ? "https://media.api-sports.io/football/teams/1097.png" : m.opponent_flag,
+    logo: m.is_home ? `https://media.api-sports.io/football/teams/${SOUTH_AFRICA_TEAM_ID}.png` : m.opponent_flag,
+    country_code: m.is_home ? "ZA" : null,
   };
   const away = m.away_team ?? {
-    id: m.is_home ? null : 1097,
+    id: m.is_home ? null : SOUTH_AFRICA_TEAM_ID,
     name: m.is_home ? m.opponent : "South Africa",
-    logo: m.is_home ? m.opponent_flag : "https://media.api-sports.io/football/teams/1097.png",
+    logo: m.is_home ? m.opponent_flag : `https://media.api-sports.io/football/teams/${SOUTH_AFRICA_TEAM_ID}.png`,
+    country_code: m.is_home ? null : "ZA",
   };
+  validateFixtureFlagData(m.id, home, away, "fixtures-ui");
   return (
     <Link
       to="/fixtures/$id"
@@ -123,19 +126,19 @@ function MatchCard({ m, live }: { m: Match; live?: boolean }) {
       </div>
 
       <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-        <Team logo={home.logo} name={home.name} accent={home.id === 1097} />
+        <Team logo={home.logo} name={home.name} countryCode={home.country_code} accent={home.id === SOUTH_AFRICA_TEAM_ID} />
         {m.status === "completed" ? (
           <div className="font-display text-3xl font-black tabular-nums">
-            <span className={home.id === 1097 ? "text-primary" : ""}>{m.home_score}</span>
+            <span className={home.id === SOUTH_AFRICA_TEAM_ID ? "text-primary" : ""}>{m.home_score}</span>
             <span className="px-1 text-muted-foreground">–</span>
-            <span className={away.id === 1097 ? "text-primary" : ""}>{m.away_score}</span>
+            <span className={away.id === SOUTH_AFRICA_TEAM_ID ? "text-primary" : ""}>{m.away_score}</span>
           </div>
         ) : (
           <div className="font-display text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
             VS
           </div>
         )}
-        <Team logo={away.logo} name={away.name} accent={away.id === 1097} />
+        <Team logo={away.logo} name={away.name} countryCode={away.country_code} accent={away.id === SOUTH_AFRICA_TEAM_ID} />
       </div>
 
       <div className="mt-3 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
@@ -145,8 +148,8 @@ function MatchCard({ m, live }: { m: Match; live?: boolean }) {
   );
 }
 
-function Team({ name, accent }: { logo?: string | null; name: string; accent?: boolean }) {
-  const flag = nameToFlag(name);
+function Team({ name, countryCode, accent }: { logo?: string | null; name: string; countryCode?: string | null; accent?: boolean }) {
+  const { flag } = validateCountryFlag(name, countryCode);
   return (
     <div className="flex flex-col items-center gap-1.5">
       <div

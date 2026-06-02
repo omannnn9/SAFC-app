@@ -5,7 +5,7 @@ import { ArrowRight, MapPin, Trophy, Sparkles, Flame, Users2 } from "lucide-reac
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { getNextMatch, getNews, getFeaturedPlayer } from "@/lib/data";
-import { nameToFlag } from "@/lib/flags";
+import { SOUTH_AFRICA_TEAM_ID, validateCountryFlag, validateFixtureFlagData } from "@/lib/flags";
 import { getLiveStats } from "@/lib/live.functions";
 import { useAuth } from "@/lib/auth";
 import heroPlayer from "@/assets/hero-player.jpg";
@@ -54,6 +54,19 @@ function HomePage() {
   const { data: statsRes } = useQuery({ queryKey: ["live-stats"], queryFn: () => getLiveStats() });
   const stats = statsRes?.data;
   const c = useCountdown(next?.kickoff);
+  const nextHome = next?.home_team ?? (next ? {
+    id: next.is_home ? SOUTH_AFRICA_TEAM_ID : null,
+    name: next.is_home ? "South Africa" : next.opponent,
+    logo: null,
+    country_code: next.is_home ? "ZA" : null,
+  } : null);
+  const nextAway = next?.away_team ?? (next ? {
+    id: next.is_home ? null : SOUTH_AFRICA_TEAM_ID,
+    name: next.is_home ? next.opponent : "South Africa",
+    logo: null,
+    country_code: next.is_home ? null : "ZA",
+  } : null);
+  if (next && nextHome && nextAway) validateFixtureFlagData(next.id, nextHome, nextAway, "home-next-match");
 
   return (
     <PageContainer>
@@ -101,8 +114,9 @@ function HomePage() {
                 </div>
                 <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
                   <TeamBadge
-                    name={(next.home_team?.name ?? (next.is_home ? "South Africa" : next.opponent))}
-                    accent={next.home_team?.id === 1097 || (next.is_home && !next.home_team)}
+                    name={nextHome?.name ?? "TBD"}
+                    countryCode={nextHome?.country_code}
+                    accent={nextHome?.id === SOUTH_AFRICA_TEAM_ID}
                   />
                   <div className="text-center">
                     {c && (
@@ -115,8 +129,9 @@ function HomePage() {
                     </div>
                   </div>
                   <TeamBadge
-                    name={(next.away_team?.name ?? (next.is_home ? next.opponent : "South Africa"))}
-                    accent={next.away_team?.id === 1097 || (!next.is_home && !next.away_team)}
+                    name={nextAway?.name ?? "TBD"}
+                    countryCode={nextAway?.country_code}
+                    accent={nextAway?.id === SOUTH_AFRICA_TEAM_ID}
                   />
                 </div>
                 <div className="mt-3 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
@@ -275,8 +290,8 @@ function HomePage() {
 }
 
 
-function TeamBadge({ name, accent }: { name: string; accent?: boolean }) {
-  const flag = nameToFlag(name);
+function TeamBadge({ name, countryCode, accent }: { name: string; countryCode?: string | null; accent?: boolean }) {
+  const { flag } = validateCountryFlag(name, countryCode);
   const short = name.length <= 3 ? name.toUpperCase() : name.slice(0, 3).toUpperCase();
   return (
     <div className="flex flex-col items-center gap-1">

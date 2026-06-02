@@ -23,6 +23,7 @@ export type MatchTeam = {
   id: number | null;
   name: string;
   logo: string | null;
+  country_code?: string | null;
 };
 
 export type Match = {

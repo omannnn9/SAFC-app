@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { fetchSafaUpcomingFixtures, safaConfirms, normalizeName, enrichSafaFixturesWithImages, fetchSafaPlayerPhotos, type SafaFixture } from "@/lib/safa.server";
+import { canonicalCountryName, nameToCountryCode, validateFixtureFlagData } from "@/lib/flags";
 
 // South Africa national team (Bafana Bafana) in API-Football.
 // Verified via: GET https://v3.football.api-sports.io/teams?name=South%20Africa&type=national
@@ -73,6 +74,7 @@ export type LiveTeam = {
   id: number | null;
   name: string;
   logo: string | null;
+  country_code: string | null;
 };
 
 export type LiveMatch = {
@@ -103,6 +105,14 @@ function teamLogo(id: number): string {
   return `https://media.api-sports.io/football/teams/${id}.png`;
 }
 
+function teamCountryCode(team: { id: number | null; name: string }): string | null {
+  return team.id === SA_TEAM_ID ? "ZA" : nameToCountryCode(team.name);
+}
+
+function canonicalTeamName(name: string): string {
+  return canonicalCountryName(name) ?? name;
+}
+
 /**
  * Dev-time integrity check: every fixture must have two DISTINCT teams,
  * each with its own id+logo derived from fixture.teams.home / fixture.teams.away.
@@ -126,12 +136,15 @@ function verifyFixtureTeams(m: LiveMatch, source: string): LiveMatch {
       { home: h, away: a },
     );
   }
+  validateFixtureFlagData(m.id, h, a, source);
   return m;
 }
 
 function mapFixture(f: AFFixture): LiveMatch {
   const isHome = f.teams.home.id === SA_TEAM_ID;
   const opponent = isHome ? f.teams.away : f.teams.home;
+  const homeName = canonicalTeamName(f.teams.home.name);
+  const awayName = canonicalTeamName(f.teams.away.name);
   const ftStatus = f.fixture.status.short;
   const status: LiveMatch["status"] =
     ftStatus === "NS" || ftStatus === "TBD" || ftStatus === "PST"
@@ -142,7 +155,7 @@ function mapFixture(f: AFFixture): LiveMatch {
   return verifyFixtureTeams(
     {
       id: `af-${f.fixture.id}`,
-      opponent: opponent.name,
+      opponent: canonicalTeamName(opponent.name),
       opponent_flag: opponent.logo ?? teamLogo(opponent.id),
       cover_url: opponent.logo ?? teamLogo(opponent.id),
       kickoff: f.fixture.date,
@@ -151,13 +164,15 @@ function mapFixture(f: AFFixture): LiveMatch {
       is_home: isHome,
       home_team: {
         id: f.teams.home.id,
-        name: f.teams.home.name,
+        name: homeName,
         logo: f.teams.home.logo ?? teamLogo(f.teams.home.id),
+        country_code: teamCountryCode({ id: f.teams.home.id, name: homeName }),
       },
       away_team: {
         id: f.teams.away.id,
-        name: f.teams.away.name,
+        name: awayName,
         logo: f.teams.away.logo ?? teamLogo(f.teams.away.id),
+        country_code: teamCountryCode({ id: f.teams.away.id, name: awayName }),
       },
       home_score: f.goals.home,
       away_score: f.goals.away,
@@ -195,7 +210,7 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
   const opponent = s.summary.replace(/®/g, "").split(" - ")[0];
   const parts = opponent.split(/\s+vs\s+/i).map((p) => p.trim());
   const isBafanaHome = /bafana|south africa/i.test(parts[0] ?? "");
-  const opp = (isBafanaHome ? parts[1] : parts[0]) ?? "TBD";
+  const opp = canonicalTeamName((isBafanaHome ? parts[1] : parts[0]) ?? "TBD");
   return verifyFixtureTeams(
     {
       id: `safa-${s.uid}`,
@@ -210,11 +225,13 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
         id: isBafanaHome ? SA_TEAM_ID : null,
         name: isBafanaHome ? "South Africa" : opp,
         logo: isBafanaHome ? teamLogo(SA_TEAM_ID) : null,
+        country_code: isBafanaHome ? "ZA" : teamCountryCode({ id: null, name: opp }),
       },
       away_team: {
         id: isBafanaHome ? null : SA_TEAM_ID,
         name: isBafanaHome ? opp : "South Africa",
         logo: isBafanaHome ? null : teamLogo(SA_TEAM_ID),
+        country_code: isBafanaHome ? teamCountryCode({ id: null, name: opp }) : "ZA",
       },
       home_score: null,
       away_score: null,
@@ -225,7 +242,7 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
 }
 
 export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v5-safa-img", 60 * 10, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v6-flag-data", 60 * 10, async () => {
     const [afRes, safa] = await Promise.all([
       apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=15`) as Promise<AFFixture[]>,
       fetchSafaUpcomingFixtures(),
@@ -306,7 +323,7 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
 });
 
 export const getLivePastMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v3", 60 * 30, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v4-flag-data", 60 * 30, async () => {
     const res = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&last=10`)) as AFFixture[];
     const filtered = onlySAFixtures(res).sort(
       (a, b) => new Date(b.fixture.date).getTime() - new Date(a.fixture.date).getTime(),
