@@ -297,7 +297,7 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
       opponent: opp,
       opponent_flag: null,
       cover_url: null,
-      kickoff: s.startUtc,
+      kickoff: verifyKickoff(opp, s.startUtc),
       venue: s.location || "TBD",
       competition: s.summary.split(" - ")[1] ?? "International",
       is_home: isBafanaHome,
