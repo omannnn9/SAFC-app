@@ -135,7 +135,7 @@ function HeroArticle({ a }: { a: Article }) {
         <div className="mt-1 line-clamp-2 text-xs text-foreground/70">{a.excerpt}</div>
         <div className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground">
           <Clock className="h-3 w-3" />{" "}
-          {new Date(a.published_at).toLocaleDateString("en-ZA", { day: "numeric", month: "short", timeZone: "Africa/Johannesburg" })}
+          {new Date(a.published_at).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })}
           {a.source && <span className="ml-2">· {a.source}</span>}
         </div>
       </div>
@@ -177,7 +177,7 @@ function FeedCard({ a }: { a: Article }) {
       <div className="flex items-center justify-between p-3 text-[10px] text-muted-foreground">
         <span className="line-clamp-1">{a.source ?? a.excerpt}</span>
         <span className="ml-2 shrink-0">
-          {new Date(a.published_at).toLocaleDateString("en-ZA", { day: "numeric", month: "short", timeZone: "Africa/Johannesburg" })}
+          {new Date(a.published_at).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })}
         </span>
       </div>
     </Link>

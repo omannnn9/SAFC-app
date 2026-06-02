@@ -347,7 +347,6 @@ function HomePage() {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
-                          timeZone: "Africa/Johannesburg",
                         })}
 
                       </span>
@@ -374,16 +373,14 @@ function HomePage() {
                   {new Date(next.kickoff).toLocaleDateString("en-ZA", {
                     day: "numeric",
                     month: "short",
-                    timeZone: "Africa/Johannesburg",
                   })}{" "}
                   ·{" "}
                   {new Date(next.kickoff).toLocaleTimeString("en-ZA", {
                     hour: "2-digit",
                     minute: "2-digit",
                     hour12: false,
-                    timeZone: "Africa/Johannesburg",
                   })}{" "}
-                  SAST
+                 
                 </div>
 
               </>
@@ -499,7 +496,6 @@ function HomePage() {
                     {new Date(a.published_at).toLocaleDateString("en-ZA", {
                       day: "numeric",
                       month: "short",
-                      timeZone: "Africa/Johannesburg",
                     })}
 
                   </div>
