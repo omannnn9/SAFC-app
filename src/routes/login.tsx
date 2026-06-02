@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Mail, Lock, Eye, EyeOff, Loader2, Trophy } from "lucide-react";
 import heroPlayer from "@/assets/hero-player.jpg";
-import { SignupBadge } from "@/components/SignupBadge";
+
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — Bafana Supporters Club" }] }),
@@ -38,7 +38,7 @@ function LoginPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background">
-      <SignupBadge />
+      
 
       {/* Stadium backdrop */}
       <div className="absolute inset-0">

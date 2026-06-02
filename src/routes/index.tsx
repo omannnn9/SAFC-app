@@ -151,9 +151,9 @@ function HomePage() {
             {!profile && (
               <Link
                 to="/signup"
-                className="mt-4 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary to-[oklch(0.7_0.16_70)] py-3.5 text-sm font-black uppercase tracking-wider text-primary-foreground shadow-[var(--shadow-glow-gold)]"
+                className="mt-4 flex items-center justify-center rounded-full bg-primary py-3.5 text-sm font-black uppercase tracking-wider text-primary-foreground"
               >
-                Join the supporters club <ArrowRight className="h-4 w-4" />
+                Join the supporters club
               </Link>
             )}
           </div>

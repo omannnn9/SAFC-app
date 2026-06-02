@@ -15,8 +15,6 @@ const CATEGORIES: { key: Article["category"] | "all"; label: string }[] = [
   { key: "all", label: "All" },
   { key: "team", label: "Team" },
   { key: "match", label: "Match" },
-  { key: "player", label: "Players" },
-  { key: "supporter", label: "Supporters" },
 ];
 
 function NewsPage() {
