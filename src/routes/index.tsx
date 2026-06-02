@@ -17,7 +17,12 @@ import { getNextMatch, getNews, getFeaturedPlayer } from "@/lib/data";
 import { getLivePastMatches } from "@/lib/live.functions";
 import { useAuth } from "@/lib/auth";
 import heroPlayer from "@/assets/hero-player.jpg";
+import heroBafana2 from "@/assets/hero-bafana-2.jpg";
+import heroBafana3 from "@/assets/hero-bafana-3.jpg";
+import heroBafana4 from "@/assets/hero-bafana-4.jpg";
 import playerTau from "@/assets/player-tau.jpg";
+
+const HERO_IMAGES = [heroPlayer, heroBafana2, heroBafana3, heroBafana4];
 
 export const Route = createFileRoute("/")({
   head: () => ({
