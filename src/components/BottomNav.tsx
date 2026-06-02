@@ -12,29 +12,34 @@ const items = [
 export function BottomNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-border bg-background/95 px-2 pb-[env(safe-area-inset-bottom)] pt-2 backdrop-blur-xl">
-      <ul className="flex items-stretch justify-between">
-        {items.map(({ to, label, icon: Icon }) => {
-          const active = to === "/" ? path === "/" : path.startsWith(to);
-          return (
-            <li key={to} className="flex-1">
-              <Link
-                to={to}
-                className="flex flex-col items-center gap-1 rounded-lg px-2 py-1.5 transition-colors"
-              >
-                <Icon
-                  className={`h-5 w-5 transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}
-                />
-                <span
-                  className={`text-[10px] font-medium tracking-wide ${active ? "text-foreground" : "text-muted-foreground"}`}
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[max(env(safe-area-inset-bottom),12px)]">
+      <nav className="glass-strong pointer-events-auto w-full max-w-md rounded-2xl px-2 py-2 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
+        <ul className="flex items-stretch justify-between">
+          {items.map(({ to, label, icon: Icon }) => {
+            const active = to === "/" ? path === "/" : path.startsWith(to);
+            return (
+              <li key={to} className="flex-1">
+                <Link
+                  to={to}
+                  className="group relative flex flex-col items-center gap-0.5 rounded-xl px-2 py-1.5 transition"
                 >
-                  {label}
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+                  {active && (
+                    <span className="absolute inset-x-3 -top-2 h-[3px] rounded-full bg-primary shadow-[0_0_12px_2px_var(--sa-gold)]" />
+                  )}
+                  <Icon
+                    className={`h-5 w-5 transition ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}
+                  />
+                  <span
+                    className={`text-[10px] font-semibold tracking-wide transition ${active ? "text-foreground" : "text-muted-foreground"}`}
+                  >
+                    {label}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </div>
   );
 }

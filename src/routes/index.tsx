@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ArrowRight, MapPin, Trophy } from "lucide-react";
+import { ArrowRight, MapPin, Trophy, Sparkles, Flame, Users2 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { getNextMatch, getNews, getFeaturedPlayer } from "@/lib/data";
@@ -55,112 +55,140 @@ function HomePage() {
     <PageContainer>
       <AppHeader title="Home" />
 
-      {/* HERO */}
-      <section className="relative overflow-hidden">
-        <img src={heroPlayer} alt="" className="h-[420px] w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background" />
-        <div className="absolute inset-x-0 bottom-0 px-5 pb-6">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border/60 bg-surface/70 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground backdrop-blur">
-            <span className="h-1.5 w-1.5 animate-[pulse-dot_1.4s_ease-in-out_infinite] rounded-full bg-primary" />
+      {/* HERO — Stadium broadcast */}
+      <section className="relative noise overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img src={heroPlayer} alt="" className="slow-zoom h-[540px] w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/55 to-background" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_20%,color-mix(in_oklab,var(--sa-gold)_22%,transparent),transparent_70%)]" />
+          {/* spotlight sweep */}
+          <div
+            className="absolute -inset-y-10 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/8 to-transparent blur-2xl"
+            style={{ animation: "spotlight-sweep 7s ease-in-out infinite" }}
+          />
+        </div>
+
+        <div className="relative z-10 px-5 pt-6 pb-8 min-h-[540px] flex flex-col">
+          <div className="inline-flex w-fit items-center gap-2 rounded-full glass px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-foreground/90">
+            <span className="live-dot h-1.5 w-1.5 rounded-full bg-[var(--sa-green)]" />
             The Pulse of the Nation
           </div>
-          <h1 className="font-display text-[40px] font-bold leading-[0.92] tracking-tight">
-            Stand with <br />
-            <span className="text-primary">Bafana Bafana.</span>
+
+          <h1 className="mt-4 font-display text-[44px] font-black leading-[0.9] tracking-tight">
+            Stand with
+            <br />
+            <span className="text-gradient-gold">Bafana Bafana.</span>
           </h1>
-          {!profile && (
-            <Link
-              to="/signup"
-              className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground"
-            >
-              Join the supporters club <ArrowRight className="h-4 w-4" />
-            </Link>
-          )}
+          <p className="mt-2 max-w-[280px] text-sm text-foreground/70">
+            Stadium-level access. Exclusive content. One nation. One team.
+          </p>
+
+          <div className="mt-auto pt-8">
+            {/* Countdown */}
+            {next && (
+              <Link
+                to="/fixtures/$id"
+                params={{ id: next.id }}
+                className="glass-strong block overflow-hidden rounded-2xl p-4 ring-glow-gold"
+              >
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em]">
+                  <span className="text-primary font-bold">{next.competition}</span>
+                  <span className="text-muted-foreground">Next match</span>
+                </div>
+                <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                  <TeamBadge name="RSA" flag="🇿🇦" accent />
+                  <div className="text-center">
+                    {c && (
+                      <div className="font-mono text-2xl font-black tabular-nums leading-none text-primary">
+                        {String(c.days).padStart(2, "0")}:{String(c.hrs).padStart(2, "0")}:{String(c.mins).padStart(2, "0")}
+                      </div>
+                    )}
+                    <div className="mt-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                      Days · Hrs · Min
+                    </div>
+                  </div>
+                  <TeamBadge name={next.opponent.slice(0, 3).toUpperCase()} flag="🏳️" />
+                </div>
+                <div className="mt-3 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
+                  <MapPin className="h-3 w-3" /> {next.venue}
+                </div>
+              </Link>
+            )}
+
+            {!profile && (
+              <Link
+                to="/signup"
+                className="mt-4 flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-primary to-[oklch(0.7_0.16_70)] py-3.5 text-sm font-black uppercase tracking-wider text-primary-foreground shadow-[var(--shadow-glow-gold)]"
+              >
+                Join the supporters club <ArrowRight className="h-4 w-4" />
+              </Link>
+            )}
+          </div>
         </div>
       </section>
 
-      {/* Next match */}
-      {next && (
-        <section className="px-4 pt-6">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              Next match
-            </h2>
-            <Link to="/fixtures" className="text-[11px] text-muted-foreground hover:text-foreground">
-              All fixtures →
-            </Link>
-          </div>
-          <Link
-            to="/fixtures/$id"
-            params={{ id: next.id }}
-            className="block overflow-hidden rounded-2xl border border-border bg-surface/60 p-5"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="text-[10px] uppercase tracking-[0.18em] text-primary">{next.competition}</div>
-                <div className="mt-1 font-display text-xl font-bold leading-tight">
-                  {next.is_home ? "South Africa vs " : "vs "}
-                  {next.opponent}
-                </div>
-                <div className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <MapPin className="h-3 w-3" /> {next.venue}
-                </div>
-              </div>
-              <div className="grid h-14 w-14 place-items-center rounded-xl bg-[var(--sa-green)] text-2xl">
-                🇿🇦
-              </div>
-            </div>
-
-            {c && (
-              <div className="mt-4 grid grid-cols-4 gap-2">
-                {([
-                  ["Days", c.days],
-                  ["Hrs", c.hrs],
-                  ["Min", c.mins],
-                  ["Sec", c.secs],
-                ] as const).map(([l, v]) => (
-                  <div key={l} className="rounded-xl bg-background/50 p-2.5 text-center">
-                    <div className="font-mono text-xl font-bold tabular-nums">
-                      {String(v).padStart(2, "0")}
-                    </div>
-                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground">
-                      {l}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Link>
-        </section>
-      )}
-
-      {/* Quick stats */}
-      <section className="grid grid-cols-3 gap-2 px-4 pt-4">
-        <Stat label="FIFA Rank" value="58" />
-        <Stat label="Form" value="W·W·D" />
-        <Stat label="Goals (5)" value="11" />
+      {/* LIVE INTELLIGENCE STRIP */}
+      <section className="mt-6">
+        <div className="mb-2 flex items-center justify-between px-4">
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            Intelligence
+          </h2>
+          <span className="text-[10px] text-muted-foreground">Swipe →</span>
+        </div>
+        <div className="scrollbar-none flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2">
+          <IntelCard
+            tone="green"
+            icon={<Flame className="h-4 w-4" />}
+            label="Form"
+            value="W · W · D"
+            sub="Last 3 games"
+          />
+          <IntelCard
+            tone="gold"
+            icon={<Trophy className="h-4 w-4" />}
+            label="FIFA Rank"
+            value="#58"
+            sub="Up 4 places"
+          />
+          <IntelCard
+            tone="blue"
+            icon={<Users2 className="h-4 w-4" />}
+            label="Supporters"
+            value="124K"
+            sub="Joined this season"
+          />
+          <IntelCard
+            tone="green"
+            icon={<Sparkles className="h-4 w-4" />}
+            label="Goals (5)"
+            value="11"
+            sub="2.2 / match avg"
+          />
+        </div>
       </section>
 
-      {/* Featured player */}
+      {/* Player spotlight */}
       {featured && (
-        <section className="px-4 pt-6">
-          <h2 className="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        <section className="mt-2 px-4">
+          <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             Player spotlight
           </h2>
           <Link
             to="/squad/$id"
             params={{ id: featured.id }}
-            className="block overflow-hidden rounded-2xl border border-border bg-surface/60"
+            className="group glass relative block overflow-hidden rounded-2xl ring-glow-gold transition"
           >
-            <div className="relative h-56 w-full overflow-hidden">
-              <img src={playerTau} alt={featured.name} className="h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-surface/95 via-surface/30 to-transparent" />
-              <div className="absolute bottom-3 left-4">
-                <div className="text-[10px] uppercase tracking-[0.18em] text-primary">
-                  #{featured.jersey_number} · {featured.position}
+            <div className="relative h-64 w-full overflow-hidden">
+              <img src={playerTau} alt={featured.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent" />
+              <div className="absolute right-3 top-3 glass rounded-md px-2 py-1 font-mono text-[10px] font-bold text-primary">
+                #{featured.jersey_number}
+              </div>
+              <div className="absolute bottom-3 left-4 right-4">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
+                  {featured.position} · {featured.club}
                 </div>
-                <div className="font-display text-2xl font-bold">{featured.name}</div>
-                <div className="text-xs text-muted-foreground">{featured.club}</div>
+                <div className="font-display text-3xl font-black leading-tight">{featured.name}</div>
               </div>
             </div>
             <div className="grid grid-cols-3 divide-x divide-border/60 border-t border-border/60">
@@ -172,13 +200,35 @@ function HomePage() {
         </section>
       )}
 
+      {/* Engagement zone — Premium CTA */}
+      {!profile?.is_premium && (
+        <section className="mt-6 px-4">
+          <Link
+            to="/premium"
+            className="relative block overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-[oklch(0.18_0.05_85)] via-black to-black p-5 shadow-[var(--shadow-glow-gold)]"
+          >
+            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/30 blur-3xl breathe" />
+            <div className="relative">
+              <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">VIP Pass</div>
+              <div className="mt-1 font-display text-2xl font-black leading-tight">
+                Unlock the <span className="text-gradient-gold">premium experience</span>
+              </div>
+              <div className="mt-1 text-xs text-foreground/70">Exclusive content · Early tickets · Premium card</div>
+              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-[11px] font-black uppercase tracking-wider text-primary-foreground">
+                Get Premium Pass <ArrowRight className="h-3 w-3" />
+              </div>
+            </div>
+          </Link>
+        </section>
+      )}
+
       {/* News strip */}
-      <section className="px-4 pt-6">
+      <section className="mt-6 px-4">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             Latest news
           </h2>
-          <Link to="/news" className="text-[11px] text-muted-foreground hover:text-foreground">
+          <Link to="/news" className="text-[11px] font-medium text-primary">
             See all →
           </Link>
         </div>
@@ -188,13 +238,13 @@ function HomePage() {
               <Link
                 to="/news/$slug"
                 params={{ slug: a.slug }}
-                className="flex gap-3 rounded-xl border border-border bg-surface/60 p-3"
+                className="glass flex gap-3 rounded-xl p-3 transition hover:ring-glow-gold"
               >
-                <div className="grid h-16 w-16 place-items-center rounded-lg bg-[var(--sa-green)]/30">
+                <div className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-[var(--sa-green)]/50 to-black">
                   <Trophy className="h-5 w-5 text-primary" />
                 </div>
-                <div className="flex-1">
-                  <div className="text-[10px] uppercase tracking-[0.14em] text-primary">
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
                     {a.category}
                   </div>
                   <div className="line-clamp-2 text-sm font-semibold leading-tight">{a.title}</div>
@@ -214,12 +264,54 @@ function HomePage() {
   );
 }
 
+function TeamBadge({ name, flag, accent }: { name: string; flag: string; accent?: boolean }) {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <div
+        className={`grid h-14 w-14 place-items-center rounded-xl text-2xl ${
+          accent ? "bg-[var(--sa-green)] ring-glow-green" : "bg-surface-2"
+        }`}
+      >
+        {flag}
+      </div>
+      <div className="font-display text-[11px] font-black tracking-wider">{name}</div>
+    </div>
+  );
+}
+
+function IntelCard({
+  tone,
+  icon,
+  label,
+  value,
+  sub,
+}: {
+  tone: "green" | "gold" | "blue";
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  sub: string;
+}) {
+  const ring = tone === "green" ? "ring-glow-green" : tone === "gold" ? "ring-glow-gold" : "ring-glow-blue";
+  const dot = tone === "green" ? "bg-[var(--sa-green)]" : tone === "gold" ? "bg-primary" : "bg-[oklch(0.7_0.18_240)]";
+  return (
+    <div className={`glass relative w-[180px] shrink-0 snap-start rounded-2xl p-4 ${ring}`}>
+      <div className="flex items-center justify-between">
+        <div className={`grid h-7 w-7 place-items-center rounded-lg ${dot} text-black`}>{icon}</div>
+        <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          {label}
+        </span>
+      </div>
+      <div className="mt-3 font-display text-3xl font-black tracking-tight">{value}</div>
+      <div className="text-[10px] text-muted-foreground">{sub}</div>
+    </div>
+  );
+}
+
 function Stat({ label, value, compact }: { label: string; value: string | number; compact?: boolean }) {
   return (
-    <div
-      className={`text-center ${compact ? "py-3" : "rounded-xl border border-border bg-surface/60 p-3"}`}
-    >
-      <div className="font-display text-lg font-bold">{value}</div>
+    <div className={`text-center ${compact ? "py-3" : "glass rounded-xl p-3"}`}>
+      <div className="font-display text-lg font-black">{value}</div>
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
     </div>
   );

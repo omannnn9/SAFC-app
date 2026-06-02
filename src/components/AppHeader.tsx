@@ -5,27 +5,28 @@ import { User as UserIcon, Crown } from "lucide-react";
 export function AppHeader({ title }: { title?: string }) {
   const { user, profile } = useAuth();
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border/60 bg-background/85 px-4 py-3 backdrop-blur-xl">
-      <Link to="/" className="flex items-center gap-2">
-        <div className="grid h-8 w-8 place-items-center rounded-md bg-[var(--sa-green)] text-xs font-bold text-white">
+    <header className="glass sticky top-0 z-30 flex items-center justify-between px-4 py-3">
+      <Link to="/" className="flex items-center gap-2.5">
+        <div className="relative grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-[var(--sa-green)] to-[oklch(0.4_0.13_155)] text-[11px] font-black text-white shadow-[var(--shadow-glow-green)]">
           SA
+          <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_var(--sa-gold)]" />
         </div>
         <div className="leading-tight">
-          <div className="font-display text-sm font-bold tracking-tight">BAFANA</div>
-          <div className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+          <div className="font-display text-sm font-black tracking-tight">BAFANA</div>
+          <div className="text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
             {title ?? "Supporters Club"}
           </div>
         </div>
       </Link>
       <Link
         to={user ? "/profile" : "/login"}
-        className="flex items-center gap-2 rounded-full border border-border/60 bg-surface px-2 py-1.5 text-xs"
+        className="glass flex items-center gap-2 rounded-full px-2.5 py-1.5 text-xs transition hover:ring-glow-gold"
       >
         {profile?.is_premium && <Crown className="h-3.5 w-3.5 text-primary" />}
-        <span className="max-w-[80px] truncate font-medium">
+        <span className="max-w-[80px] truncate font-semibold">
           {user ? profile?.full_name?.split(" ")[0] || "Profile" : "Sign in"}
         </span>
-        <div className="grid h-6 w-6 place-items-center rounded-full bg-surface-2">
+        <div className={`grid h-6 w-6 place-items-center rounded-full ${profile?.is_premium ? "shimmer-gold text-black" : "bg-surface-2"}`}>
           <UserIcon className="h-3.5 w-3.5" />
         </div>
       </Link>
