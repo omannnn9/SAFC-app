@@ -88,6 +88,10 @@ type AFFixture = {
   goals: { home: number | null; away: number | null };
 };
 
+function teamLogo(id: number): string {
+  return `https://media.api-sports.io/football/teams/${id}.png`;
+}
+
 function mapFixture(f: AFFixture): LiveMatch {
   const isHome = f.teams.home.id === SA_TEAM_ID;
   const opponent = isHome ? f.teams.away : f.teams.home;
@@ -101,7 +105,7 @@ function mapFixture(f: AFFixture): LiveMatch {
   return {
     id: `af-${f.fixture.id}`,
     opponent: opponent.name,
-    opponent_flag: opponent.logo ?? null,
+    opponent_flag: opponent.logo ?? teamLogo(opponent.id),
     kickoff: f.fixture.date,
     venue: f.fixture.venue?.name ?? "TBD",
     competition: f.league.name,
@@ -112,25 +116,48 @@ function mapFixture(f: AFFixture): LiveMatch {
   };
 }
 
-// Defensive filter: API should already only return SA fixtures since we filter
-// by team=, but guard against any misrouted entries.
+// Validate: SA must be a participant, and league must be a national-team
+// competition (AFCON, World Cup, qualifiers, Nations League, friendlies).
+// Club leagues are rejected outright.
+const ALLOWED_COMP = /(africa cup of nations|afcon|world cup|qualif|friendl|nations league|cosafa|olympic)/i;
+const CLUB_LEAGUE = /(premier league|la liga|serie a|bundesliga|ligue 1|champions league|europa|psl|cup of south africa|nedbank|carling)/i;
+
+function validFixture(f: AFFixture): boolean {
+  const hasSA = f.teams.home.id === SA_TEAM_ID || f.teams.away.id === SA_TEAM_ID;
+  if (!hasSA) return false;
+  const league = f.league.name ?? "";
+  if (CLUB_LEAGUE.test(league) && !ALLOWED_COMP.test(league)) return false;
+  // Accept anything that looks like a national-team competition; if the league
+  // name is unclear we still keep it because /fixtures?team= for a national
+  // team only returns international fixtures.
+  return true;
+}
+
 function onlySAFixtures(list: AFFixture[]): AFFixture[] {
-  return list.filter((f) => f.teams.home.id === SA_TEAM_ID || f.teams.away.id === SA_TEAM_ID);
+  return list.filter(validFixture);
 }
 
 export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v2", 60 * 30, async () => {
-    const res = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=10`)) as AFFixture[];
-    const filtered = onlySAFixtures(res);
-    console.log(`[live] upcoming: ${res.length} raw → ${filtered.length} SA-only`);
-    return filtered.map(mapFixture);
+  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v3", 60 * 10, async () => {
+    const res = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=15`)) as AFFixture[];
+    const filtered = onlySAFixtures(res)
+      .filter((f) => ["NS", "TBD", "PST"].includes(f.fixture.status.short))
+      .sort((a, b) => new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime())
+      .slice(0, 10);
+    // De-dupe by fixture id
+    const seen = new Set<number>();
+    const dedup = filtered.filter((f) => (seen.has(f.fixture.id) ? false : (seen.add(f.fixture.id), true)));
+    console.log(`[live] upcoming: ${res.length} raw → ${dedup.length} valid NS`);
+    return dedup.map(mapFixture);
   });
 });
 
 export const getLivePastMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v2", 60 * 60 * 6, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v3", 60 * 30, async () => {
     const res = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&last=10`)) as AFFixture[];
-    const filtered = onlySAFixtures(res);
+    const filtered = onlySAFixtures(res).sort(
+      (a, b) => new Date(b.fixture.date).getTime() - new Date(a.fixture.date).getTime(),
+    );
     console.log(`[live] past: ${res.length} raw → ${filtered.length} SA-only`);
     return filtered.map(mapFixture);
   });
@@ -246,7 +273,7 @@ export const getLivePlayers = createServerFn({ method: "GET" }).handler(async ()
             caps: stats?.caps ?? 0,
             goals: stats?.goals ?? 0,
             assists: stats?.assists ?? 0,
-            photo_url: stats?.photo ?? p.photo,
+            photo_url: stats?.photo ?? p.photo ?? `https://media.api-sports.io/football/players/${p.id}.png`,
             bio: null,
           } satisfies LivePlayer;
         }),
@@ -298,8 +325,27 @@ const RELEVANT = /(bafana|safa|south africa(n)?\s+(national|men'?s|football|socc
 // Reject obvious club-only items unless they also mention Bafana.
 const CLUB_NOISE = /\b(epl|premier league|la liga|serie a|bundesliga|champions league|psl match|chiefs vs|pirates vs)\b/i;
 
+// Curated fallback images for news cards when NewsAPI returns no urlToImage.
+const NEWS_FALLBACK_IMAGES = {
+  match: "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=1200&q=80",
+  player: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=80",
+  team: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1200&q=80",
+  stadium: "https://images.unsplash.com/photo-1540552965303-1ee5b5d6a8ae?w=1200&q=80",
+  default: "https://media.api-sports.io/football/teams/1469.png",
+} as const;
+
+function resolveNewsImage(title: string, description: string | null, articleImage: string | null): string {
+  if (articleImage) return articleImage;
+  const hay = `${title} ${description ?? ""}`.toLowerCase();
+  if (/\b(vs|v\.|match|fixture|kick.?off|goal|draw|win|defeat|final)\b/.test(hay)) return NEWS_FALLBACK_IMAGES.match;
+  if (/\b(player|striker|defender|midfielder|keeper|coach|hugo broos|squad call)\b/.test(hay)) return NEWS_FALLBACK_IMAGES.player;
+  if (/\b(stadium|fnb|loftus|moses mabhida|orlando)\b/.test(hay)) return NEWS_FALLBACK_IMAGES.stadium;
+  if (/\b(bafana|safa|south africa|squad|team)\b/.test(hay)) return NEWS_FALLBACK_IMAGES.team;
+  return NEWS_FALLBACK_IMAGES.default;
+}
+
 export const getLiveNews = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveArticle[]>("newsapi:bafana:v2", 60 * 60, async () => {
+  return cachedFetch<LiveArticle[]>("newsapi:bafana:v3", 60 * 30, async () => {
     const key = process.env.NEWS_API_KEY;
     if (!key) throw new Error("NEWS_API_KEY not set");
     const q = encodeURIComponent('"Bafana Bafana" OR "South Africa national team" OR "SAFA"');
@@ -321,7 +367,7 @@ export const getLiveNews = createServerFn({ method: "GET" }).handler(async () =>
       title: a.title,
       excerpt: a.description ?? "",
       body: a.content ?? a.description ?? "",
-      cover_url: a.urlToImage,
+      cover_url: resolveNewsImage(a.title, a.description, a.urlToImage),
       category: "team" as const,
       is_premium: false,
       published_at: a.publishedAt,
