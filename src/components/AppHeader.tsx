@@ -1,6 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
 import { User as UserIcon, Crown } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
+
+
 
 export function AppHeader({ title }: { title?: string }) {
   const { user, profile } = useAuth();
