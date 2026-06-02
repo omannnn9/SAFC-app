@@ -510,7 +510,7 @@ export const getLiveManager = createServerFn({ method: "GET" }).handler(async ()
   });
 });
 
-// ============= NEWS =============
+// ============= NEWS (Multi-source Aggregation Engine) =============
 
 export type LiveArticle = {
   id: string;
@@ -524,18 +524,18 @@ export type LiveArticle = {
   published_at: string;
   source?: string;
   url?: string;
+  score?: number;
+  relevance?: "high" | "medium" | "low";
+  matched_entities?: string[];
 };
 
-type NewsAPIResponse = {
-  articles: Array<{
-    title: string;
-    description: string | null;
-    content: string | null;
-    url: string;
-    urlToImage: string | null;
-    publishedAt: string;
-    source: { name: string };
-  }>;
+type RawArticle = {
+  title: string;
+  description: string;
+  url: string;
+  image: string | null;
+  publishedAt: string;
+  source: string;
 };
 
 function slugify(s: string) {
@@ -546,12 +546,116 @@ function slugify(s: string) {
     .slice(0, 80);
 }
 
-// Strict relevance filter — must mention Bafana or SA national-team context.
-const RELEVANT = /(bafana|safa|south africa(n)?\s+(national|men'?s|football|soccer|team)|hugo broos)/i;
-// Reject obvious club-only items unless they also mention Bafana.
-const CLUB_NOISE = /\b(epl|premier league|la liga|serie a|bundesliga|champions league|psl match|chiefs vs|pirates vs)\b/i;
+function decodeEntities(s: string) {
+  return s
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)));
+}
 
-// Curated fallback images for news cards when NewsAPI returns no urlToImage.
+function stripTags(s: string) {
+  return decodeEntities(s.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim();
+}
+
+function pick(xml: string, tag: string): string {
+  const m = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, "i"));
+  return m ? stripTags(m[1]) : "";
+}
+
+function pickAttr(xml: string, tag: string, attr: string): string | null {
+  const m = xml.match(new RegExp(`<${tag}[^>]*\\b${attr}=["']([^"']+)["']`, "i"));
+  return m ? m[1] : null;
+}
+
+function extractImage(item: string): string | null {
+  // <media:content url="...">, <media:thumbnail url="...">, <enclosure url="..." type="image/...">
+  const media =
+    pickAttr(item, "media:content", "url") ||
+    pickAttr(item, "media:thumbnail", "url") ||
+    pickAttr(item, "enclosure", "url");
+  if (media) return media;
+  // <img src="..."> inside description
+  const desc = item.match(/<description[^>]*>([\s\S]*?)<\/description>/i)?.[1] ?? "";
+  const img = desc.match(/<img[^>]+src=["']([^"']+)["']/i)?.[1];
+  return img ?? null;
+}
+
+function parseRss(xml: string, source: string): RawArticle[] {
+  const items = xml.match(/<item[\s\S]*?<\/item>/gi) ?? [];
+  return items
+    .map((it) => {
+      const title = pick(it, "title");
+      const link = pick(it, "link") || pickAttr(it, "link", "href") || "";
+      const description = pick(it, "description") || pick(it, "summary");
+      const pubDate = pick(it, "pubDate") || pick(it, "published") || pick(it, "dc:date");
+      const image = extractImage(it);
+      if (!title || !link) return null;
+      const date = pubDate ? new Date(pubDate) : new Date();
+      return {
+        title,
+        description,
+        url: link,
+        image,
+        publishedAt: isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString(),
+        source,
+      } satisfies RawArticle;
+    })
+    .filter((x): x is RawArticle => !!x);
+}
+
+async function fetchRss(url: string, source: string, weight: number): Promise<{ articles: RawArticle[]; weight: number }> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 BafanaSupportersBot/1.0", Accept: "application/rss+xml, application/xml, text/xml" },
+    });
+    if (!res.ok) throw new Error(`${res.status}`);
+    const xml = await res.text();
+    return { articles: parseRss(xml, source), weight };
+  } catch (err) {
+    console.warn(`[news] RSS ${source} failed:`, err);
+    return { articles: [], weight };
+  }
+}
+
+type NewsAPIResponse = {
+  articles: Array<{
+    title: string;
+    description: string | null;
+    url: string;
+    urlToImage: string | null;
+    publishedAt: string;
+    source: { name: string };
+  }>;
+};
+
+async function fetchNewsApi(): Promise<RawArticle[]> {
+  const key = process.env.NEWS_API_KEY;
+  if (!key) return [];
+  try {
+    const q = encodeURIComponent('"Bafana Bafana" OR "South Africa national team" OR "SAFA"');
+    const url = `https://newsapi.org/v2/everything?q=${q}&language=en&sortBy=publishedAt&pageSize=40`;
+    const res = await fetch(url, { headers: { "X-Api-Key": key } });
+    if (!res.ok) throw new Error(`${res.status}`);
+    const json = (await res.json()) as NewsAPIResponse;
+    return json.articles.map((a) => ({
+      title: a.title,
+      description: a.description ?? "",
+      url: a.url,
+      image: a.urlToImage,
+      publishedAt: a.publishedAt,
+      source: a.source.name,
+    }));
+  } catch (err) {
+    console.warn("[news] NewsAPI failed:", err);
+    return [];
+  }
+}
+
 const NEWS_FALLBACK_IMAGES = {
   match: "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=1200&q=80",
   player: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=80",
@@ -560,46 +664,159 @@ const NEWS_FALLBACK_IMAGES = {
   default: `https://media.api-sports.io/football/teams/${SA_TEAM_ID}.png`,
 } as const;
 
-function resolveNewsImage(title: string, description: string | null, articleImage: string | null): string {
+function categorize(hay: string): LiveArticle["category"] {
+  if (/\b(vs|v\.|match|fixture|kick.?off|goal|draw|win|defeat|final|qualif)\b/i.test(hay)) return "match";
+  if (/\b(player|striker|defender|midfielder|keeper|coach|hugo broos|squad call|call.?up)\b/i.test(hay)) return "player";
+  if (/\b(supporter|fan|fans|stadium|crowd|ticket)\b/i.test(hay)) return "supporter";
+  return "team";
+}
+
+function resolveImage(category: LiveArticle["category"], articleImage: string | null): string {
   if (articleImage) return articleImage;
-  const hay = `${title} ${description ?? ""}`.toLowerCase();
-  if (/\b(vs|v\.|match|fixture|kick.?off|goal|draw|win|defeat|final)\b/.test(hay)) return NEWS_FALLBACK_IMAGES.match;
-  if (/\b(player|striker|defender|midfielder|keeper|coach|hugo broos|squad call)\b/.test(hay)) return NEWS_FALLBACK_IMAGES.player;
-  if (/\b(stadium|fnb|loftus|moses mabhida|orlando)\b/.test(hay)) return NEWS_FALLBACK_IMAGES.stadium;
-  if (/\b(bafana|safa|south africa|squad|team)\b/.test(hay)) return NEWS_FALLBACK_IMAGES.team;
-  return NEWS_FALLBACK_IMAGES.default;
+  return NEWS_FALLBACK_IMAGES[category] ?? NEWS_FALLBACK_IMAGES.default;
+}
+
+// Reject obvious club-only items unless they also mention Bafana / SA.
+const CLUB_NOISE = /\b(epl|premier league|la liga|serie a|bundesliga|champions league|psl match|chiefs vs|pirates vs|man utd|liverpool|arsenal|chelsea|barcelona|real madrid)\b/i;
+const SA_CONTEXT = /(bafana|safa|south africa(n)?\s+(national|men'?s|football|soccer|team)|hugo broos|banyana)/i;
+
+type ScoreCtx = {
+  playerNames: string[];
+  upcomingOpponents: string[];
+};
+
+function scoreArticle(a: RawArticle, ctx: ScoreCtx): { score: number; matched: string[] } {
+  const hay = `${a.title} ${a.description}`.toLowerCase();
+  let score = 0;
+  const matched: string[] = [];
+
+  if (/\bbafana\b/.test(hay) || /south africa(n)? (national|men'?s|football|soccer|team)/.test(hay)) {
+    score += 50;
+    matched.push("Bafana Bafana");
+  }
+  for (const name of ctx.playerNames) {
+    const last = name.split(/\s+/).slice(-1)[0]?.toLowerCase();
+    if (last && last.length > 3 && hay.includes(last)) {
+      score += 40;
+      matched.push(name);
+      break; // cap one player bonus
+    }
+  }
+  for (const opp of ctx.upcomingOpponents) {
+    if (opp && hay.includes(opp.toLowerCase())) {
+      score += 30;
+      matched.push(`vs ${opp}`);
+      break;
+    }
+  }
+  if (/\b(safa|caf|cafonline)\b/i.test(a.source) || /safa\.net|cafonline\.com/i.test(a.url)) {
+    score += 20;
+    matched.push(a.source);
+  }
+  // Recency: +10 if <24h, +5 if <3d
+  const ageH = (Date.now() - new Date(a.publishedAt).getTime()) / 36e5;
+  if (ageH < 24) score += 10;
+  else if (ageH < 72) score += 5;
+
+  return { score, matched };
+}
+
+function dedupeByTitle<T extends { title: string; url: string }>(list: T[]): T[] {
+  const seen = new Set<string>();
+  return list.filter((a) => {
+    const key = slugify(a.title).slice(0, 50);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+async function buildScoreContext(): Promise<ScoreCtx> {
+  const ctx: ScoreCtx = { playerNames: [], upcomingOpponents: [] };
+  try {
+    const squad = await readCache<LivePlayer[]>(`af:squad:${CURRENT_SEASON}:v8-api-headshots`);
+    if (squad?.payload) ctx.playerNames = squad.payload.map((p) => p.name);
+  } catch { /* noop */ }
+  try {
+    const up = await readCache<LiveMatch[]>("af:fixtures:next:10:v7-sa-team-id");
+    if (up?.payload) ctx.upcomingOpponents = up.payload.map((m) => m.opponent);
+  } catch { /* noop */ }
+  return ctx;
 }
 
 export const getLiveNews = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveArticle[]>("newsapi:bafana:v3", 60 * 30, async () => {
-    const key = process.env.NEWS_API_KEY;
-    if (!key) throw new Error("NEWS_API_KEY not set");
-    const q = encodeURIComponent('"Bafana Bafana" OR "South Africa national team" OR "SAFA"');
-    const url = `https://newsapi.org/v2/everything?q=${q}&language=en&sortBy=publishedAt&pageSize=40`;
-    const res = await fetch(url, { headers: { "X-Api-Key": key } });
-    if (!res.ok) throw new Error(`NewsAPI ${res.status}`);
-    const json = (await res.json()) as NewsAPIResponse;
-    console.log(`[live] news: ${json.articles.length} raw articles`);
-    const filtered = json.articles.filter((a) => {
-      const hay = `${a.title} ${a.description ?? ""}`;
-      if (!RELEVANT.test(hay)) return false;
-      if (CLUB_NOISE.test(hay) && !/bafana/i.test(hay)) return false;
-      return true;
+  return cachedFetch<LiveArticle[]>("news:aggregated:v1", 60 * 20, async () => {
+    const ctx = await buildScoreContext();
+
+    // Multi-source pull in parallel.
+    const [bbc, espn, goal, caf, newsapi] = await Promise.all([
+      fetchRss("https://feeds.bbci.co.uk/sport/football/africa/rss.xml", "BBC Sport", 1),
+      fetchRss("https://www.espn.com/espn/rss/soccer/news", "ESPN", 1),
+      fetchRss("https://www.goal.com/feeds/en/news", "Goal.com", 1),
+      fetchRss("https://www.cafonline.com/rss/news/", "CAF", 1.2),
+      fetchNewsApi(),
+    ]);
+
+    const all: RawArticle[] = [
+      ...bbc.articles,
+      ...espn.articles,
+      ...goal.articles,
+      ...caf.articles,
+      ...newsapi,
+    ];
+
+    console.log(
+      `[news] sources: bbc=${bbc.articles.length} espn=${espn.articles.length} goal=${goal.articles.length} caf=${caf.articles.length} newsapi=${newsapi.length}`,
+    );
+
+    // Relevance gate.
+    const gated = all.filter((a) => {
+      const hay = `${a.title} ${a.description}`;
+      if (CLUB_NOISE.test(hay) && !SA_CONTEXT.test(hay)) return false;
+      // must mention SA context OR a known player/opponent
+      if (SA_CONTEXT.test(hay)) return true;
+      const lower = hay.toLowerCase();
+      if (ctx.playerNames.some((n) => {
+        const last = n.split(/\s+/).slice(-1)[0]?.toLowerCase();
+        return last && last.length > 3 && lower.includes(last);
+      })) return true;
+      if (ctx.upcomingOpponents.some((o) => o && lower.includes(o.toLowerCase()))) return true;
+      return false;
     });
-    console.log(`[live] news: ${filtered.length} after relevance filter`);
-    return filtered.map((a, i) => ({
-      id: `news-${i}-${slugify(a.title)}`,
-      slug: `${slugify(a.title)}-${i}`,
-      title: a.title,
-      excerpt: a.description ?? "",
-      body: a.content ?? a.description ?? "",
-      cover_url: resolveNewsImage(a.title, a.description, a.urlToImage),
-      category: "team" as const,
-      is_premium: false,
-      published_at: a.publishedAt,
-      source: a.source.name,
-      url: a.url,
-    }));
+
+    const deduped = dedupeByTitle(gated);
+
+    const scored = deduped
+      .map((a) => {
+        const { score, matched } = scoreArticle(a, ctx);
+        const hay = `${a.title} ${a.description}`;
+        const category = categorize(hay);
+        const relevance: LiveArticle["relevance"] = score >= 60 ? "high" : score >= 30 ? "medium" : "low";
+        const slug = `${slugify(a.title)}-${slugify(a.source).slice(0, 12)}`;
+        return {
+          id: slug,
+          slug,
+          title: a.title,
+          excerpt: a.description.slice(0, 280),
+          body: a.description,
+          cover_url: resolveImage(category, a.image),
+          category,
+          is_premium: false,
+          published_at: a.publishedAt,
+          source: a.source,
+          url: a.url,
+          score,
+          relevance,
+          matched_entities: matched,
+        } satisfies LiveArticle;
+      })
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
+      .slice(0, 60);
+
+    console.log(
+      `[news] aggregated → gated=${gated.length} dedup=${deduped.length} scored=${scored.length} (high=${scored.filter((s) => s.relevance === "high").length})`,
+    );
+    return scored;
   });
 });
 
