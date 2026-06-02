@@ -145,27 +145,16 @@ function MatchCard({ m, live }: { m: Match; live?: boolean }) {
   );
 }
 
-function Team({ logo, name, accent }: { logo: string | null; name: string; accent?: boolean }) {
+function Team({ name, accent }: { logo?: string | null; name: string; accent?: boolean }) {
   const flag = nameToFlag(name);
-  const [imgFailed, setImgFailed] = useState(false);
   return (
     <div className="flex flex-col items-center gap-1.5">
       <div
-        className={`relative grid h-12 w-12 place-items-center overflow-hidden rounded-xl ${
+        className={`grid h-12 w-12 place-items-center rounded-xl ${
           accent ? "bg-[var(--sa-green)] ring-glow-green" : "bg-surface-2"
         }`}
       >
-        {logo && !imgFailed ? (
-          <img
-            src={logo}
-            alt={name}
-            loading="lazy"
-            className="h-10 w-10 object-contain"
-            onError={() => setImgFailed(true)}
-          />
-        ) : (
-          <span className="text-2xl leading-none">{flag}</span>
-        )}
+        <span className="text-2xl leading-none">{flag}</span>
       </div>
       <div className="max-w-[88px] truncate text-center font-display text-[10px] font-black uppercase tracking-wider">
         {name}
