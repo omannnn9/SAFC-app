@@ -420,14 +420,7 @@ export const getLivePastMatches = createServerFn({ method: "GET" }).handler(asyn
       }),
     );
 
-    if (!seasonResults.some((result) => result.ok)) {
-      throw new Error("Unable to load past fixtures from API-Football");
-    }
-
     const raw = seasonResults.flatMap((result) => result.fixtures);
-    if (raw.length === 0) {
-      throw new Error("API-Football returned no completed fixtures for accessible seasons");
-    }
 
     const filtered = onlySAFixtures(raw)
       .filter((f) => f.goals.home != null && f.goals.away != null)
