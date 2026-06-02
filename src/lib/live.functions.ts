@@ -328,15 +328,24 @@ export const getLivePastMatches = createServerFn({ method: "GET" }).handler(asyn
     const seasonResults = await Promise.all(
       accessibleSeasons.map(async (season) => {
         try {
-          return (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&season=${season}&status=FT`)) as AFFixture[];
+          const fixtures = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&season=${season}&status=FT`)) as AFFixture[];
+          return { ok: true, fixtures };
         } catch (err) {
           console.error(`[live] past season ${season} failed:`, err);
-          return [] as AFFixture[];
+          return { ok: false, fixtures: [] as AFFixture[] };
         }
       }),
     );
 
-    const raw = seasonResults.flat();
+    if (!seasonResults.some((result) => result.ok)) {
+      throw new Error("Unable to load past fixtures from API-Football");
+    }
+
+    const raw = seasonResults.flatMap((result) => result.fixtures);
+    if (raw.length === 0) {
+      throw new Error("API-Football returned no completed fixtures for accessible seasons");
+    }
+
     const filtered = onlySAFixtures(raw)
       .filter((f) => f.goals.home != null && f.goals.away != null)
       .sort((a, b) => new Date(b.fixture.date).getTime() - new Date(a.fixture.date).getTime())
