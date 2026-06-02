@@ -54,6 +54,13 @@ function ArticlePage() {
     },
   });
 
+  const { data: fullContent, isLoading: fullLoading } = useQuery({
+    queryKey: ["article-content", article?.url],
+    enabled: !!article?.url,
+    staleTime: 1000 * 60 * 60,
+    queryFn: () => getArticleContent({ data: { url: article!.url! } }),
+  });
+
   const { data: bookmarked } = useQuery({
     queryKey: ["bookmark", slug, user?.id],
     enabled: !!user && !!article,
