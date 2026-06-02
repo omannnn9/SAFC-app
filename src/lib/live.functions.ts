@@ -88,6 +88,10 @@ type AFFixture = {
   goals: { home: number | null; away: number | null };
 };
 
+function teamLogo(id: number): string {
+  return `https://media.api-sports.io/football/teams/${id}.png`;
+}
+
 function mapFixture(f: AFFixture): LiveMatch {
   const isHome = f.teams.home.id === SA_TEAM_ID;
   const opponent = isHome ? f.teams.away : f.teams.home;
@@ -101,7 +105,7 @@ function mapFixture(f: AFFixture): LiveMatch {
   return {
     id: `af-${f.fixture.id}`,
     opponent: opponent.name,
-    opponent_flag: opponent.logo ?? null,
+    opponent_flag: opponent.logo ?? teamLogo(opponent.id),
     kickoff: f.fixture.date,
     venue: f.fixture.venue?.name ?? "TBD",
     competition: f.league.name,
@@ -112,25 +116,48 @@ function mapFixture(f: AFFixture): LiveMatch {
   };
 }
 
-// Defensive filter: API should already only return SA fixtures since we filter
-// by team=, but guard against any misrouted entries.
+// Validate: SA must be a participant, and league must be a national-team
+// competition (AFCON, World Cup, qualifiers, Nations League, friendlies).
+// Club leagues are rejected outright.
+const ALLOWED_COMP = /(africa cup of nations|afcon|world cup|qualif|friendl|nations league|cosafa|olympic)/i;
+const CLUB_LEAGUE = /(premier league|la liga|serie a|bundesliga|ligue 1|champions league|europa|psl|cup of south africa|nedbank|carling)/i;
+
+function validFixture(f: AFFixture): boolean {
+  const hasSA = f.teams.home.id === SA_TEAM_ID || f.teams.away.id === SA_TEAM_ID;
+  if (!hasSA) return false;
+  const league = f.league.name ?? "";
+  if (CLUB_LEAGUE.test(league) && !ALLOWED_COMP.test(league)) return false;
+  // Accept anything that looks like a national-team competition; if the league
+  // name is unclear we still keep it because /fixtures?team= for a national
+  // team only returns international fixtures.
+  return true;
+}
+
 function onlySAFixtures(list: AFFixture[]): AFFixture[] {
-  return list.filter((f) => f.teams.home.id === SA_TEAM_ID || f.teams.away.id === SA_TEAM_ID);
+  return list.filter(validFixture);
 }
 
 export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v2", 60 * 30, async () => {
-    const res = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=10`)) as AFFixture[];
-    const filtered = onlySAFixtures(res);
-    console.log(`[live] upcoming: ${res.length} raw → ${filtered.length} SA-only`);
-    return filtered.map(mapFixture);
+  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v3", 60 * 10, async () => {
+    const res = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=15`)) as AFFixture[];
+    const filtered = onlySAFixtures(res)
+      .filter((f) => ["NS", "TBD", "PST"].includes(f.fixture.status.short))
+      .sort((a, b) => new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime())
+      .slice(0, 10);
+    // De-dupe by fixture id
+    const seen = new Set<number>();
+    const dedup = filtered.filter((f) => (seen.has(f.fixture.id) ? false : (seen.add(f.fixture.id), true)));
+    console.log(`[live] upcoming: ${res.length} raw → ${dedup.length} valid NS`);
+    return dedup.map(mapFixture);
   });
 });
 
 export const getLivePastMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v2", 60 * 60 * 6, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v3", 60 * 30, async () => {
     const res = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&last=10`)) as AFFixture[];
-    const filtered = onlySAFixtures(res);
+    const filtered = onlySAFixtures(res).sort(
+      (a, b) => new Date(b.fixture.date).getTime() - new Date(a.fixture.date).getTime(),
+    );
     console.log(`[live] past: ${res.length} raw → ${filtered.length} SA-only`);
     return filtered.map(mapFixture);
   });
