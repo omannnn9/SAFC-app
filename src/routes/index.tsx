@@ -68,8 +68,17 @@ const FUN_FACTS = [
 
 function HomePage() {
   const { profile } = useAuth();
-  const { data: next } = useQuery({ queryKey: ["next-match"], queryFn: getNextMatch });
-  const { data: news } = useQuery({ queryKey: ["news", "home"], queryFn: () => getNews() });
+  const { data: next } = useQuery({
+    queryKey: ["next-match"],
+    queryFn: getNextMatch,
+    refetchInterval: 1000 * 60, // refresh every minute
+    refetchOnWindowFocus: true,
+  });
+  const { data: news } = useQuery({
+    queryKey: ["news", "home"],
+    queryFn: () => getNews(),
+    refetchInterval: 1000 * 60 * 10,
+  });
   const { data: featured } = useQuery({
     queryKey: ["featured-player"],
     queryFn: getFeaturedPlayer,
@@ -77,8 +86,11 @@ function HomePage() {
   const { data: pastRes } = useQuery({
     queryKey: ["past-matches"],
     queryFn: () => getLivePastMatches(),
+    refetchInterval: 1000 * 45, // refresh every 45s for live score updates
+    refetchOnWindowFocus: true,
   });
   const past = useMemo(() => pastRes?.data ?? [], [pastRes?.data]);
+
   const c = useCountdown(next?.kickoff);
   const nextHome = next?.home_team ?? null;
   const nextAway = next?.away_team ?? null;
