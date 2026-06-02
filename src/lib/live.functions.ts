@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { fetchSafaUpcomingFixtures, safaConfirms, normalizeName, enrichSafaFixturesWithImages, fetchSafaPlayerPhotos, type SafaFixture } from "@/lib/safa.server";
+import { fetchSafaUpcomingFixtures, safaConfirms, normalizeName, enrichSafaFixturesWithImages, type SafaFixture } from "@/lib/safa.server";
 import { canonicalCountryName, nameToCountryCode, validateFixtureFlagData } from "@/lib/flags";
 
 // South Africa national team (Bafana Bafana) in API-Football.
@@ -434,7 +434,7 @@ async function fetchPlayerStats(playerId: number, season: number) {
 }
 
 export const getLivePlayers = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LivePlayer[]>(`af:squad:${CURRENT_SEASON}:v7-safa-headshot-refresh`, 60 * 60 * 24, async () => {
+  return cachedFetch<LivePlayer[]>(`af:squad:${CURRENT_SEASON}:v8-api-headshots`, 60 * 60 * 24, async () => {
     const res = (await apiFootball(`/players/squads?team=${SA_TEAM_ID}`)) as AFSquadResponse;
     const team = res[0];
     if (!team || team.team.id !== SA_TEAM_ID) {
@@ -447,9 +447,6 @@ export const getLivePlayers = createServerFn({ method: "GET" }).handler(async ()
     // De-dupe by id
     const seen = new Set<number>();
     const unique = players.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
-
-    // Kick off SAFA photo scraping in parallel with API-Football stats fetches.
-    const safaPhotosPromise = fetchSafaPlayerPhotos(unique.map((p) => p.name));
 
     // Enrich in parallel but capped to avoid rate limits
     const enriched: LivePlayer[] = [];
@@ -478,17 +475,7 @@ export const getLivePlayers = createServerFn({ method: "GET" }).handler(async ()
       enriched.push(...results);
     }
 
-    // Overlay SAFA photos where available (preferred source).
-    const safaPhotos = await safaPhotosPromise;
-    let safaHits = 0;
-    for (const player of enriched) {
-      const safa = safaPhotos.get(normalizeName(player.name));
-      if (safa) {
-        player.photo_url = safa;
-        safaHits += 1;
-      }
-    }
-    console.log(`[live] squad: ${safaHits}/${enriched.length} photos from SAFA`);
+    console.log(`[live] squad: ${enriched.length}/${enriched.length} API headshots`);
     return enriched;
   });
 });
