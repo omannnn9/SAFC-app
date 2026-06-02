@@ -820,6 +820,7 @@ function isValidImageUrl(url: string | null | undefined): url is string {
   if (!/^https?:\/\//i.test(url)) return false;
   if (/\/(1x1|spacer|pixel|blank)\.(gif|png)/i.test(url)) return false;
   if (/doubleclick|adservice|googlesyndication/i.test(url)) return false;
+  if (/yahoo/i.test(url)) return false; // hard blocklist
   return true;
 }
 
@@ -954,8 +955,18 @@ async function buildScoreContext(): Promise<ScoreCtx> {
   return ctx;
 }
 
+// Hard blocklist — sources/domains we never surface, no matter how relevant.
+const BLOCKED_SOURCE_RE = /yahoo/i;
+const BLOCKED_URL_RE = /(^|\.)yahoo\.com/i;
+function isBlockedSource(a: { source: string; url: string; image: string | null }) {
+  if (BLOCKED_SOURCE_RE.test(a.source)) return true;
+  if (BLOCKED_URL_RE.test(a.url)) return true;
+  if (a.image && BLOCKED_URL_RE.test(a.image)) return true;
+  return false;
+}
+
 export const getLiveNews = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveArticle[]>("news:aggregated:v1", 60 * 20, async () => {
+  return cachedFetch<LiveArticle[]>("news:aggregated:v2-no-yahoo", 60 * 20, async () => {
     const ctx = await buildScoreContext();
 
     // Multi-source pull in parallel.
@@ -973,11 +984,18 @@ export const getLiveNews = createServerFn({ method: "GET" }).handler(async () =>
       ...goal.articles,
       ...caf.articles,
       ...newsapi,
-    ];
+    ].filter((a) => {
+      if (isBlockedSource(a)) {
+        console.log(`[news] BLOCKED source=${a.source} url=${a.url.slice(0, 80)}`);
+        return false;
+      }
+      return true;
+    });
 
     console.log(
-      `[news] sources: bbc=${bbc.articles.length} espn=${espn.articles.length} goal=${goal.articles.length} caf=${caf.articles.length} newsapi=${newsapi.length}`,
+      `[news] sources: bbc=${bbc.articles.length} espn=${espn.articles.length} goal=${goal.articles.length} caf=${caf.articles.length} newsapi=${newsapi.length} after-blocklist=${all.length}`,
     );
+
 
     // Relevance gate.
     const gated = all.filter((a) => {

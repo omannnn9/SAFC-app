@@ -45,14 +45,18 @@ function useCountdown(target?: string) {
     return () => clearInterval(id);
   }, []);
   if (!target) return null;
-  const diff = Math.max(0, new Date(target).getTime() - now);
+  const ms = new Date(target).getTime() - now;
+  const isLive = ms <= 0 && ms > -3 * 3600 * 1000; // within match window
+  const diff = Math.max(0, ms);
   return {
+    isLive,
     days: Math.floor(diff / 86400000),
     hrs: Math.floor((diff / 3600000) % 24),
     mins: Math.floor((diff / 60000) % 60),
     secs: Math.floor((diff / 1000) % 60),
   };
 }
+
 const FUN_FACTS = [
   "South Africa won AFCON in 1996 on home soil — their first major title.",
   "Bafana Bafana made their FIFA World Cup debut in France '98.",
@@ -64,8 +68,17 @@ const FUN_FACTS = [
 
 function HomePage() {
   const { profile } = useAuth();
-  const { data: next } = useQuery({ queryKey: ["next-match"], queryFn: getNextMatch });
-  const { data: news } = useQuery({ queryKey: ["news", "home"], queryFn: () => getNews() });
+  const { data: next } = useQuery({
+    queryKey: ["next-match"],
+    queryFn: getNextMatch,
+    refetchInterval: 1000 * 60, // refresh every minute
+    refetchOnWindowFocus: true,
+  });
+  const { data: news } = useQuery({
+    queryKey: ["news", "home"],
+    queryFn: () => getNews(),
+    refetchInterval: 1000 * 60 * 10,
+  });
   const { data: featured } = useQuery({
     queryKey: ["featured-player"],
     queryFn: getFeaturedPlayer,
@@ -73,8 +86,11 @@ function HomePage() {
   const { data: pastRes } = useQuery({
     queryKey: ["past-matches"],
     queryFn: () => getLivePastMatches(),
+    refetchInterval: 1000 * 45, // refresh every 45s for live score updates
+    refetchOnWindowFocus: true,
   });
   const past = useMemo(() => pastRes?.data ?? [], [pastRes?.data]);
+
   const c = useCountdown(next?.kickoff);
   const nextHome = next?.home_team ?? null;
   const nextAway = next?.away_team ?? null;
@@ -147,15 +163,21 @@ function HomePage() {
                     accent={nextHome?.is_bafana}
                   />
                   <div className="text-center">
-                    {c && (
-                      <div className="font-mono text-2xl font-black tabular-nums leading-none text-primary">
-                        {String(c.days).padStart(2, "0")}:{String(c.hrs).padStart(2, "0")}:
-                        {String(c.mins).padStart(2, "0")}
+                    {c?.isLive ? (
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-[var(--sa-green)] px-3 py-1 text-[11px] font-black uppercase tracking-widest text-white live-dot">
+                        <span className="h-1.5 w-1.5 rounded-full bg-white" /> Live Now
                       </div>
-                    )}
-                    <div className="mt-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
-                      Days · Hrs · Min
-                    </div>
+                    ) : c ? (
+                      <>
+                        <div className="font-mono text-2xl font-black tabular-nums leading-none text-primary">
+                          {String(c.days).padStart(2, "0")}:{String(c.hrs).padStart(2, "0")}:
+                          {String(c.mins).padStart(2, "0")}
+                        </div>
+                        <div className="mt-1 text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                          Days · Hrs · Min
+                        </div>
+                      </>
+                    ) : null}
                   </div>
                   <TeamBadge
                     name={nextAway?.name ?? "TBD"}
@@ -163,6 +185,7 @@ function HomePage() {
                     accent={nextAway?.is_bafana}
                   />
                 </div>
+
 
                 <div className="mt-3 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
                   <MapPin className="h-3 w-3" /> {next.venue}

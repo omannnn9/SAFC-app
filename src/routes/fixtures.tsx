@@ -13,8 +13,18 @@ export const Route = createFileRoute("/fixtures")({
 
 function FixturesPage() {
   const [tab, setTab] = useState<"upcoming" | "results">("upcoming");
-  const { data: upcoming } = useQuery({ queryKey: ["upcoming-matches"], queryFn: getUpcomingMatches });
-  const { data: past } = useQuery({ queryKey: ["past-matches"], queryFn: getPastMatches });
+  const { data: upcoming } = useQuery({
+    queryKey: ["upcoming-matches"],
+    queryFn: getUpcomingMatches,
+    refetchInterval: 1000 * 60,
+    refetchOnWindowFocus: true,
+  });
+  const { data: past } = useQuery({
+    queryKey: ["past-matches"],
+    queryFn: getPastMatches,
+    refetchInterval: 1000 * 45,
+    refetchOnWindowFocus: true,
+  });
   const list = tab === "upcoming" ? upcoming ?? [] : past ?? [];
 
   return (

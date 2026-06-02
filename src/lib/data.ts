@@ -219,10 +219,15 @@ export async function getNews(category?: Article["category"]): Promise<Article[]
 }
 
 export async function getArticle(slug: string): Promise<Article | null> {
-  if (slug.startsWith("news-") || /-\d+$/.test(slug)) {
+  // 1. Try live aggregated news (most articles live here — slugs include source suffix)
+  try {
     const list = await getNews();
-    return list.find((a) => a.slug === slug) ?? null;
+    const hit = list.find((a) => a.slug === slug);
+    if (hit) return hit;
+  } catch (err) {
+    console.warn("[data] getArticle live lookup failed:", err);
   }
+  // 2. Fallback to Supabase (legacy / editorial content)
   const { data } = await supabase
     .from("news_articles")
     .select("*")
