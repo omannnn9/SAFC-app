@@ -176,6 +176,16 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
     venue: s.location || "TBD",
     competition: s.summary.split(" - ")[1] ?? "International",
     is_home: isBafanaHome,
+    home_team: {
+      id: isBafanaHome ? SA_TEAM_ID : null,
+      name: isBafanaHome ? "South Africa" : opp,
+      logo: isBafanaHome ? teamLogo(SA_TEAM_ID) : null,
+    },
+    away_team: {
+      id: isBafanaHome ? null : SA_TEAM_ID,
+      name: isBafanaHome ? opp : "South Africa",
+      logo: isBafanaHome ? null : teamLogo(SA_TEAM_ID),
+    },
     home_score: null,
     away_score: null,
     status: "upcoming",
