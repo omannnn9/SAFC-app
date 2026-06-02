@@ -185,3 +185,23 @@ function FeedCard({ a }: { a: Article }) {
     </Link>
   );
 }
+
+function RelevanceBadge({ r, small }: { r?: Article["relevance"]; small?: boolean }) {
+  if (!r) return null;
+  const styles =
+    r === "high"
+      ? "bg-primary text-primary-foreground"
+      : r === "medium"
+        ? "bg-amber-500/20 text-amber-200 ring-1 ring-amber-400/40"
+        : "bg-muted/40 text-muted-foreground";
+  const label = r === "high" ? "High" : r === "medium" ? "Med" : "Low";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full font-black uppercase tracking-wider ${
+        small ? "px-2 py-0.5 text-[9px]" : "px-2.5 py-1 text-[10px]"
+      } ${styles}`}
+    >
+      {label}
+    </span>
+  );
+}
