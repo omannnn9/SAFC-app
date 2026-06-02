@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { fetchSafaUpcomingFixtures, safaConfirms, normalizeName, type SafaFixture } from "@/lib/safa.server";
+import { fetchSafaUpcomingFixtures, safaConfirms, normalizeName, enrichSafaFixturesWithImages, type SafaFixture } from "@/lib/safa.server";
 
 // South Africa national team (Bafana Bafana) in API-Football.
 // Verified via: GET https://v3.football.api-sports.io/teams?name=South%20Africa&type=national
