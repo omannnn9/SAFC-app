@@ -85,10 +85,10 @@ function TimelineDot({ m }: { m: Match }) {
       >
         <div className="text-center leading-none">
           <div className="font-display text-[11px] font-black">
-            {k.toLocaleDateString("en-ZA", { day: "2-digit" })}
+            {k.toLocaleDateString(undefined, { day: "2-digit" })}
           </div>
           <div className="text-[8px] uppercase tracking-wider text-muted-foreground">
-            {k.toLocaleDateString("en-ZA", { month: "short" })}
+            {k.toLocaleDateString(undefined, { month: "short" })}
           </div>
         </div>
 
@@ -99,7 +99,7 @@ function TimelineDot({ m }: { m: Match }) {
 
 function MatchCard({ m, live }: { m: Match; live?: boolean }) {
   const k = new Date(m.kickoff);
-  const timeSA = k.toLocaleTimeString("en-ZA", {
+  const timeSA = k.toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,

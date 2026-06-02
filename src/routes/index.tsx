@@ -343,7 +343,7 @@ function HomePage() {
                     <div className="mt-3 flex flex-col gap-1 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70 sm:flex-row sm:items-center sm:justify-between">
                       <span className="break-words">{lastMatch.competition}</span>
                       <span className="shrink-0">
-                        {new Date(lastMatch.kickoff).toLocaleDateString("en-ZA", {
+                        {new Date(lastMatch.kickoff).toLocaleDateString(undefined, {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
@@ -370,12 +370,12 @@ function HomePage() {
                   {next.competition}
                 </div>
                 <div className="mt-2 text-[11px] font-semibold tabular-nums text-black/80">
-                  {new Date(next.kickoff).toLocaleDateString("en-ZA", {
+                  {new Date(next.kickoff).toLocaleDateString(undefined, {
                     day: "numeric",
                     month: "short",
                   })}{" "}
                   ·{" "}
-                  {new Date(next.kickoff).toLocaleTimeString("en-ZA", {
+                  {new Date(next.kickoff).toLocaleTimeString(undefined, {
                     hour: "2-digit",
                     minute: "2-digit",
                     hour12: false,
@@ -493,7 +493,7 @@ function HomePage() {
                   </div>
                   <div className="line-clamp-2 text-sm font-semibold leading-tight">{a.title}</div>
                   <div className="mt-1 text-[10px] text-muted-foreground">
-                    {new Date(a.published_at).toLocaleDateString("en-ZA", {
+                    {new Date(a.published_at).toLocaleDateString(undefined, {
                       day: "numeric",
                       month: "short",
                     })}
