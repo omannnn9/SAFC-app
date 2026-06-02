@@ -76,6 +76,23 @@ function NewsPage() {
   );
 }
 
+const FALLBACK_IMG =
+  "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1200&q=80";
+
+function ArticleImage({ src, alt, className }: { src: string | null; alt: string; className?: string }) {
+  const [err, setErr] = useState(false);
+  const url = !src || err ? FALLBACK_IMG : src;
+  return (
+    <img
+      src={url}
+      alt={alt}
+      loading="lazy"
+      onError={() => setErr(true)}
+      className={className}
+    />
+  );
+}
+
 function HeroArticle({ a }: { a: Article }) {
   return (
     <Link
@@ -83,11 +100,12 @@ function HeroArticle({ a }: { a: Article }) {
       params={{ slug: a.slug }}
       className="group glass relative block aspect-[4/5] overflow-hidden rounded-2xl ring-glow-gold"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-[var(--sa-green)]/70 via-black to-black" />
-      <div className="absolute inset-0 grid place-items-center font-display text-[180px] font-black text-white/8 transition duration-700 group-hover:scale-110">
-        {a.category[0].toUpperCase()}
-      </div>
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+      <ArticleImage
+        src={a.cover_url}
+        alt={a.title}
+        className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-110"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
       {a.is_premium && (
         <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full shimmer-gold px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-black">
           <Lock className="h-3 w-3" /> Premium
@@ -102,6 +120,7 @@ function HeroArticle({ a }: { a: Article }) {
         <div className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground">
           <Clock className="h-3 w-3" />{" "}
           {new Date(a.published_at).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })}
+          {a.source && <span className="ml-2">· {a.source}</span>}
         </div>
       </div>
     </Link>
@@ -116,10 +135,11 @@ function FeedCard({ a }: { a: Article }) {
       className="group glass relative block overflow-hidden rounded-2xl transition hover:-translate-y-0.5 hover:ring-glow-gold"
     >
       <div className="relative h-44 w-full overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--sa-green)]/60 to-black transition duration-700 group-hover:scale-110" />
-        <div className="absolute inset-0 grid place-items-center font-display text-7xl font-black text-white/10">
-          {a.category[0].toUpperCase()}
-        </div>
+        <ArticleImage
+          src={a.cover_url}
+          alt={a.title}
+          className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-110"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
         {a.is_premium && (
           <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full shimmer-gold px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-black">
@@ -136,7 +156,7 @@ function FeedCard({ a }: { a: Article }) {
         </div>
       </div>
       <div className="flex items-center justify-between p-3 text-[10px] text-muted-foreground">
-        <span className="line-clamp-1">{a.excerpt}</span>
+        <span className="line-clamp-1">{a.source ?? a.excerpt}</span>
         <span className="ml-2 shrink-0">
           {new Date(a.published_at).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })}
         </span>
