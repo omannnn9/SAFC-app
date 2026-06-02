@@ -1,7 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-const SA_TEAM_ID = 1469; // South Africa national team in API-Football
+// South Africa national team (Bafana Bafana) in API-Football.
+// Verified via: GET https://v3.football.api-sports.io/teams?name=South%20Africa&type=national
+const SA_TEAM_ID = 1469;
+
+// Current international season. API-Football uses the start year of the season.
+// Bumped here once per year. Falls back to previous season if current returns empty.
+const CURRENT_SEASON = new Date().getUTCFullYear();
 
 type Cached<T> = { payload: T; stale: boolean };
 
@@ -35,6 +41,7 @@ async function cachedFetch<T>(
     await writeCache(key, fresh as unknown, ttlSeconds);
     return { data: fresh, source: "live" };
   } catch (err) {
+    console.error(`[live.functions] cachedFetch failed for ${key}:`, err);
     if (cached) return { data: cached.payload, source: "stale-cache", error: String(err) };
     return { data: null, source: "none", error: String(err) };
   }
@@ -43,11 +50,19 @@ async function cachedFetch<T>(
 async function apiFootball(path: string): Promise<unknown> {
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) throw new Error("API_FOOTBALL_KEY not set");
-  const res = await fetch(`https://v3.football.api-sports.io${path}`, {
-    headers: { "x-apisports-key": key },
-  });
-  if (!res.ok) throw new Error(`API-Football ${res.status}`);
-  const json = (await res.json()) as { response: unknown; errors?: unknown };
+  const url = `https://v3.football.api-sports.io${path}`;
+  console.log(`[api-football] GET ${path} (team=${SA_TEAM_ID})`);
+  const res = await fetch(url, { headers: { "x-apisports-key": key } });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    console.error(`[api-football] ${res.status} ${path}: ${body.slice(0, 200)}`);
+    throw new Error(`API-Football ${res.status}`);
+  }
+  const json = (await res.json()) as { response: unknown; errors?: unknown; results?: number };
+  if (json.errors && typeof json.errors === "object" && Object.keys(json.errors).length > 0) {
+    console.error(`[api-football] errors on ${path}:`, json.errors);
+  }
+  console.log(`[api-football] ${path} → ${json.results ?? "?"} results`);
   return json.response;
 }
 
@@ -97,17 +112,27 @@ function mapFixture(f: AFFixture): LiveMatch {
   };
 }
 
+// Defensive filter: API should already only return SA fixtures since we filter
+// by team=, but guard against any misrouted entries.
+function onlySAFixtures(list: AFFixture[]): AFFixture[] {
+  return list.filter((f) => f.teams.home.id === SA_TEAM_ID || f.teams.away.id === SA_TEAM_ID);
+}
+
 export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:next:10", 60 * 30, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v2", 60 * 30, async () => {
     const res = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=10`)) as AFFixture[];
-    return res.map(mapFixture);
+    const filtered = onlySAFixtures(res);
+    console.log(`[live] upcoming: ${res.length} raw → ${filtered.length} SA-only`);
+    return filtered.map(mapFixture);
   });
 });
 
 export const getLivePastMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:last:10", 60 * 60 * 6, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v2", 60 * 60 * 6, async () => {
     const res = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&last=10`)) as AFFixture[];
-    return res.map(mapFixture);
+    const filtered = onlySAFixtures(res);
+    console.log(`[live] past: ${res.length} raw → ${filtered.length} SA-only`);
+    return filtered.map(mapFixture);
   });
 });
 
@@ -138,30 +163,97 @@ type AFSquadResponse = Array<{
   }>;
 }>;
 
-function mapPosition(p: string): LivePlayer["position"] {
-  const s = p.toLowerCase();
-  if (s.startsWith("goal")) return "GK";
-  if (s.startsWith("def")) return "DEF";
-  if (s.startsWith("mid")) return "MID";
+type AFPlayerStatsResponse = Array<{
+  player: {
+    id: number;
+    name: string;
+    nationality: string;
+    photo: string;
+  };
+  statistics: Array<{
+    team: { id: number; name: string };
+    league: { id: number; name: string; season: number };
+    games: { appearances: number | null; position: string | null };
+    goals: { total: number | null; assists: number | null };
+  }>;
+}>;
+
+function mapPosition(p: string | null | undefined): LivePlayer["position"] {
+  const s = (p ?? "").toLowerCase();
+  if (s.startsWith("goal") || s === "g") return "GK";
+  if (s.startsWith("def") || s === "d") return "DEF";
+  if (s.startsWith("mid") || s === "m") return "MID";
   return "FWD";
 }
 
+// Fetch per-player season stats from API-Football's /players endpoint so we can
+// surface the real club, appearances (caps in this season), goals and assists.
+async function fetchPlayerStats(playerId: number, season: number) {
+  try {
+    const res = (await apiFootball(
+      `/players?id=${playerId}&season=${season}`,
+    )) as AFPlayerStatsResponse;
+    const entry = res[0];
+    if (!entry) return null;
+    // Prefer the club statistics (not the national-team aggregation) for "club".
+    const clubStat =
+      entry.statistics.find((s) => s.team.id !== SA_TEAM_ID) ?? entry.statistics[0];
+    // National-team stats for caps/goals if available
+    const natStat = entry.statistics.find((s) => s.team.id === SA_TEAM_ID);
+    return {
+      nationality: entry.player.nationality,
+      photo: entry.player.photo,
+      club: clubStat?.team.name ?? "—",
+      caps: natStat?.games.appearances ?? 0,
+      goals: natStat?.goals.total ?? 0,
+      assists: natStat?.goals.assists ?? 0,
+    };
+  } catch (err) {
+    console.error(`[live] player stats failed for ${playerId}:`, err);
+    return null;
+  }
+}
+
 export const getLivePlayers = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LivePlayer[]>("af:squad", 60 * 60 * 24, async () => {
+  return cachedFetch<LivePlayer[]>(`af:squad:${CURRENT_SEASON}:v3`, 60 * 60 * 24, async () => {
     const res = (await apiFootball(`/players/squads?team=${SA_TEAM_ID}`)) as AFSquadResponse;
-    const players = res[0]?.players ?? [];
-    return players.map((p) => ({
-      id: `af-${p.id}`,
-      name: p.name,
-      position: mapPosition(p.position),
-      club: "South Africa",
-      jersey_number: p.number,
-      caps: 0,
-      goals: 0,
-      assists: 0,
-      photo_url: p.photo,
-      bio: null,
-    }));
+    const team = res[0];
+    if (!team || team.team.id !== SA_TEAM_ID) {
+      console.error(`[live] squad: unexpected team id ${team?.team.id}`);
+      return [];
+    }
+    const players = team.players ?? [];
+    console.log(`[live] squad: ${players.length} players for ${team.team.name}`);
+
+    // De-dupe by id
+    const seen = new Set<number>();
+    const unique = players.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
+
+    // Enrich in parallel but capped to avoid rate limits
+    const enriched: LivePlayer[] = [];
+    const BATCH = 5;
+    for (let i = 0; i < unique.length; i += BATCH) {
+      const batch = unique.slice(i, i + BATCH);
+      const results = await Promise.all(
+        batch.map(async (p) => {
+          const stats = await fetchPlayerStats(p.id, CURRENT_SEASON);
+          return {
+            id: `af-${p.id}`,
+            name: p.name,
+            position: mapPosition(p.position),
+            club: stats?.club ?? "—",
+            jersey_number: p.number,
+            caps: stats?.caps ?? 0,
+            goals: stats?.goals ?? 0,
+            assists: stats?.assists ?? 0,
+            photo_url: stats?.photo ?? p.photo,
+            bio: null,
+          } satisfies LivePlayer;
+        }),
+      );
+      enriched.push(...results);
+    }
+    return enriched;
   });
 });
 
@@ -201,16 +293,29 @@ function slugify(s: string) {
     .slice(0, 80);
 }
 
+// Strict relevance filter — must mention Bafana or SA national-team context.
+const RELEVANT = /(bafana|safa|south africa(n)?\s+(national|men'?s|football|soccer|team)|hugo broos)/i;
+// Reject obvious club-only items unless they also mention Bafana.
+const CLUB_NOISE = /\b(epl|premier league|la liga|serie a|bundesliga|champions league|psl match|chiefs vs|pirates vs)\b/i;
+
 export const getLiveNews = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveArticle[]>("newsapi:bafana", 60 * 60, async () => {
+  return cachedFetch<LiveArticle[]>("newsapi:bafana:v2", 60 * 60, async () => {
     const key = process.env.NEWS_API_KEY;
     if (!key) throw new Error("NEWS_API_KEY not set");
-    const q = encodeURIComponent('"Bafana Bafana" OR "South Africa football"');
-    const url = `https://newsapi.org/v2/everything?q=${q}&language=en&sortBy=publishedAt&pageSize=20`;
+    const q = encodeURIComponent('"Bafana Bafana" OR "South Africa national team" OR "SAFA"');
+    const url = `https://newsapi.org/v2/everything?q=${q}&language=en&sortBy=publishedAt&pageSize=40`;
     const res = await fetch(url, { headers: { "X-Api-Key": key } });
     if (!res.ok) throw new Error(`NewsAPI ${res.status}`);
     const json = (await res.json()) as NewsAPIResponse;
-    return json.articles.map((a, i) => ({
+    console.log(`[live] news: ${json.articles.length} raw articles`);
+    const filtered = json.articles.filter((a) => {
+      const hay = `${a.title} ${a.description ?? ""}`;
+      if (!RELEVANT.test(hay)) return false;
+      if (CLUB_NOISE.test(hay) && !/bafana/i.test(hay)) return false;
+      return true;
+    });
+    console.log(`[live] news: ${filtered.length} after relevance filter`);
+    return filtered.map((a, i) => ({
       id: `news-${i}-${slugify(a.title)}`,
       slug: `${slugify(a.title)}-${i}`,
       title: a.title,
@@ -240,11 +345,13 @@ export type LiveStats = {
 };
 
 export const getLiveStats = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveStats>("af:stats", 60 * 60 * 6, async () => {
-    const [past, next] = await Promise.all([
+  return cachedFetch<LiveStats>("af:stats:v2", 60 * 60 * 6, async () => {
+    const [pastRaw, nextRaw] = await Promise.all([
       apiFootball(`/fixtures?team=${SA_TEAM_ID}&last=10`) as Promise<AFFixture[]>,
       apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=10`) as Promise<AFFixture[]>,
     ]);
+    const past = onlySAFixtures(pastRaw);
+    const next = onlySAFixtures(nextRaw);
     let wins = 0,
       draws = 0,
       losses = 0,
