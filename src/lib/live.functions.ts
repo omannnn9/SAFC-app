@@ -273,7 +273,7 @@ export const getLivePlayers = createServerFn({ method: "GET" }).handler(async ()
             caps: stats?.caps ?? 0,
             goals: stats?.goals ?? 0,
             assists: stats?.assists ?? 0,
-            photo_url: stats?.photo ?? p.photo,
+            photo_url: stats?.photo ?? p.photo ?? `https://media.api-sports.io/football/players/${p.id}.png`,
             bio: null,
           } satisfies LivePlayer;
         }),
