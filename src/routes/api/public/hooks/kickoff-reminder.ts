@@ -18,7 +18,7 @@ export const Route = createFileRoute("/api/public/hooks/kickoff-reminder")({
 async function run() {
   try {
     const res = await getLiveUpcomingMatches();
-    const fixtures = res.matches ?? [];
+    const fixtures = res.data ?? [];
     const now = Date.now();
     const events: string[] = [];
     for (const f of fixtures) {
