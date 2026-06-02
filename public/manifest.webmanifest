@@ -1,0 +1,16 @@
+{
+  "name": "Bafana Supporters Club",
+  "short_name": "Bafana",
+  "description": "Official supporters club for Bafana Bafana — South African national football team.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
