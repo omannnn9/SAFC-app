@@ -103,11 +103,7 @@ function HomePage() {
                   <span className="text-muted-foreground">Next match</span>
                 </div>
                 <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                  <TeamBadge
-                    name={nextHome?.name ?? "TBD"}
-                    countryCode={nextHome?.country_code}
-                    accent={nextHome?.id === SOUTH_AFRICA_TEAM_ID}
-                  />
+                  <TeamBadge name={nextHome?.name ?? "TBD"} logo={nextHome?.logo} accent={nextHome?.is_bafana} />
                   <div className="text-center">
                     {c && (
                       <div className="font-mono text-2xl font-black tabular-nums leading-none text-primary">
@@ -118,12 +114,9 @@ function HomePage() {
                       Days · Hrs · Min
                     </div>
                   </div>
-                  <TeamBadge
-                    name={nextAway?.name ?? "TBD"}
-                    countryCode={nextAway?.country_code}
-                    accent={nextAway?.id === SOUTH_AFRICA_TEAM_ID}
-                  />
+                  <TeamBadge name={nextAway?.name ?? "TBD"} logo={nextAway?.logo} accent={nextAway?.is_bafana} />
                 </div>
+
                 <div className="mt-3 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
                   <MapPin className="h-3 w-3" /> {next.venue}
                 </div>
