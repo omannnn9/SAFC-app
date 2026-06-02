@@ -633,6 +633,10 @@ type NewsAPIResponse = {
   }>;
 };
 
+// Sources we accept from NewsAPI (everything else, including Yahoo, is dropped).
+const NEWSAPI_SOURCE_ALLOW = /(goal\.com|espn|safa|cafonline|\bcaf\b|bbc sport|kickoff|sowetan|sport24|iol sport|supersport)/i;
+const SOURCE_BLOCK = /yahoo/i;
+
 async function fetchNewsApi(): Promise<RawArticle[]> {
   const key = process.env.NEWS_API_KEY;
   if (!key) return [];
@@ -642,7 +646,7 @@ async function fetchNewsApi(): Promise<RawArticle[]> {
     const res = await fetch(url, { headers: { "X-Api-Key": key } });
     if (!res.ok) throw new Error(`${res.status}`);
     const json = (await res.json()) as NewsAPIResponse;
-    return json.articles.map((a) => ({
+    const mapped = json.articles.map((a) => ({
       title: a.title,
       description: a.description ?? "",
       url: a.url,
@@ -650,6 +654,14 @@ async function fetchNewsApi(): Promise<RawArticle[]> {
       publishedAt: a.publishedAt,
       source: a.source.name,
     }));
+    const filtered = mapped.filter(
+      (a) =>
+        !SOURCE_BLOCK.test(a.source) &&
+        !SOURCE_BLOCK.test(a.url) &&
+        NEWSAPI_SOURCE_ALLOW.test(a.source),
+    );
+    console.log(`[news] NewsAPI: ${mapped.length} raw → ${filtered.length} after allowlist`);
+    return filtered;
   } catch (err) {
     console.warn("[news] NewsAPI failed:", err);
     return [];
