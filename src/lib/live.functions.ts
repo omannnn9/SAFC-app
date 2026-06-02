@@ -32,14 +32,12 @@ async function readCache<T>(key: string): Promise<Cached<T> | null> {
 
 async function writeCache(key: string, payload: unknown, ttlSeconds: number) {
   const expires_at = new Date(Date.now() + ttlSeconds * 1000).toISOString();
-  await supabaseAdmin
-    .from("api_cache")
-    .upsert({
-      cache_key: key,
-      payload: payload as never,
-      expires_at,
-      updated_at: new Date().toISOString(),
-    });
+  await supabaseAdmin.from("api_cache").upsert({
+    cache_key: key,
+    payload: payload as never,
+    expires_at,
+    updated_at: new Date().toISOString(),
+  });
 }
 
 async function cachedFetch<T>(
