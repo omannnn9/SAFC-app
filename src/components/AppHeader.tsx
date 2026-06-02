@@ -21,18 +21,21 @@ export function AppHeader({ title }: { title?: string }) {
           </div>
         </div>
       </Link>
-      <Link
-        to={user ? "/profile" : "/login"}
-        className="glass flex items-center gap-2 rounded-full px-2.5 py-1.5 text-xs transition hover:ring-glow-gold"
-      >
-        {profile?.is_premium && <Crown className="h-3.5 w-3.5 text-primary" />}
-        <span className="max-w-[80px] truncate font-semibold">
-          {user ? profile?.full_name?.split(" ")[0] || "Profile" : "Sign in"}
-        </span>
-        <div className={`grid h-6 w-6 place-items-center rounded-full ${profile?.is_premium ? "shimmer-gold text-black" : "bg-surface-2"}`}>
-          <UserIcon className="h-3.5 w-3.5" />
-        </div>
-      </Link>
+      <div className="flex items-center gap-2">
+        <NotificationBell />
+        <Link
+          to={user ? "/profile" : "/login"}
+          className="glass flex items-center gap-2 rounded-full px-2.5 py-1.5 text-xs transition hover:ring-glow-gold"
+        >
+          {profile?.is_premium && <Crown className="h-3.5 w-3.5 text-primary" />}
+          <span className="max-w-[80px] truncate font-semibold">
+            {user ? profile?.full_name?.split(" ")[0] || "Profile" : "Sign in"}
+          </span>
+          <div className={`grid h-6 w-6 place-items-center rounded-full ${profile?.is_premium ? "shimmer-gold text-black" : "bg-surface-2"}`}>
+            <UserIcon className="h-3.5 w-3.5" />
+          </div>
+        </Link>
+      </div>
     </header>
   );
 }
