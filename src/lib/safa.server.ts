@@ -220,10 +220,13 @@ export function safaPlayerUrl(name: string): string {
 const playerPhotoCache = new Map<string, string | null>();
 
 function extractPlayerPhoto(html: string): string | null {
-  // 1) Match-centre pattern image (canonical location for the hero photo).
+  // 1) Player profile headshot (actual face photo on SAFA profile pages).
+  const profile = /profile-header-profile-image[\s\S]*?<img[^>]+src=["']([^"']+)["']/i.exec(html);
+  if (profile?.[1]) return profile[1].trim();
+  // 2) Match-centre pattern image fallback.
   const m1 = /--match-centre-primary-background-pattern-image:\s*url\(([^)]+)\)/i.exec(html);
   if (m1?.[1]) return m1[1].replace(/^["']|["']$/g, "").trim();
-  // 2) og:image fallback.
+  // 3) og:image fallback.
   const m2 = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i.exec(html);
   if (m2?.[1]) return m2[1];
   return null;
