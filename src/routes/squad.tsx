@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
-import { getPlayers, type Player } from "@/lib/data";
+import { getManager, getPlayers, type Manager, type Player } from "@/lib/data";
 
 export const Route = createFileRoute("/squad")({
   head: () => ({ meta: [{ title: "Squad — Bafana Bafana" }] }),
@@ -38,6 +38,7 @@ function rating(p: Player) {
 function SquadPage() {
   const [pos, setPos] = useState<Player["position"] | "ALL">("ALL");
   const { data, isLoading } = useQuery({ queryKey: ["players"], queryFn: getPlayers });
+  const { data: manager } = useQuery({ queryKey: ["manager"], queryFn: getManager });
   const filtered = (data ?? []).filter((p) => pos === "ALL" || p.position === pos);
 
   return (
@@ -51,9 +52,11 @@ function SquadPage() {
           The <span className="text-gradient-gold">Squad</span>
         </h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          {filtered.length} players · FIFA player card view
+          {filtered.length} players · Manager · FIFA player card view
         </p>
       </div>
+
+      {manager && <ManagerCard manager={manager} />}
 
       <div className="scrollbar-none mt-4 flex gap-2 overflow-x-auto px-4 pb-2">
         {FILTERS.map((f) => (
@@ -99,12 +102,7 @@ function SquadPage() {
                     <div className="absolute right-1 top-0 font-display text-[80px] font-black text-white/10 leading-none">
                       {p.jersey_number}
                     </div>
-                    {/* player silhouette */}
-                    <div className="absolute inset-x-0 bottom-0 grid place-items-center">
-                      <div className="grid h-24 w-24 place-items-center rounded-full bg-white/5 mb-8 font-display text-3xl font-black text-white/30">
-                        {p.name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
-                      </div>
-                    </div>
+                    <PersonImage name={p.name} photoUrl={p.photo_url} />
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-3">
                       <div className="font-display text-sm font-black uppercase tracking-wide leading-tight">
                         {p.name}
