@@ -5,7 +5,7 @@ import { ArrowLeft, Calendar, MapPin, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { getMatch } from "@/lib/data";
-import { nameToFlag } from "@/lib/flags";
+import { SOUTH_AFRICA_TEAM_ID, validateCountryFlag, validateFixtureFlagData } from "@/lib/flags";
 
 export const Route = createFileRoute("/fixtures/$id")({
   head: () => ({ meta: [{ title: "Match — Bafana" }] }),
@@ -22,6 +22,19 @@ function MatchPage() {
   if (isLoading) return <div className="p-8 text-sm text-muted-foreground">Loading…</div>;
   if (!m) throw notFound();
   const k = new Date(m.kickoff);
+  const home = m.home_team ?? {
+    id: m.is_home ? SOUTH_AFRICA_TEAM_ID : null,
+    name: m.is_home ? "South Africa" : m.opponent,
+    logo: m.is_home ? `https://media.api-sports.io/football/teams/${SOUTH_AFRICA_TEAM_ID}.png` : m.opponent_flag,
+    country_code: m.is_home ? "ZA" : null,
+  };
+  const away = m.away_team ?? {
+    id: m.is_home ? null : SOUTH_AFRICA_TEAM_ID,
+    name: m.is_home ? m.opponent : "South Africa",
+    logo: m.is_home ? m.opponent_flag : `https://media.api-sports.io/football/teams/${SOUTH_AFRICA_TEAM_ID}.png`,
+    country_code: m.is_home ? null : "ZA",
+  };
+  validateFixtureFlagData(m.id, home, away, "fixture-detail-ui");
 
   return (
     <PageContainer>
@@ -36,8 +49,9 @@ function MatchPage() {
         <div className="text-[10px] uppercase tracking-[0.2em] text-primary">{m.competition}</div>
         <div className="mt-2 flex items-center justify-between rounded-2xl border border-primary/30 bg-gradient-to-br from-[var(--sa-green)]/40 via-black to-black p-5">
           <Side
-            logo={m.home_team?.logo ?? (m.is_home ? "https://media.api-sports.io/football/teams/1097.png" : m.opponent_flag)}
-            name={m.home_team?.name ?? (m.is_home ? "South Africa" : m.opponent)}
+            logo={home.logo}
+            name={home.name}
+            countryCode={home.country_code}
           />
           {m.status === "completed" ? (
             <div className="font-display text-4xl font-black tabular-nums">
@@ -47,8 +61,9 @@ function MatchPage() {
             <div className="font-display text-lg font-bold text-muted-foreground">VS</div>
           )}
           <Side
-            logo={m.away_team?.logo ?? (m.is_home ? m.opponent_flag : "https://media.api-sports.io/football/teams/1097.png")}
-            name={m.away_team?.name ?? (m.is_home ? m.opponent : "South Africa")}
+            logo={away.logo}
+            name={away.name}
+            countryCode={away.country_code}
           />
         </div>
 
@@ -87,8 +102,8 @@ function MatchPage() {
   );
 }
 
-function Side({ name }: { logo?: string | null; name: string }) {
-  const flag = nameToFlag(name);
+function Side({ name, countryCode }: { logo?: string | null; name: string; countryCode?: string | null }) {
+  const { flag } = validateCountryFlag(name, countryCode);
   return (
     <div className="flex flex-col items-center gap-1">
       <div className="grid h-16 w-16 place-items-center rounded-xl bg-black/40">
