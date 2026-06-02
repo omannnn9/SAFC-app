@@ -1,4 +1,4 @@
-export const SOUTH_AFRICA_TEAM_ID = 1469;
+export const SOUTH_AFRICA_TEAM_ID = 1531;
 
 type CountryValidation = {
   code: string | null;

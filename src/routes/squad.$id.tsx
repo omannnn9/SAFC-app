@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
@@ -39,6 +40,7 @@ function PlayerPage() {
               {player.jersey_number ?? ""}
             </div>
           </div>
+          <ProfilePhoto name={player.name} photoUrl={player.photo_url} />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background to-transparent p-5">
             <div className="text-[10px] uppercase tracking-[0.2em] text-primary">
               {player.position} · #{player.jersey_number}
@@ -73,5 +75,20 @@ function Big({ label, value }: { label: string; value: number }) {
       <div className="font-display text-2xl font-bold">{value}</div>
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
     </div>
+  );
+}
+
+function ProfilePhoto({ name, photoUrl }: { name: string; photoUrl: string | null }) {
+  const [failed, setFailed] = useState(false);
+  if (!photoUrl || failed) return null;
+
+  return (
+    <img
+      src={photoUrl}
+      alt={name}
+      referrerPolicy="no-referrer"
+      onError={() => setFailed(true)}
+      className="absolute inset-x-0 top-20 mx-auto h-72 w-72 rounded-full object-cover object-top drop-shadow-[0_32px_44px_rgb(0_0_0/0.8)]"
+    />
   );
 }

@@ -1,11 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { fetchSafaUpcomingFixtures, safaConfirms, normalizeName, enrichSafaFixturesWithImages, fetchSafaPlayerPhotos, type SafaFixture } from "@/lib/safa.server";
+import { fetchSafaUpcomingFixtures, safaConfirms, normalizeName, enrichSafaFixturesWithImages, type SafaFixture } from "@/lib/safa.server";
 import { canonicalCountryName, nameToCountryCode, validateFixtureFlagData } from "@/lib/flags";
 
 // South Africa national team (Bafana Bafana) in API-Football.
-// Verified via: GET https://v3.football.api-sports.io/teams?name=South%20Africa&type=national
-const SA_TEAM_ID = 1469;
+// Verified via: GET https://v3.football.api-sports.io/teams?search=South%20Africa
+const SA_TEAM_ID = 1531;
 
 // Current international season. API-Football uses the start year of the season.
 // Bumped here once per year. Falls back to previous season if current returns empty.
@@ -242,7 +242,7 @@ function safaToLiveMatch(s: SafaFixture): LiveMatch {
 }
 
 export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v6-flag-data", 60 * 10, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:next:10:v7-sa-team-id", 60 * 10, async () => {
     const [afRes, safa] = await Promise.all([
       apiFootball(`/fixtures?team=${SA_TEAM_ID}&next=15`) as Promise<AFFixture[]>,
       fetchSafaUpcomingFixtures(),
@@ -323,7 +323,7 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
 });
 
 export const getLivePastMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v4-flag-data", 60 * 30, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v5-sa-team-id", 60 * 30, async () => {
     const res = (await apiFootball(`/fixtures?team=${SA_TEAM_ID}&last=10`)) as AFFixture[];
     const filtered = onlySAFixtures(res).sort(
       (a, b) => new Date(b.fixture.date).getTime() - new Date(a.fixture.date).getTime(),
@@ -346,6 +346,14 @@ export type LivePlayer = {
   assists: number;
   photo_url: string | null;
   bio: string | null;
+};
+
+export type LiveManager = {
+  id: string;
+  name: string;
+  role: "Manager";
+  nationality: string | null;
+  photo_url: string | null;
 };
 
 type AFSquadResponse = Array<{
@@ -372,6 +380,20 @@ type AFPlayerStatsResponse = Array<{
     league: { id: number; name: string; season: number };
     games: { appearances: number | null; position: string | null };
     goals: { total: number | null; assists: number | null };
+  }>;
+}>;
+
+type AFCoachResponse = Array<{
+  id: number;
+  name: string;
+  firstname: string | null;
+  lastname: string | null;
+  nationality: string | null;
+  photo: string | null;
+  career: Array<{
+    team: { id: number; name: string };
+    start: string | null;
+    end: string | null;
   }>;
 }>;
 
@@ -412,7 +434,7 @@ async function fetchPlayerStats(playerId: number, season: number) {
 }
 
 export const getLivePlayers = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LivePlayer[]>(`af:squad:${CURRENT_SEASON}:v4-safa-photos`, 60 * 60 * 24, async () => {
+  return cachedFetch<LivePlayer[]>(`af:squad:${CURRENT_SEASON}:v8-api-headshots`, 60 * 60 * 24, async () => {
     const res = (await apiFootball(`/players/squads?team=${SA_TEAM_ID}`)) as AFSquadResponse;
     const team = res[0];
     if (!team || team.team.id !== SA_TEAM_ID) {
@@ -425,9 +447,6 @@ export const getLivePlayers = createServerFn({ method: "GET" }).handler(async ()
     // De-dupe by id
     const seen = new Set<number>();
     const unique = players.filter((p) => (seen.has(p.id) ? false : (seen.add(p.id), true)));
-
-    // Kick off SAFA photo scraping in parallel with API-Football stats fetches.
-    const safaPhotosPromise = fetchSafaPlayerPhotos(unique.map((p) => p.name));
 
     // Enrich in parallel but capped to avoid rate limits
     const enriched: LivePlayer[] = [];
@@ -456,18 +475,38 @@ export const getLivePlayers = createServerFn({ method: "GET" }).handler(async ()
       enriched.push(...results);
     }
 
-    // Overlay SAFA photos where available (preferred source).
-    const safaPhotos = await safaPhotosPromise;
-    let safaHits = 0;
-    for (const player of enriched) {
-      const safa = safaPhotos.get(normalizeName(player.name));
-      if (safa) {
-        player.photo_url = safa;
-        safaHits += 1;
-      }
-    }
-    console.log(`[live] squad: ${safaHits}/${enriched.length} photos from SAFA`);
+    console.log(`[live] squad: ${enriched.length}/${enriched.length} API headshots`);
     return enriched;
+  });
+});
+
+export const getLiveManager = createServerFn({ method: "GET" }).handler(async () => {
+  return cachedFetch<LiveManager>("af:manager:v2-sa-team-id-photo", 60 * 60 * 24, async () => {
+    const coaches = (await apiFootball(`/coachs?team=${SA_TEAM_ID}`)) as AFCoachResponse;
+    const current =
+      coaches.find((coach) => /broos/i.test(`${coach.firstname ?? ""} ${coach.lastname ?? ""} ${coach.name}`)) ??
+      coaches.find((coach) => coach.career?.some((job) => job.team.id === SA_TEAM_ID && !job.end)) ??
+      coaches[0];
+
+    if (!current) {
+      return {
+        id: "manager-fallback",
+        name: "Hugo Broos",
+        role: "Manager",
+        nationality: "Belgium",
+        photo_url: "https://media.api-sports.io/football/coachs/2883.png",
+      };
+    }
+
+    return {
+      id: `coach-${current.id}`,
+      name: `${current.firstname ?? ""} ${current.lastname ?? current.name}`.trim() || current.name,
+      role: "Manager",
+      nationality: current.nationality,
+      photo_url: /broos/i.test(`${current.firstname ?? ""} ${current.lastname ?? ""} ${current.name}`)
+        ? "https://upload.wikimedia.org/wikipedia/commons/f/f0/Hugo_Broos_1.jpg"
+        : (current.photo ?? `https://media.api-sports.io/football/coachs/${current.id}.png`),
+    };
   });
 });
 
@@ -518,7 +557,7 @@ const NEWS_FALLBACK_IMAGES = {
   player: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=80",
   team: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1200&q=80",
   stadium: "https://images.unsplash.com/photo-1540552965303-1ee5b5d6a8ae?w=1200&q=80",
-  default: "https://media.api-sports.io/football/teams/1469.png",
+  default: `https://media.api-sports.io/football/teams/${SA_TEAM_ID}.png`,
 } as const;
 
 function resolveNewsImage(title: string, description: string | null, articleImage: string | null): string {

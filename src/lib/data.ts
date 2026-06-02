@@ -3,6 +3,7 @@ import {
   getLiveUpcomingMatches,
   getLivePastMatches,
   getLivePlayers,
+  getLiveManager,
   getLiveNews,
 } from "./live.functions";
 
@@ -17,6 +18,14 @@ export type Player = {
   assists: number;
   photo_url: string | null;
   bio: string | null;
+};
+
+export type Manager = {
+  id: string;
+  name: string;
+  role: "Manager";
+  nationality: string | null;
+  photo_url: string | null;
 };
 
 export type MatchTeam = {
@@ -85,6 +94,22 @@ export async function getPlayer(id: string): Promise<Player | null> {
 export async function getFeaturedPlayer(): Promise<Player | null> {
   const list = await getPlayers();
   return list.find((p) => p.position === "FWD") ?? list[0] ?? null;
+}
+
+export async function getManager(): Promise<Manager | null> {
+  try {
+    const res = await getLiveManager();
+    if (res?.data) return res.data as Manager;
+  } catch {
+    /* fall through */
+  }
+  return {
+    id: "manager-fallback",
+    name: "Hugo Broos",
+    role: "Manager",
+    nationality: "Belgium",
+    photo_url: "https://media.api-sports.io/football/coachs/2883.png",
+  };
 }
 
 // ============= MATCHES =============
