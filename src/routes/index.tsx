@@ -469,12 +469,12 @@ function PremiumCard({
   const t = TINT_STYLES[tint];
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl p-5 min-h-[150px] flex flex-col ring-1 ring-white/10 ${t.bg} ${t.ring}`}
+      className={`relative overflow-hidden rounded-2xl p-5 min-h-[178px] flex flex-col ring-1 ring-white/10 ${t.bg} ${t.ring}`}
     >
       <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-      <div className="relative mb-3 flex items-center gap-2">
-        <div className={`grid h-7 w-7 place-items-center rounded-lg ${t.chip}`}>{icon}</div>
-        <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${t.label}`}>
+      <div className="relative mb-4 flex items-center gap-2">
+        <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${t.chip}`}>{icon}</div>
+        <span className={`min-w-0 break-words text-[10px] font-bold uppercase tracking-[0.14em] ${t.label}`}>
           {label}
         </span>
       </div>
