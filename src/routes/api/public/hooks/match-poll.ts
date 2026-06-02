@@ -1,10 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { broadcast } from "@/lib/push.server";
-import {
-  fetchSafaUpcomingFixtures,
-  verifyKickoff,
-} from "@/lib/safa.server";
+import { getLiveUpcomingMatches } from "@/lib/live.functions";
 
 /**
  * Cron: every 30s. Polls API-Football for current Bafana match state and fires
