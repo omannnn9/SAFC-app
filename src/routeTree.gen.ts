@@ -9,38 +9,265 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SquadRouteImport } from './routes/squad'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PremiumRouteImport } from './routes/premium'
+import { Route as NewsRouteImport } from './routes/news'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as FixturesRouteImport } from './routes/fixtures'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SquadIdRouteImport } from './routes/squad.$id'
+import { Route as NewsSlugRouteImport } from './routes/news.$slug'
+import { Route as FixturesIdRouteImport } from './routes/fixtures.$id'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 
+const SquadRoute = SquadRouteImport.update({
+  id: '/squad',
+  path: '/squad',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PremiumRoute = PremiumRouteImport.update({
+  id: '/premium',
+  path: '/premium',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewsRoute = NewsRouteImport.update({
+  id: '/news',
+  path: '/news',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FixturesRoute = FixturesRouteImport.update({
+  id: '/fixtures',
+  path: '/fixtures',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SquadIdRoute = SquadIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => SquadRoute,
+} as any)
+const NewsSlugRoute = NewsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => NewsRoute,
+} as any)
+const FixturesIdRoute = FixturesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => FixturesRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/fixtures': typeof FixturesRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/news': typeof NewsRouteWithChildren
+  '/premium': typeof PremiumRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/squad': typeof SquadRouteWithChildren
+  '/profile': typeof AuthenticatedProfileRoute
+  '/fixtures/$id': typeof FixturesIdRoute
+  '/news/$slug': typeof NewsSlugRoute
+  '/squad/$id': typeof SquadIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/fixtures': typeof FixturesRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/news': typeof NewsRouteWithChildren
+  '/premium': typeof PremiumRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/squad': typeof SquadRouteWithChildren
+  '/profile': typeof AuthenticatedProfileRoute
+  '/fixtures/$id': typeof FixturesIdRoute
+  '/news/$slug': typeof NewsSlugRoute
+  '/squad/$id': typeof SquadIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/fixtures': typeof FixturesRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/news': typeof NewsRouteWithChildren
+  '/premium': typeof PremiumRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/squad': typeof SquadRouteWithChildren
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/fixtures/$id': typeof FixturesIdRoute
+  '/news/$slug': typeof NewsSlugRoute
+  '/squad/$id': typeof SquadIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/fixtures'
+    | '/forgot-password'
+    | '/login'
+    | '/news'
+    | '/premium'
+    | '/reset-password'
+    | '/signup'
+    | '/squad'
+    | '/profile'
+    | '/fixtures/$id'
+    | '/news/$slug'
+    | '/squad/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/fixtures'
+    | '/forgot-password'
+    | '/login'
+    | '/news'
+    | '/premium'
+    | '/reset-password'
+    | '/signup'
+    | '/squad'
+    | '/profile'
+    | '/fixtures/$id'
+    | '/news/$slug'
+    | '/squad/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/fixtures'
+    | '/forgot-password'
+    | '/login'
+    | '/news'
+    | '/premium'
+    | '/reset-password'
+    | '/signup'
+    | '/squad'
+    | '/_authenticated/profile'
+    | '/fixtures/$id'
+    | '/news/$slug'
+    | '/squad/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  FixturesRoute: typeof FixturesRouteWithChildren
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
+  NewsRoute: typeof NewsRouteWithChildren
+  PremiumRoute: typeof PremiumRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  SignupRoute: typeof SignupRoute
+  SquadRoute: typeof SquadRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/squad': {
+      id: '/squad'
+      path: '/squad'
+      fullPath: '/squad'
+      preLoaderRoute: typeof SquadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/premium': {
+      id: '/premium'
+      path: '/premium'
+      fullPath: '/premium'
+      preLoaderRoute: typeof PremiumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/news': {
+      id: '/news'
+      path: '/news'
+      fullPath: '/news'
+      preLoaderRoute: typeof NewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fixtures': {
+      id: '/fixtures'
+      path: '/fixtures'
+      fullPath: '/fixtures'
+      preLoaderRoute: typeof FixturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +275,92 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/squad/$id': {
+      id: '/squad/$id'
+      path: '/$id'
+      fullPath: '/squad/$id'
+      preLoaderRoute: typeof SquadIdRouteImport
+      parentRoute: typeof SquadRoute
+    }
+    '/news/$slug': {
+      id: '/news/$slug'
+      path: '/$slug'
+      fullPath: '/news/$slug'
+      preLoaderRoute: typeof NewsSlugRouteImport
+      parentRoute: typeof NewsRoute
+    }
+    '/fixtures/$id': {
+      id: '/fixtures/$id'
+      path: '/$id'
+      fullPath: '/fixtures/$id'
+      preLoaderRoute: typeof FixturesIdRouteImport
+      parentRoute: typeof FixturesRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
+interface FixturesRouteChildren {
+  FixturesIdRoute: typeof FixturesIdRoute
+}
+
+const FixturesRouteChildren: FixturesRouteChildren = {
+  FixturesIdRoute: FixturesIdRoute,
+}
+
+const FixturesRouteWithChildren = FixturesRoute._addFileChildren(
+  FixturesRouteChildren,
+)
+
+interface NewsRouteChildren {
+  NewsSlugRoute: typeof NewsSlugRoute
+}
+
+const NewsRouteChildren: NewsRouteChildren = {
+  NewsSlugRoute: NewsSlugRoute,
+}
+
+const NewsRouteWithChildren = NewsRoute._addFileChildren(NewsRouteChildren)
+
+interface SquadRouteChildren {
+  SquadIdRoute: typeof SquadIdRoute
+}
+
+const SquadRouteChildren: SquadRouteChildren = {
+  SquadIdRoute: SquadIdRoute,
+}
+
+const SquadRouteWithChildren = SquadRoute._addFileChildren(SquadRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  FixturesRoute: FixturesRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
+  NewsRoute: NewsRouteWithChildren,
+  PremiumRoute: PremiumRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  SignupRoute: SignupRoute,
+  SquadRoute: SquadRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
