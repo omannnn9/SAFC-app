@@ -405,7 +405,7 @@ export const getLiveUpcomingMatches = createServerFn({ method: "GET" }).handler(
 });
 
 export const getLivePastMatches = createServerFn({ method: "GET" }).handler(async () => {
-  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v9-verified-recent", 60 * 30, async () => {
+  return cachedFetch<LiveMatch[]>("af:fixtures:last:10:v10-verified-kickoffs", 60 * 30, async () => {
     const accessibleSeasons = [2024, 2023, 2022];
     const seasonResults = await Promise.all(
       accessibleSeasons.map(async (season) => {
