@@ -39,14 +39,23 @@ function useCountdown(target: Date) {
   return { days, hrs, mins, secs };
 }
 
-const tiers = [
+type Tier = {
+  name: string;
+  price: string;
+  tag: string;
+  perks: string[];
+  cta: string;
+  featured?: boolean;
+  vip?: boolean;
+};
+
+const tiers: Tier[] = [
   {
     name: "Bronze",
     price: "R149",
     tag: "Digital Entry",
     perks: ["Digital membership card", "Newsletter access"],
     cta: "Select Plan",
-    featured: false,
   },
   {
     name: "Silver",
@@ -54,7 +63,6 @@ const tiers = [
     tag: "Exclusive Access",
     perks: ["All Bronze benefits", "Exclusive content & interviews"],
     cta: "Select Plan",
-    featured: false,
   },
   {
     name: "Gold",
@@ -72,7 +80,7 @@ const tiers = [
     cta: "Unlock Now",
     vip: true,
   },
-] as const;
+];
 
 const newsItems = [
   {
