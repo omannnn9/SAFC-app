@@ -54,19 +54,9 @@ function HomePage() {
   const { data: statsRes } = useQuery({ queryKey: ["live-stats"], queryFn: () => getLiveStats() });
   const stats = statsRes?.data;
   const c = useCountdown(next?.kickoff);
-  const nextHome = next?.home_team ?? (next ? {
-    id: next.is_home ? SOUTH_AFRICA_TEAM_ID : null,
-    name: next.is_home ? "South Africa" : next.opponent,
-    logo: null,
-    country_code: next.is_home ? "ZA" : null,
-  } : null);
-  const nextAway = next?.away_team ?? (next ? {
-    id: next.is_home ? null : SOUTH_AFRICA_TEAM_ID,
-    name: next.is_home ? next.opponent : "South Africa",
-    logo: null,
-    country_code: next.is_home ? null : "ZA",
-  } : null);
-  if (next && nextHome && nextAway) validateFixtureFlagData(next.id, nextHome, nextAway, "home-next-match");
+  const nextHome = next?.home_team ?? null;
+  const nextAway = next?.away_team ?? null;
+
 
   return (
     <PageContainer>
