@@ -188,3 +188,10 @@
   .breathe { animation: glow-breathe 3s ease-in-out infinite; }
   .slow-zoom { animation: slow-zoom 18s ease-in-out infinite; }
 }
+
+/* Scraped news article rendering */
+.article-body p { margin: 0 0 1rem; }
+.article-body h2 { font-size: 1.25rem; font-weight: 700; margin: 1.5rem 0 0.5rem; font-family: var(--font-display, inherit); }
+.article-body h3 { font-size: 1.05rem; font-weight: 700; margin: 1.25rem 0 0.5rem; }
+.article-body blockquote { border-left: 3px solid hsl(var(--primary) / 0.6); padding-left: 1rem; margin: 1rem 0; color: hsl(var(--muted-foreground)); font-style: italic; }
+.article-body li { margin: 0.25rem 0 0.25rem 1.25rem; list-style: disc; }

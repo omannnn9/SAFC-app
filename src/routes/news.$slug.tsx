@@ -5,6 +5,7 @@ import { Lock, Bookmark, ArrowLeft, ExternalLink, Clock } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { getArticle, getNews, type Article } from "@/lib/data";
+import { getArticleContent } from "@/lib/news.functions";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -51,6 +52,13 @@ function ArticlePage() {
       const all = await getNews();
       return all.filter((a) => a.slug !== slug).slice(0, 4);
     },
+  });
+
+  const { data: fullContent, isLoading: fullLoading } = useQuery({
+    queryKey: ["article-content", article?.url],
+    enabled: !!article?.url,
+    staleTime: 1000 * 60 * 60,
+    queryFn: () => getArticleContent({ data: { url: article!.url! } }),
   });
 
   const { data: bookmarked } = useQuery({
@@ -143,10 +151,25 @@ function ArticlePage() {
           </div>
         ) : (
           <>
-            {article.body && article.body !== article.excerpt && (
-              <div className="mt-6 whitespace-pre-line text-sm leading-relaxed text-foreground/90">
-                {article.body}
+            {fullContent?.html ? (
+              <div
+                className="article-body mt-6 space-y-4 text-[15px] leading-relaxed text-foreground/90"
+                dangerouslySetInnerHTML={{ __html: fullContent.html }}
+              />
+            ) : fullLoading ? (
+              <div className="mt-6 space-y-3">
+                <div className="h-3 w-full animate-pulse rounded bg-muted/40" />
+                <div className="h-3 w-11/12 animate-pulse rounded bg-muted/40" />
+                <div className="h-3 w-10/12 animate-pulse rounded bg-muted/40" />
+                <div className="h-3 w-9/12 animate-pulse rounded bg-muted/40" />
               </div>
+            ) : (
+              article.body &&
+              article.body !== article.excerpt && (
+                <div className="mt-6 whitespace-pre-line text-sm leading-relaxed text-foreground/90">
+                  {article.body.replace(/\s*\[\+\d+ chars\]\s*$/, "")}
+                </div>
+              )
             )}
             {article.url && (
               <a
