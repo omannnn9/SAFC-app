@@ -45,14 +45,18 @@ function useCountdown(target?: string) {
     return () => clearInterval(id);
   }, []);
   if (!target) return null;
-  const diff = Math.max(0, new Date(target).getTime() - now);
+  const ms = new Date(target).getTime() - now;
+  const isLive = ms <= 0 && ms > -3 * 3600 * 1000; // within match window
+  const diff = Math.max(0, ms);
   return {
+    isLive,
     days: Math.floor(diff / 86400000),
     hrs: Math.floor((diff / 3600000) % 24),
     mins: Math.floor((diff / 60000) % 60),
     secs: Math.floor((diff / 1000) % 60),
   };
 }
+
 const FUN_FACTS = [
   "South Africa won AFCON in 1996 on home soil — their first major title.",
   "Bafana Bafana made their FIFA World Cup debut in France '98.",
