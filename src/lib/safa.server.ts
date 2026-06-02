@@ -235,17 +235,27 @@ function extractPlayerPhoto(html: string): string | null {
 export async function fetchSafaPlayerPhoto(name: string): Promise<string | null> {
   const slug = safaPlayerSlug(name);
   if (!slug) return null;
-  if (playerPhotoCache.has(slug)) return playerPhotoCache.get(slug) ?? null;
+  const cacheKey = `headshot-v2:${slug}`;
+  if (playerPhotoCache.has(cacheKey)) return playerPhotoCache.get(cacheKey) ?? null;
 
   const apiKey = process.env.FIRECRAWL_API_KEY;
   if (!apiKey) {
     console.warn("[safa] FIRECRAWL_API_KEY not configured; skipping player photo");
-    playerPhotoCache.set(slug, null);
+    playerPhotoCache.set(cacheKey, null);
     return null;
   }
 
   const url = `https://www.safa.net/player/${slug}/`;
   try {
+    const plain = await fetch(url, {
+      headers: { "user-agent": "Mozilla/5.0 (compatible; BafanaApp/1.0)" },
+    }).then((res) => (res.ok ? res.text() : ""));
+    const plainPhoto = plain ? extractPlayerPhoto(plain) : null;
+    if (plainPhoto) {
+      playerPhotoCache.set(cacheKey, plainPhoto);
+      return plainPhoto;
+    }
+
     const { default: Firecrawl } = await import("@mendable/firecrawl-js");
     const firecrawl = new Firecrawl({ apiKey });
     const res = await firecrawl.scrape(url, {
@@ -257,11 +267,11 @@ export async function fetchSafaPlayerPhoto(name: string): Promise<string | null>
       (res as { data?: { rawHtml?: string } }).data?.rawHtml ??
       "";
     const photo = html ? extractPlayerPhoto(html) : null;
-    playerPhotoCache.set(slug, photo);
+    playerPhotoCache.set(cacheKey, photo);
     return photo;
   } catch (err) {
     console.error(`[safa] firecrawl player photo failed for ${slug}:`, err);
-    playerPhotoCache.set(slug, null);
+    playerPhotoCache.set(cacheKey, null);
     return null;
   }
 }
