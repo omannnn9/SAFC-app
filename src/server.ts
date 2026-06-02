@@ -1,5 +1,8 @@
 import "./lib/error-capture";
 
+export { startInstance } from "./start";
+
+
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
