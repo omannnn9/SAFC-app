@@ -38,7 +38,7 @@ function LoginPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background">
-      <SignupBadge />
+      
 
       {/* Stadium backdrop */}
       <div className="absolute inset-0">
