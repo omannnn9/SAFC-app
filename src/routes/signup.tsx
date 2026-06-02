@@ -35,13 +35,12 @@ function SignupPage() {
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
         data: { full_name: fullName, country: "South Africa" },
       },
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Account created! Check your email to confirm.");
+    toast.success("Account created! You can now sign in.");
     navigate({ to: "/login" });
   };
 
