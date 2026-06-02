@@ -88,7 +88,7 @@ function ProfilePhoto({ name, photoUrl }: { name: string; photoUrl: string | nul
       alt={name}
       referrerPolicy="no-referrer"
       onError={() => setFailed(true)}
-      className="absolute inset-x-0 bottom-0 mx-auto h-[86%] w-[92%] object-contain object-bottom drop-shadow-[0_32px_44px_rgb(0_0_0/0.8)]"
+      className="absolute inset-x-0 top-20 mx-auto h-72 w-72 rounded-full object-cover object-top drop-shadow-[0_32px_44px_rgb(0_0_0/0.8)]"
     />
   );
 }
