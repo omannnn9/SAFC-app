@@ -33,16 +33,21 @@ function MatchPage() {
       <section className="px-4 pt-4">
         <div className="text-[10px] uppercase tracking-[0.2em] text-primary">{m.competition}</div>
         <div className="mt-2 flex items-center justify-between rounded-2xl border border-primary/30 bg-gradient-to-br from-[var(--sa-green)]/40 via-black to-black p-5">
-          <Side flag="🇿🇦" name="South Africa" />
+          <Side
+            logo={m.home_team?.logo ?? (m.is_home ? "https://media.api-sports.io/football/teams/1097.png" : m.opponent_flag)}
+            name={m.home_team?.name ?? (m.is_home ? "South Africa" : m.opponent)}
+          />
           {m.status === "completed" ? (
             <div className="font-display text-4xl font-black tabular-nums">
-              {m.is_home ? m.home_score : m.away_score}–
-              {m.is_home ? m.away_score : m.home_score}
+              {m.home_score}–{m.away_score}
             </div>
           ) : (
             <div className="font-display text-lg font-bold text-muted-foreground">VS</div>
           )}
-          <Side flag="🏳️" name={m.opponent} />
+          <Side
+            logo={m.away_team?.logo ?? (m.is_home ? m.opponent_flag : "https://media.api-sports.io/football/teams/1097.png")}
+            name={m.away_team?.name ?? (m.is_home ? m.opponent : "South Africa")}
+          />
         </div>
 
         <div className="mt-4 space-y-2 rounded-xl border border-border bg-surface/60 p-4 text-sm">
