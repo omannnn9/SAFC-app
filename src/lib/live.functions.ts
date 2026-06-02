@@ -69,6 +69,12 @@ async function apiFootball(path: string): Promise<unknown> {
 
 // ============= FIXTURES =============
 
+export type LiveTeam = {
+  id: number | null;
+  name: string;
+  logo: string | null;
+};
+
 export type LiveMatch = {
   id: string;
   opponent: string;
@@ -79,6 +85,8 @@ export type LiveMatch = {
   venue: string;
   competition: string;
   is_home: boolean;
+  home_team: LiveTeam;
+  away_team: LiveTeam;
   home_score: number | null;
   away_score: number | null;
   status: "upcoming" | "live" | "completed";
