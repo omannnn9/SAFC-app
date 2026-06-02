@@ -33,7 +33,13 @@ export function NotificationBell() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const ok = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+    const inIframe = (() => {
+      try { return window.self !== window.top; } catch { return true; }
+    })();
+    const previewHost =
+      window.location.hostname.includes("id-preview--") ||
+      window.location.hostname.includes("lovableproject.com");
+    const ok = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window && !inIframe && !previewHost;
     setSupported(ok);
     if (!ok) return;
     navigator.serviceWorker
