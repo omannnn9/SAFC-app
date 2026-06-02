@@ -1,9 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { ArrowLeft, Calendar, MapPin, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { getMatch } from "@/lib/data";
+import { nameToFlag } from "@/lib/flags";
 
 export const Route = createFileRoute("/fixtures/$id")({
   head: () => ({ meta: [{ title: "Match — Bafana" }] }),
