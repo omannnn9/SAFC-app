@@ -1,12 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Newspaper, Users, CalendarDays, Crown } from "lucide-react";
+import { Home, Users, CalendarDays, Newspaper, User } from "lucide-react";
 
 const items = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/news", label: "News", icon: Newspaper },
-  { to: "/squad", label: "Squad", icon: Users },
-  { to: "/fixtures", label: "Fixtures", icon: CalendarDays },
-  { to: "/premium", label: "Premium", icon: Crown },
+  { to: "/", label: "Home", icon: Home, match: (p: string) => p === "/" },
+  { to: "/community", label: "Community", icon: Users, match: (p: string) => p.startsWith("/community") || p.startsWith("/u/") },
+  { to: "/events", label: "Events", icon: CalendarDays, match: (p: string) => p.startsWith("/events") },
+  { to: "/news", label: "News", icon: Newspaper, match: (p: string) => p.startsWith("/news") },
+  { to: "/account", label: "Account", icon: User, match: (p: string) => p.startsWith("/account") || p.startsWith("/profile") },
 ] as const;
 
 export function BottomNav() {
@@ -15,8 +15,8 @@ export function BottomNav() {
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[max(env(safe-area-inset-bottom),12px)]">
       <nav className="glass-strong pointer-events-auto w-full max-w-md rounded-2xl px-2 py-2 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
         <ul className="flex items-stretch justify-between">
-          {items.map(({ to, label, icon: Icon }) => {
-            const active = to === "/" ? path === "/" : path.startsWith(to);
+          {items.map(({ to, label, icon: Icon, match }) => {
+            const active = match(path);
             return (
               <li key={to} className="flex-1">
                 <Link

@@ -11,16 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as RegisterRouteImport } from './routes/register'
-import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as FixturesRouteImport } from './routes/fixtures'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SquadIndexRouteImport } from './routes/squad.index'
 import { Route as NewsIndexRouteImport } from './routes/news.index'
-import { Route as SquadIdRouteImport } from './routes/squad.$id'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
-import { Route as FixturesIdRouteImport } from './routes/fixtures.$id'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as ApiPublicHooksMatchPollRouteImport } from './routes/api/public/hooks/match-poll'
@@ -37,19 +32,9 @@ const RegisterRoute = RegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PremiumRoute = PremiumRouteImport.update({
-  id: '/premium',
-  path: '/premium',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FixturesRoute = FixturesRouteImport.update({
-  id: '/fixtures',
-  path: '/fixtures',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -61,30 +46,15 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SquadIndexRoute = SquadIndexRouteImport.update({
-  id: '/squad/',
-  path: '/squad/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const NewsIndexRoute = NewsIndexRouteImport.update({
   id: '/news/',
   path: '/news/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SquadIdRoute = SquadIdRouteImport.update({
-  id: '/squad/$id',
-  path: '/squad/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NewsSlugRoute = NewsSlugRouteImport.update({
   id: '/news/$slug',
   path: '/news/$slug',
   getParentRoute: () => rootRouteImport,
-} as any)
-const FixturesIdRoute = FixturesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => FixturesRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
@@ -117,36 +87,26 @@ const ApiPublicHooksArticlePollRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/fixtures': typeof FixturesRouteWithChildren
   '/login': typeof LoginRoute
-  '/premium': typeof PremiumRoute
   '/register': typeof RegisterRoute
   '/signup': typeof SignupRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/fixtures/$id': typeof FixturesIdRoute
   '/news/$slug': typeof NewsSlugRoute
-  '/squad/$id': typeof SquadIdRoute
   '/news/': typeof NewsIndexRoute
-  '/squad/': typeof SquadIndexRoute
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
   '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
   '/api/public/hooks/match-poll': typeof ApiPublicHooksMatchPollRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/fixtures': typeof FixturesRouteWithChildren
   '/login': typeof LoginRoute
-  '/premium': typeof PremiumRoute
   '/register': typeof RegisterRoute
   '/signup': typeof SignupRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/fixtures/$id': typeof FixturesIdRoute
   '/news/$slug': typeof NewsSlugRoute
-  '/squad/$id': typeof SquadIdRoute
   '/news': typeof NewsIndexRoute
-  '/squad': typeof SquadIndexRoute
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
   '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
   '/api/public/hooks/match-poll': typeof ApiPublicHooksMatchPollRoute
@@ -155,18 +115,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/fixtures': typeof FixturesRouteWithChildren
   '/login': typeof LoginRoute
-  '/premium': typeof PremiumRoute
   '/register': typeof RegisterRoute
   '/signup': typeof SignupRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
-  '/fixtures/$id': typeof FixturesIdRoute
   '/news/$slug': typeof NewsSlugRoute
-  '/squad/$id': typeof SquadIdRoute
   '/news/': typeof NewsIndexRoute
-  '/squad/': typeof SquadIndexRoute
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
   '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
   '/api/public/hooks/match-poll': typeof ApiPublicHooksMatchPollRoute
@@ -175,36 +130,26 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/fixtures'
     | '/login'
-    | '/premium'
     | '/register'
     | '/signup'
     | '/notifications'
     | '/profile'
-    | '/fixtures/$id'
     | '/news/$slug'
-    | '/squad/$id'
     | '/news/'
-    | '/squad/'
     | '/api/public/hooks/article-poll'
     | '/api/public/hooks/kickoff-reminder'
     | '/api/public/hooks/match-poll'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/fixtures'
     | '/login'
-    | '/premium'
     | '/register'
     | '/signup'
     | '/notifications'
     | '/profile'
-    | '/fixtures/$id'
     | '/news/$slug'
-    | '/squad/$id'
     | '/news'
-    | '/squad'
     | '/api/public/hooks/article-poll'
     | '/api/public/hooks/kickoff-reminder'
     | '/api/public/hooks/match-poll'
@@ -212,18 +157,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/fixtures'
     | '/login'
-    | '/premium'
     | '/register'
     | '/signup'
     | '/_authenticated/notifications'
     | '/_authenticated/profile'
-    | '/fixtures/$id'
     | '/news/$slug'
-    | '/squad/$id'
     | '/news/'
-    | '/squad/'
     | '/api/public/hooks/article-poll'
     | '/api/public/hooks/kickoff-reminder'
     | '/api/public/hooks/match-poll'
@@ -232,15 +172,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  FixturesRoute: typeof FixturesRouteWithChildren
   LoginRoute: typeof LoginRoute
-  PremiumRoute: typeof PremiumRoute
   RegisterRoute: typeof RegisterRoute
   SignupRoute: typeof SignupRoute
   NewsSlugRoute: typeof NewsSlugRoute
-  SquadIdRoute: typeof SquadIdRoute
   NewsIndexRoute: typeof NewsIndexRoute
-  SquadIndexRoute: typeof SquadIndexRoute
   ApiPublicHooksArticlePollRoute: typeof ApiPublicHooksArticlePollRoute
   ApiPublicHooksKickoffReminderRoute: typeof ApiPublicHooksKickoffReminderRoute
   ApiPublicHooksMatchPollRoute: typeof ApiPublicHooksMatchPollRoute
@@ -262,25 +198,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/premium': {
-      id: '/premium'
-      path: '/premium'
-      fullPath: '/premium'
-      preLoaderRoute: typeof PremiumRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fixtures': {
-      id: '/fixtures'
-      path: '/fixtures'
-      fullPath: '/fixtures'
-      preLoaderRoute: typeof FixturesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -297,25 +219,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/squad/': {
-      id: '/squad/'
-      path: '/squad'
-      fullPath: '/squad/'
-      preLoaderRoute: typeof SquadIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/news/': {
       id: '/news/'
       path: '/news'
       fullPath: '/news/'
       preLoaderRoute: typeof NewsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/squad/$id': {
-      id: '/squad/$id'
-      path: '/squad/$id'
-      fullPath: '/squad/$id'
-      preLoaderRoute: typeof SquadIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/news/$slug': {
@@ -324,13 +232,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/news/$slug'
       preLoaderRoute: typeof NewsSlugRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/fixtures/$id': {
-      id: '/fixtures/$id'
-      path: '/$id'
-      fullPath: '/fixtures/$id'
-      preLoaderRoute: typeof FixturesIdRouteImport
-      parentRoute: typeof FixturesRoute
     }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
@@ -384,30 +285,14 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
-interface FixturesRouteChildren {
-  FixturesIdRoute: typeof FixturesIdRoute
-}
-
-const FixturesRouteChildren: FixturesRouteChildren = {
-  FixturesIdRoute: FixturesIdRoute,
-}
-
-const FixturesRouteWithChildren = FixturesRoute._addFileChildren(
-  FixturesRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  FixturesRoute: FixturesRouteWithChildren,
   LoginRoute: LoginRoute,
-  PremiumRoute: PremiumRoute,
   RegisterRoute: RegisterRoute,
   SignupRoute: SignupRoute,
   NewsSlugRoute: NewsSlugRoute,
-  SquadIdRoute: SquadIdRoute,
   NewsIndexRoute: NewsIndexRoute,
-  SquadIndexRoute: SquadIndexRoute,
   ApiPublicHooksArticlePollRoute: ApiPublicHooksArticlePollRoute,
   ApiPublicHooksKickoffReminderRoute: ApiPublicHooksKickoffReminderRoute,
   ApiPublicHooksMatchPollRoute: ApiPublicHooksMatchPollRoute,

@@ -2,14 +2,20 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 
-type Profile = {
+export type Profile = {
   id: string;
   full_name: string;
+  username: string | null;
   phone: string | null;
   country: string;
+  city: string | null;
+  bio: string | null;
   avatar_url: string | null;
+  cover_url: string | null;
+  favourite_team: string | null;
   is_premium: boolean;
   premium_until: string | null;
+  plan: "free" | "plus" | "vip";
 };
 
 type AuthCtx = {
@@ -35,13 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Sync listener first
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
-      // Defer profile fetch
       setTimeout(() => loadProfile(s?.user.id), 0);
     });
-    // Then check existing session
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       loadProfile(data.session?.user.id).finally(() => setLoading(false));
