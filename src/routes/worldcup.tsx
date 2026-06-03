@@ -1,14 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
-import { Trophy, Radio, CalendarDays, Loader2, Download, RefreshCw, Globe } from "lucide-react";
+import { Trophy, Radio, CalendarDays, Loader2, Download, RefreshCw } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { EventRow } from "@/lib/social";
 import { importWorldCupFixtures, refreshLiveScores } from "@/lib/worldcup.functions";
-import { scrapeWorldCupFromFifa } from "@/lib/wc-scrape.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
