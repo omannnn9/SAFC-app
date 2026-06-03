@@ -175,9 +175,9 @@
   --surface: oklch(0.20 0.045 155);
   --surface-2: oklch(0.26 0.05 155);
 
-  --card: oklch(0.13 0.012 250);
+  --card: oklch(0.21 0.045 155);
   --card-foreground: oklch(0.98 0.005 85);
-  --popover: oklch(0.13 0.012 250);
+  --popover: oklch(0.21 0.045 155);
   --popover-foreground: oklch(0.98 0.005 85);
 
   --primary: var(--safc-pink);
