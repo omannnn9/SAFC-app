@@ -169,10 +169,11 @@
   --safc-cream: oklch(0.96 0.025 85);        /* ~#F5F0E6 paper */
   --safc-ink: oklch(0.12 0.01 250);          /* near-black with cool tint */
 
-  --background: oklch(0.07 0.012 250);
+  /* Base canvas — deep forest, never pure black */
+  --background: oklch(0.16 0.04 155);
   --foreground: oklch(0.98 0.005 85);
-  --surface: oklch(0.13 0.012 250);
-  --surface-2: oklch(0.18 0.014 250);
+  --surface: oklch(0.20 0.045 155);
+  --surface-2: oklch(0.26 0.05 155);
 
   --card: oklch(0.13 0.012 250);
   --card-foreground: oklch(0.98 0.005 85);
