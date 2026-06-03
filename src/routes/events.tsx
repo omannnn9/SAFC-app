@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { CalendarDays, Sparkles } from "lucide-react";
+import { CalendarDays, Sparkles, Trophy, Users } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { EventCard } from "@/components/EventCard";
@@ -55,6 +55,23 @@ function EventsPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           RSVP to matches, tournaments and fan zones. See who's going.
         </p>
+      </section>
+
+      <section className="mt-4 grid grid-cols-2 gap-2 px-4">
+        <Link to="/worldcup" className="glass flex items-center gap-2 rounded-2xl p-3 ring-1 ring-[var(--sa-gold)]/30 transition hover:bg-white/5">
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--sa-gold)]/15"><Trophy className="h-5 w-5 text-[var(--sa-gold)]" /></div>
+          <div className="min-w-0">
+            <div className="font-display text-sm font-black">World Cup 2026</div>
+            <div className="truncate text-[10px] text-muted-foreground">Every match · live updates</div>
+          </div>
+        </Link>
+        <Link to="/groups" className="glass flex items-center gap-2 rounded-2xl p-3 transition hover:bg-white/5">
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/15"><Users className="h-5 w-5 text-primary" /></div>
+          <div className="min-w-0">
+            <div className="font-display text-sm font-black">Travel & meetups</div>
+            <div className="truncate text-[10px] text-muted-foreground">Coordinate with supporters</div>
+          </div>
+        </Link>
       </section>
 
       <section className="mt-5 px-4">

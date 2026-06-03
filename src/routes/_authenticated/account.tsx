@@ -1,33 +1,22 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { Loader2, LogOut, Crown, Check, Camera, Bell, KeyRound, Shield, Sparkles, Bookmark } from "lucide-react";
+import { Loader2, LogOut, Check, Camera, Bell, KeyRound, Shield, Sparkles, Star } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
+import { PlanBadge } from "@/components/PlanBadge";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadUserFile, computeProfileCompletion } from "@/lib/social";
+import { PLANS, planTone, type Plan } from "@/lib/plans";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({ meta: [{ title: "Account — Bafana Connect" }] }),
   component: AccountPage,
 });
-
-const PLANS: ReadonlyArray<{
-  id: "bronze" | "silver" | "gold";
-  name: string;
-  price: string;
-  blurb: string;
-  perks: string[];
-  highlight?: boolean;
-}> = [
-  { id: "bronze", name: "Free", price: "R0", blurb: "Start connecting", perks: ["Create profile", "Follow supporters", "Join up to 3 events / month", "Community feed"] },
-  { id: "silver", name: "Supporter Plus", price: "R49 / mo", blurb: "Get in the game", perks: ["Unlimited event joins", "Priority profile visibility", "Exclusive community groups", "Saved posts library"], highlight: true },
-  { id: "gold", name: "VIP Supporter", price: "R149 / mo", blurb: "Premium experience", perks: ["Everything in Plus", "VIP badge on profile", "Premium supporter lounges", "Exclusive events", "Partner perks (coming soon)"] },
-];
 
 const INTEREST_OPTIONS = [
   "Bafana Bafana", "AFCON", "FIFA World Cup", "PSL", "Kaizer Chiefs", "Orlando Pirates",
@@ -49,13 +38,10 @@ function AccountPage() {
     enabled: !!user,
   });
 
-  const onLogout = async () => {
-    await signOut();
-    toast.success("Signed out");
-    navigate({ to: "/" });
-  };
+  const onLogout = async () => { await signOut(); toast.success("Signed out"); navigate({ to: "/" }); };
 
   if (!user) return null;
+  const currentPlan: Plan = (profile?.plan as Plan | undefined) ?? "bronze";
   const completion = profile ? computeProfileCompletion(profile) : { score: 0, missing: [] };
 
   return (
@@ -66,15 +52,12 @@ function AccountPage() {
 
       <section className="px-4 -mt-10">
         <div className="flex items-end gap-3">
-          <AvatarEditor userId={user.id} name={profile?.full_name} url={profile?.avatar_url ?? null} plan={profile?.plan ?? "bronze"} onUpdated={refreshProfile} />
-          <div className="ml-auto pb-2">
-            <PlanBadge plan={profile?.plan ?? "bronze"} />
-          </div>
+          <AvatarEditor userId={user.id} name={profile?.full_name} url={profile?.avatar_url ?? null} plan={currentPlan} onUpdated={refreshProfile} />
+          <div className="ml-auto pb-2"><PlanBadge plan={currentPlan} size="md" /></div>
         </div>
         <h1 className="mt-2 font-display text-2xl font-black">{profile?.full_name || "Supporter"}</h1>
         <div className="text-xs text-muted-foreground">{user.email}</div>
 
-        {/* Profile completion */}
         {completion.score < 100 && (
           <div className="glass mt-4 rounded-2xl p-3">
             <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider">
@@ -84,9 +67,7 @@ function AccountPage() {
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2">
               <div className="h-full bg-gradient-to-r from-primary to-[var(--sa-gold)]" style={{ width: `${completion.score}%` }} />
             </div>
-            {completion.missing.length > 0 && (
-              <div className="mt-2 text-[10px] text-muted-foreground">Add: {completion.missing.join(" · ")}</div>
-            )}
+            {completion.missing.length > 0 && <div className="mt-2 text-[10px] text-muted-foreground">Add: {completion.missing.join(" · ")}</div>}
           </div>
         )}
       </section>
@@ -99,17 +80,17 @@ function AccountPage() {
         </div>
       </section>
 
-      {tab === "profile" && (
-        <section className="mt-4 px-4 pb-32 space-y-4">
-          <ProfileEditor />
-        </section>
-      )}
+      {tab === "profile" && (<section className="mt-4 px-4 pb-32 space-y-4"><ProfileEditor /></section>)}
 
       {tab === "subscription" && (
-        <section className="mt-4 px-4 pb-32 space-y-3">
-          <p className="text-sm text-muted-foreground">Choose the plan that fits how you supporter.</p>
-          {PLANS.map((plan) => (<PlanCard key={plan.id} plan={plan} current={profile?.plan ?? "bronze"} />))}
-          <p className="px-1 pt-2 text-[11px] text-muted-foreground">Billing coming soon. Plans are currently in preview.</p>
+        <section className="mt-4 px-4 pb-32 space-y-4">
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Membership</div>
+            <h2 className="mt-1 font-display text-2xl font-black tracking-tight">Choose your supporter tier</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Three tiers. Real benefits. Cancel anytime.</p>
+          </div>
+          {PLANS.map((plan) => (<PlanCard key={plan.id} plan={plan} current={currentPlan} userId={user.id} onChanged={refreshProfile} />))}
+          <p className="px-1 pt-2 text-center text-[11px] text-muted-foreground">Billing in preview — plan changes apply instantly while we finalise payments.</p>
         </section>
       )}
 
@@ -128,18 +109,11 @@ function AccountPage() {
               </Link>
             )}
           </div>
-
           <DangerZone onLogout={onLogout} />
         </section>
       )}
     </PageContainer>
   );
-}
-
-function PlanBadge({ plan }: { plan: "bronze" | "silver" | "gold" }) {
-  if (plan === "gold") return <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary"><Crown className="h-3 w-3" /> VIP</span>;
-  if (plan === "silver") return <span className="rounded-full bg-accent/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-accent-foreground">Plus</span>;
-  return <span className="rounded-full bg-surface-2 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-muted-foreground">Free</span>;
 }
 
 function CoverEditor({ userId, url, onUpdated }: { userId: string; url: string | null; onUpdated: () => void }) {
@@ -164,7 +138,7 @@ function CoverEditor({ userId, url, onUpdated }: { userId: string; url: string |
   );
 }
 
-function AvatarEditor({ userId, name, url, plan, onUpdated }: { userId: string; name?: string | null; url: string | null; plan: "bronze" | "silver" | "gold"; onUpdated: () => void }) {
+function AvatarEditor({ userId, name, url, plan, onUpdated }: { userId: string; name?: string | null; url: string | null; plan: Plan; onUpdated: () => void }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const onPick = async (f: File) => {
@@ -197,9 +171,7 @@ function ProfileEditor() {
   const [favourite_team, setTeam] = useState(profile?.favourite_team ?? "");
   const [interests, setInterests] = useState<string[]>(profile?.interests ?? []);
   const [busy, setBusy] = useState(false);
-
   const toggleInterest = (i: string) => setInterests((arr) => arr.includes(i) ? arr.filter((x) => x !== i) : [...arr, i]);
-
   const save = async () => {
     if (!user) return;
     setBusy(true);
@@ -208,10 +180,8 @@ function ProfileEditor() {
     }).eq("id", user.id);
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Profile saved");
-    refreshProfile();
+    toast.success("Profile saved"); refreshProfile();
   };
-
   return (
     <div className="glass rounded-2xl p-4 space-y-3">
       <Field label="Full name"><input value={full_name} onChange={(e) => setFullName(e.target.value)} className="input-base" /></Field>
@@ -241,12 +211,7 @@ function ProfileEditor() {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <div className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</div>
-      {children}
-    </label>
-  );
+  return (<label className="block"><div className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</div>{children}</label>);
 }
 
 function ChangePasswordRow() {
@@ -259,9 +224,7 @@ function ChangePasswordRow() {
     const { error } = await supabase.auth.updateUser({ password: pw });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success("Password updated");
-    setPw("");
-    setOpen(false);
+    toast.success("Password updated"); setPw(""); setOpen(false);
   };
   return (
     <div>
@@ -289,29 +252,50 @@ function DangerZone({ onLogout }: { onLogout: () => void }) {
   );
 }
 
-function PlanCard({ plan, current }: { plan: (typeof PLANS)[number]; current: "bronze" | "silver" | "gold" }) {
+function PlanCard({ plan, current, userId, onChanged }: { plan: (typeof PLANS)[number]; current: Plan; userId: string; onChanged: () => void }) {
+  const Icon = plan.icon;
+  const tone = planTone(plan.id);
   const isCurrent = plan.id === current;
-  const isUpgrade = (PLANS.findIndex((p) => p.id === plan.id) ?? 0) > (PLANS.findIndex((p) => p.id === current) ?? 0);
+  const rank = { bronze: 0, silver: 1, gold: 2 } as const;
+  const isUpgrade = rank[plan.id] > rank[current];
+  const [busy, setBusy] = useState(false);
+  const choose = async () => {
+    if (isCurrent) return;
+    setBusy(true);
+    const { error } = await db.from("profiles").update({ plan: plan.id }).eq("id", userId);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    await db.from("user_achievements").insert({ user_id: userId, achievement_id: `${plan.id}_supporter` }).then(() => {}, () => {});
+    toast.success(`Welcome to ${plan.name} ${plan.badge}`);
+    onChanged();
+  };
   return (
-    <div className={`glass relative overflow-hidden rounded-2xl p-5 ${plan.highlight ? "ring-glow-gold" : ""}`}>
-      {plan.highlight && <div className="absolute right-3 top-3 rounded-full bg-primary px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-primary-foreground">Most popular</div>}
-      <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{plan.blurb}</div>
-      <div className="mt-1 flex items-baseline gap-2">
-        <div className="font-display text-2xl font-black">{plan.name}</div>
-        {plan.id === "gold" && <Crown className="h-4 w-4 text-primary" />}
+    <div className={`glass relative overflow-hidden rounded-2xl p-5 ring-1 ${plan.highlight ? "ring-2 ring-[var(--sa-gold)]/60 shadow-[0_0_40px_-12px_var(--sa-gold)]" : "ring-border/40"}`}>
+      {plan.highlight && (
+        <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-[var(--sa-gold)] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-black">
+          <Star className="h-3 w-3" /> Most popular
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <div className={`grid h-10 w-10 place-items-center rounded-xl ${tone.bg}`}><Icon className={`h-5 w-5 ${tone.text}`} /></div>
+        <div>
+          <div className="font-display text-xl font-black">{plan.name}</div>
+          <div className="text-[11px] font-semibold text-muted-foreground">{plan.tagline}</div>
+        </div>
       </div>
-      <div className="mt-1 text-sm text-muted-foreground">{plan.price}</div>
+      <div className="mt-3 flex items-baseline gap-2">
+        <div className="font-display text-3xl font-black">{plan.price.split(" / ")[0]}</div>
+        <div className="text-xs font-bold text-muted-foreground">/ month</div>
+      </div>
       <ul className="mt-3 space-y-1.5 text-sm">
-        {plan.perks.map((perk) => (
-          <li key={perk} className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> {perk}</li>
-        ))}
+        {plan.perks.map((perk) => (<li key={perk} className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> {perk}</li>))}
       </ul>
       <button
-        disabled={isCurrent}
-        onClick={() => toast.info("Billing coming soon — plans are in preview.")}
-        className={`mt-4 w-full rounded-xl py-2.5 text-xs font-black uppercase tracking-wider transition ${isCurrent ? "bg-surface-2 text-muted-foreground" : plan.highlight ? "bg-primary text-primary-foreground" : "bg-surface-2 ring-1 ring-primary text-foreground"}`}
+        disabled={isCurrent || busy}
+        onClick={choose}
+        className={`mt-4 w-full rounded-xl py-3 text-xs font-black uppercase tracking-wider transition disabled:opacity-60 ${isCurrent ? "bg-surface-2 text-muted-foreground" : plan.highlight ? "bg-[var(--sa-gold)] text-black hover:opacity-90" : "bg-primary text-primary-foreground hover:opacity-90"}`}
       >
-        {isCurrent ? "Current plan" : isUpgrade ? "Upgrade" : "Switch plan"}
+        {busy ? "Updating…" : isCurrent ? "Current plan" : isUpgrade ? `Upgrade to ${plan.name}` : `Switch to ${plan.name}`}
       </button>
     </div>
   );
