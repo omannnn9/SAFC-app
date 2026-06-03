@@ -1,12 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Users, CalendarDays, Newspaper, User } from "lucide-react";
+import { Home, Users, CalendarDays, MessageCircle, User } from "lucide-react";
 
 const items = [
   { to: "/", label: "Home", icon: Home, match: (p: string) => p === "/" },
-  { to: "/community", label: "Community", icon: Users, match: (p: string) => p.startsWith("/community") || p.startsWith("/u/") },
+  { to: "/community", label: "People", icon: Users, match: (p: string) => p.startsWith("/community") || p.startsWith("/u/") },
   { to: "/events", label: "Events", icon: CalendarDays, match: (p: string) => p.startsWith("/events") },
-  { to: "/news", label: "News", icon: Newspaper, match: (p: string) => p.startsWith("/news") },
-  { to: "/account", label: "Account", icon: User, match: (p: string) => p.startsWith("/account") || p.startsWith("/profile") },
+  { to: "/messages", label: "Inbox", icon: MessageCircle, match: (p: string) => p.startsWith("/messages") },
+  { to: "/account", label: "Me", icon: User, match: (p: string) => p.startsWith("/account") || p.startsWith("/profile") },
 ] as const;
 
 export function BottomNav() {

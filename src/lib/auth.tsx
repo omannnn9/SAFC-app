@@ -17,6 +17,7 @@ export type Profile = {
   is_premium: boolean;
   premium_until: string | null;
   plan: "free" | "plus" | "vip";
+  interests: string[] | null;
 };
 
 type AuthCtx = {
