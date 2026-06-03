@@ -288,12 +288,11 @@ export async function enrichSafaFixturesWithImages(
   return out;
 }
 
-// ============= PLAYER PHOTOS (via Firecrawl) =============
+// ============= PLAYER PHOTOS =============
 //
 // SAFA player pages live at https://www.safa.net/player/{slug}/. The photo is
 // embedded in inline CSS as `--match-centre-primary-background-pattern-image:
-// url(...)`. We scrape via Firecrawl (rawHtml) which handles WAF/CDN edges
-// more reliably than plain fetch, then regex-extract the URL.
+// url(...)`. We fetch the HTML and regex-extract the URL.
 
 export function safaPlayerSlug(name: string): string {
   return name
