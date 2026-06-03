@@ -118,6 +118,34 @@ export async function fetchMessages(conversationId: string): Promise<Message[]> 
 
 export async function sendMessage(conversationId: string, senderId: string, body: string | null, imageUrl: string | null) {
   await db.from("messages").insert({ conversation_id: conversationId, sender_id: senderId, body, image_url: imageUrl });
+  // Notify other participants
+  try {
+    const { data: parts } = await db
+      .from("conversation_participants")
+      .select("user_id")
+      .eq("conversation_id", conversationId);
+    const others = ((parts ?? []) as { user_id: string }[]).map((p) => p.user_id).filter((id) => id !== senderId);
+    if (others.length) {
+      const { data: sender } = await db.from("profiles").select("full_name").eq("id", senderId).maybeSingle();
+      const name = (sender as { full_name: string } | null)?.full_name || "Someone";
+      const preview = body ? body.slice(0, 80) : imageUrl ? "📷 Photo" : "New message";
+      const { createNotification } = await import("@/lib/notifications");
+      await Promise.all(
+        others.map((uid) =>
+          createNotification({
+            userId: uid,
+            actorId: senderId,
+            type: "message",
+            title: name,
+            body: preview,
+            link: `/messages/${conversationId}`,
+          }),
+        ),
+      );
+    }
+  } catch (e) {
+    console.warn("DM notification failed", e);
+  }
 }
 
 export async function markRead(conversationId: string, userId: string) {

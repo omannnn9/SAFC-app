@@ -54,6 +54,25 @@ export function PostComments({ postId, onCountChange }: { postId: string; onCoun
     setBusy(false);
     if (error) return toast.error(error.message);
     setBody("");
+    // Notify post owner
+    try {
+      const { data: post } = await db.from("posts").select("user_id").eq("id", postId).maybeSingle();
+      const ownerId = (post as { user_id: string } | null)?.user_id;
+      if (ownerId && ownerId !== user.id) {
+        const name = profile?.full_name || "A supporter";
+        const { createNotification } = await import("@/lib/notifications");
+        await createNotification({
+          userId: ownerId,
+          actorId: user.id,
+          type: "comment",
+          title: `${name} commented on your post`,
+          body: trimmed.slice(0, 100),
+          link: `/u/${user.id}`,
+        });
+      }
+    } catch (e) {
+      console.warn("comment notif failed", e);
+    }
     load();
   };
 
