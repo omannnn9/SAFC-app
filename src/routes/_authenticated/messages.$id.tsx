@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ImagePlus, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, ImagePlus, Send, Loader2, Check, CheckCheck } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -27,11 +27,13 @@ function ThreadPage() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [other, setOther] = useState<AuthorMini | null>(null);
+  const [otherLastRead, setOtherLastRead] = useState<string | null>(null);
   const [presence, setPresence] = useState<Map<string, PresenceMeta>>(new Map());
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimer = useRef<number | null>(null);
   const presenceApi = useRef<{ setTyping: (t: boolean) => Promise<void> } | null>(null);
+  const otherIdRef = useRef<string | null>(null);
 
   // initial load
   useQuery({
@@ -39,12 +41,15 @@ function ThreadPage() {
     queryFn: async () => {
       const [msgs, partsRes] = await Promise.all([
         fetchMessages(id),
-        db.from("conversation_participants").select("user_id").eq("conversation_id", id),
+        db.from("conversation_participants").select("user_id, last_read_at").eq("conversation_id", id),
       ]);
       setMessages(msgs);
-      const otherId = ((partsRes.data ?? []) as { user_id: string }[]).map((r) => r.user_id).find((u) => u !== user?.id);
-      if (otherId) {
-        const { data: prof } = await db.from("profiles").select("id, full_name, username, avatar_url, plan").eq("id", otherId).maybeSingle();
+      const parts = (partsRes.data ?? []) as { user_id: string; last_read_at: string }[];
+      const otherPart = parts.find((r) => r.user_id !== user?.id);
+      if (otherPart) {
+        otherIdRef.current = otherPart.user_id;
+        setOtherLastRead(otherPart.last_read_at);
+        const { data: prof } = await db.from("profiles").select("id, full_name, username, avatar_url, plan").eq("id", otherPart.user_id).maybeSingle();
         setOther((prof as AuthorMini) ?? null);
       }
       return true;
