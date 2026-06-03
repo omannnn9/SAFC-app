@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import { UserPlus, UserCheck, Loader2 } from "lucide-react";
+import { UserPlus, UserCheck, Loader2, Clock } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { toggleFollow } from "@/lib/social";
+import { logAudit } from "@/lib/audit";
 import { toast } from "sonner";
+
+type FollowState = "none" | "pending" | "accepted";
 
 export function FollowButton({ targetId, compact }: { targetId: string; compact?: boolean }) {
   const { user } = useAuth();
-  const [following, setFollowing] = useState(false);
+  const [state, setState] = useState<FollowState>("none");
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
 
@@ -17,12 +19,12 @@ export function FollowButton({ targetId, compact }: { targetId: string; compact?
       return;
     }
     db.from("follows")
-      .select("follower_id")
+      .select("status")
       .eq("follower_id", user.id)
       .eq("following_id", targetId)
       .maybeSingle()
-      .then(({ data }: { data: unknown }) => {
-        setFollowing(!!data);
+      .then(({ data }: { data: { status?: string } | null }) => {
+        setState(data ? (data.status === "accepted" ? "accepted" : "pending") : "none");
         setReady(true);
       });
   }, [user, targetId]);
@@ -34,27 +36,53 @@ export function FollowButton({ targetId, compact }: { targetId: string; compact?
     e.stopPropagation();
     if (loading) return;
     setLoading(true);
-    const next = !following;
-    setFollowing(next);
     try {
-      await toggleFollow(targetId, user.id, !next);
-    } catch {
-      setFollowing(!next);
-      toast.error("Could not update");
+      if (state === "none") {
+        // Insert; trigger sets accepted/pending based on target privacy
+        const { data, error } = await db
+          .from("follows")
+          .insert({ follower_id: user.id, following_id: targetId })
+          .select("status")
+          .single();
+        if (error) throw error;
+        const next: FollowState = data?.status === "accepted" ? "accepted" : "pending";
+        setState(next);
+        await logAudit("CREATE", "follow", `${user.id}->${targetId}`, null, { status: next });
+        if (next === "pending") toast.success("Follow request sent");
+      } else {
+        const { error } = await db
+          .from("follows")
+          .delete()
+          .eq("follower_id", user.id)
+          .eq("following_id", targetId);
+        if (error) throw error;
+        await logAudit("DELETE", "follow", `${user.id}->${targetId}`, { status: state }, null);
+        setState("none");
+      }
+    } catch (err) {
+      toast.error((err as Error).message || "Could not update");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const base = compact ? "px-3 py-1 text-[11px]" : "px-4 py-2 text-xs";
+  const styles =
+    state === "accepted"
+      ? "bg-surface-2 text-muted-foreground"
+      : state === "pending"
+      ? "bg-surface-2 text-[var(--safc-yellow)] ring-1 ring-[var(--safc-yellow)]/40"
+      : "bg-primary text-primary-foreground";
+  const Icon = loading ? Loader2 : state === "accepted" ? UserCheck : state === "pending" ? Clock : UserPlus;
+  const label = state === "accepted" ? "Following" : state === "pending" ? "Requested" : "Follow";
+
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full font-black uppercase tracking-wider transition ${base} ${
-        following ? "bg-surface-2 text-muted-foreground" : "bg-primary text-primary-foreground"
-      }`}
+      className={`inline-flex items-center gap-1.5 rounded-full font-black uppercase tracking-wider transition ${base} ${styles}`}
     >
-      {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : following ? <UserCheck className="h-3.5 w-3.5" /> : <UserPlus className="h-3.5 w-3.5" />}
-      {following ? "Following" : "Follow"}
+      <Icon className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+      {label}
     </button>
   );
 }

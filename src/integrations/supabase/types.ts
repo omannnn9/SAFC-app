@@ -77,6 +77,48 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action_type: string
+          actor_email: string | null
+          actor_id: string | null
+          actor_role: string | null
+          after_value: Json | null
+          before_value: Json | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          target_id: string | null
+          target_type: string
+        }
+        Insert: {
+          action_type: string
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_role?: string | null
+          after_value?: Json | null
+          before_value?: Json | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type: string
+        }
+        Update: {
+          action_type?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_role?: string | null
+          after_value?: Json | null
+          before_value?: Json | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string
+        }
+        Relationships: []
+      }
       bookmarks: {
         Row: {
           article_id: string
@@ -312,16 +354,19 @@ export type Database = {
           created_at: string
           follower_id: string
           following_id: string
+          status: string
         }
         Insert: {
           created_at?: string
           follower_id: string
           following_id: string
+          status?: string
         }
         Update: {
           created_at?: string
           follower_id?: string
           following_id?: string
+          status?: string
         }
         Relationships: []
       }
@@ -637,6 +682,42 @@ export type Database = {
         }
         Relationships: []
       }
+      plans: {
+        Row: {
+          currency: string
+          id: string
+          name: string
+          perks: Json
+          price_cents: number
+          sort_order: number
+          tagline: string | null
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          currency?: string
+          id: string
+          name: string
+          perks?: Json
+          price_cents?: number
+          sort_order?: number
+          tagline?: string | null
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          currency?: string
+          id?: string
+          name?: string
+          perks?: Json
+          price_cents?: number
+          sort_order?: number
+          tagline?: string | null
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: []
+      }
       players: {
         Row: {
           assists: number
@@ -875,6 +956,7 @@ export type Database = {
           interests: string[]
           is_deleted: boolean
           is_premium: boolean
+          is_private: boolean
           last_seen: string | null
           phone: string | null
           plan: Database["public"]["Enums"]["membership_plan"]
@@ -896,6 +978,7 @@ export type Database = {
           interests?: string[]
           is_deleted?: boolean
           is_premium?: boolean
+          is_private?: boolean
           last_seen?: string | null
           phone?: string | null
           plan?: Database["public"]["Enums"]["membership_plan"]
@@ -917,6 +1000,7 @@ export type Database = {
           interests?: string[]
           is_deleted?: boolean
           is_premium?: boolean
+          is_private?: boolean
           last_seen?: string | null
           phone?: string | null
           plan?: Database["public"]["Enums"]["membership_plan"]
@@ -1108,6 +1192,17 @@ export type Database = {
       is_conv_participant: {
         Args: { _conv: string; _user: string }
         Returns: boolean
+      }
+      log_audit: {
+        Args: {
+          _action_type: string
+          _after?: Json
+          _before?: Json
+          _metadata?: Json
+          _target_id?: string
+          _target_type: string
+        }
+        Returns: string
       }
       monthly_event_joins: { Args: { _user: string }; Returns: number }
     }
