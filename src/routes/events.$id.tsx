@@ -236,7 +236,7 @@ function AttendeesGroup({ title, list }: { title: string; list: Attendee[] }) {
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {list.map((a) => (
           <Link key={a.user_id} to="/u/$id" params={{ id: a.user_id }} className="glass flex items-center gap-2 rounded-xl p-2.5 transition hover:ring-glow-gold">
-            <UserAvatar name={a.profile?.full_name} src={a.profile?.avatar_url} size={36} ring={a.profile?.plan === "vip" ? "gold" : null} />
+            <UserAvatar name={a.profile?.full_name} src={a.profile?.avatar_url} size={36} ring={a.profile?.plan === "gold" ? "gold" : null} />
             <div className="min-w-0 flex-1">
               <div className="truncate text-xs font-bold">{a.profile?.full_name ?? "Supporter"}</div>
               {a.profile?.username && <div className="truncate text-[10px] text-muted-foreground">@{a.profile.username}</div>}

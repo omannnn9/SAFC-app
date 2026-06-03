@@ -22,7 +22,7 @@ export type AuthorMini = {
   full_name: string;
   username: string | null;
   avatar_url: string | null;
-  plan: "free" | "plus" | "vip";
+  plan: "bronze" | "silver" | "gold";
 };
 
 export type FeedPost = {
@@ -197,7 +197,7 @@ export async function fetchSuggestedUsers(currentUserId: string | null, limit = 
     let reason = "Supporter";
     if (p.city && myCity && p.city === myCity) { score += 3; reason = `Same city — ${p.city}`; }
     else if (p.country && myCountry && p.country === myCountry) { score += 1; reason = `From ${p.country}`; }
-    if (p.plan === "vip") score += 0.5;
+    if (p.plan === "gold") score += 0.5;
     return { ...p, reason, _s: score };
   });
   scored.sort((a, b) => b._s - a._s);

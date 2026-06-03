@@ -17,7 +17,7 @@ type DiscoverProfile = {
   country: string | null;
   favourite_team: string | null;
   avatar_url: string | null;
-  plan: "free" | "plus" | "vip";
+  plan: "bronze" | "silver" | "gold";
 };
 
 export const Route = createFileRoute("/community")({
@@ -86,11 +86,11 @@ function CommunityPage() {
             key={p.id}
             className="glass flex items-center gap-3 rounded-2xl p-3 transition hover:ring-glow-gold"
           >
-            <UserAvatar name={p.full_name} src={p.avatar_url} size={52} ring={p.plan === "vip" ? "gold" : null} />
+            <UserAvatar name={p.full_name} src={p.avatar_url} size={52} ring={p.plan === "gold" ? "gold" : null} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <div className="truncate font-display text-sm font-black">{p.full_name || "Supporter"}</div>
-                {p.plan === "vip" && (
+                {p.plan === "gold" && (
                   <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-primary">VIP</span>
                 )}
               </div>

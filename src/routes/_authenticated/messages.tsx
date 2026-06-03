@@ -47,7 +47,7 @@ function MessagesInbox() {
             params={{ id: c.id }}
             className="glass flex items-center gap-3 rounded-2xl p-3 transition hover:ring-glow-gold"
           >
-            <UserAvatar name={c.other?.full_name} src={c.other?.avatar_url} size={48} ring={c.other?.plan === "vip" ? "gold" : null} />
+            <UserAvatar name={c.other?.full_name} src={c.other?.avatar_url} size={48} ring={c.other?.plan === "gold" ? "gold" : null} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <div className="truncate font-display text-sm font-black">{c.other?.full_name ?? c.title ?? "Conversation"}</div>
