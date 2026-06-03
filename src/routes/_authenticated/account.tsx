@@ -1,13 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { Loader2, LogOut, Crown, Check, Camera, Bell, KeyRound } from "lucide-react";
+import { Loader2, LogOut, Crown, Check, Camera, Bell, KeyRound, Shield, Sparkles, Bookmark } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
-import { uploadUserFile } from "@/lib/social";
+import { uploadUserFile, computeProfileCompletion } from "@/lib/social";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/account")({
@@ -23,34 +24,30 @@ const PLANS: ReadonlyArray<{
   perks: string[];
   highlight?: boolean;
 }> = [
-  {
-    id: "free",
-    name: "Free",
-    price: "R0",
-    blurb: "Start connecting",
-    perks: ["Create profile", "Follow supporters", "Join up to 3 events / month", "Community feed"],
-  },
-  {
-    id: "plus",
-    name: "Supporter Plus",
-    price: "R49 / mo",
-    blurb: "Get in the game",
-    perks: ["Unlimited event joins", "Enhanced profile visibility", "Exclusive community groups", "Priority event discovery"],
-    highlight: true,
-  },
-  {
-    id: "vip",
-    name: "VIP Supporter",
-    price: "R149 / mo",
-    blurb: "Premium experience",
-    perks: ["Everything in Plus", "VIP badge on profile", "Premium supporter lounges", "Exclusive events", "Advanced networking"],
-  },
+  { id: "free", name: "Free", price: "R0", blurb: "Start connecting", perks: ["Create profile", "Follow supporters", "Join up to 3 events / month", "Community feed"] },
+  { id: "plus", name: "Supporter Plus", price: "R49 / mo", blurb: "Get in the game", perks: ["Unlimited event joins", "Priority profile visibility", "Exclusive community groups", "Saved posts library"], highlight: true },
+  { id: "vip", name: "VIP Supporter", price: "R149 / mo", blurb: "Premium experience", perks: ["Everything in Plus", "VIP badge on profile", "Premium supporter lounges", "Exclusive events", "Partner perks (coming soon)"] },
+];
+
+const INTEREST_OPTIONS = [
+  "Bafana Bafana", "AFCON", "FIFA World Cup", "PSL", "Kaizer Chiefs", "Orlando Pirates",
+  "Mamelodi Sundowns", "Banyana Banyana", "Travel", "Stadium photography", "Tactics", "Fantasy football",
 ];
 
 function AccountPage() {
   const { user, profile, signOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"profile" | "subscription">("profile");
+  const [tab, setTab] = useState<"profile" | "subscription" | "settings">("profile");
+
+  const isAdminQ = useQuery({
+    queryKey: ["is-admin", user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data } = await db.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
+      return !!data;
+    },
+    enabled: !!user,
+  });
 
   const onLogout = async () => {
     await signOut();
@@ -59,15 +56,14 @@ function AccountPage() {
   };
 
   if (!user) return null;
+  const completion = profile ? computeProfileCompletion(profile) : { score: 0, missing: [] };
 
   return (
     <PageContainer>
       <AppHeader title="Account" />
 
-      {/* Cover */}
       <CoverEditor userId={user.id} url={profile?.cover_url ?? null} onUpdated={refreshProfile} />
 
-      {/* Profile header */}
       <section className="px-4 -mt-10">
         <div className="flex items-end gap-3">
           <AvatarEditor userId={user.id} name={profile?.full_name} url={profile?.avatar_url ?? null} plan={profile?.plan ?? "free"} onUpdated={refreshProfile} />
@@ -77,41 +73,63 @@ function AccountPage() {
         </div>
         <h1 className="mt-2 font-display text-2xl font-black">{profile?.full_name || "Supporter"}</h1>
         <div className="text-xs text-muted-foreground">{user.email}</div>
+
+        {/* Profile completion */}
+        {completion.score < 100 && (
+          <div className="glass mt-4 rounded-2xl p-3">
+            <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider">
+              <span><Sparkles className="mr-1 inline h-3 w-3 text-primary" /> Profile {completion.score}%</span>
+              <span className="text-muted-foreground">Complete to be seen</span>
+            </div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2">
+              <div className="h-full bg-gradient-to-r from-primary to-[var(--sa-gold)]" style={{ width: `${completion.score}%` }} />
+            </div>
+            {completion.missing.length > 0 && (
+              <div className="mt-2 text-[10px] text-muted-foreground">Add: {completion.missing.join(" · ")}</div>
+            )}
+          </div>
+        )}
       </section>
 
-      {/* Tabs */}
       <section className="mt-5 px-4">
-        <div className="glass grid grid-cols-2 rounded-xl p-1">
-          <button onClick={() => setTab("profile")} className={`rounded-lg py-2 text-xs font-black uppercase tracking-wider ${tab === "profile" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>Profile</button>
-          <button onClick={() => setTab("subscription")} className={`rounded-lg py-2 text-xs font-black uppercase tracking-wider ${tab === "subscription" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>Subscription</button>
+        <div className="glass grid grid-cols-3 rounded-xl p-1">
+          {(["profile", "subscription", "settings"] as const).map((t) => (
+            <button key={t} onClick={() => setTab(t)} className={`rounded-lg py-2 text-xs font-black uppercase tracking-wider ${tab === t ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>{t}</button>
+          ))}
         </div>
       </section>
 
       {tab === "profile" && (
         <section className="mt-4 px-4 pb-32 space-y-4">
           <ProfileEditor />
-          <div className="glass overflow-hidden rounded-2xl">
-            <Link to="/notifications" className="flex items-center gap-3 border-b border-border/40 px-4 py-3 hover:bg-white/5">
-              <div className="grid h-8 w-8 place-items-center rounded-md bg-surface-2"><Bell className="h-4 w-4" /></div>
-              <div className="flex-1 text-sm font-semibold">Notifications</div>
-            </Link>
-            <ChangePasswordRow />
-          </div>
-          <button onClick={onLogout} className="glass flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-muted-foreground hover:text-foreground">
-            <LogOut className="h-4 w-4" /> Sign out
-          </button>
         </section>
       )}
 
       {tab === "subscription" && (
         <section className="mt-4 px-4 pb-32 space-y-3">
           <p className="text-sm text-muted-foreground">Choose the plan that fits how you supporter.</p>
-          {PLANS.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} current={profile?.plan ?? "free"} />
-          ))}
-          <p className="px-1 pt-2 text-[11px] text-muted-foreground">
-            Billing coming soon. Plans are currently in preview.
-          </p>
+          {PLANS.map((plan) => (<PlanCard key={plan.id} plan={plan} current={profile?.plan ?? "free"} />))}
+          <p className="px-1 pt-2 text-[11px] text-muted-foreground">Billing coming soon. Plans are currently in preview.</p>
+        </section>
+      )}
+
+      {tab === "settings" && (
+        <section className="mt-4 px-4 pb-32 space-y-3">
+          <div className="glass overflow-hidden rounded-2xl">
+            <Link to="/notifications" className="flex items-center gap-3 border-b border-border/40 px-4 py-3 hover:bg-white/5">
+              <div className="grid h-8 w-8 place-items-center rounded-md bg-surface-2"><Bell className="h-4 w-4" /></div>
+              <div className="flex-1 text-sm font-semibold">Notifications</div>
+            </Link>
+            <ChangePasswordRow />
+            {isAdminQ.data && (
+              <Link to="/admin" className="flex items-center gap-3 border-t border-border/40 px-4 py-3 hover:bg-white/5">
+                <div className="grid h-8 w-8 place-items-center rounded-md bg-primary/15"><Shield className="h-4 w-4 text-primary" /></div>
+                <div className="flex-1 text-sm font-semibold">Admin portal</div>
+              </Link>
+            )}
+          </div>
+
+          <DangerZone onLogout={onLogout} />
         </section>
       )}
     </PageContainer>
@@ -137,10 +155,7 @@ function CoverEditor({ userId, url, onUpdated }: { userId: string; url: string |
     setBusy(false);
   };
   return (
-    <div
-      className="relative mx-4 mt-3 h-32 overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--sa-green)] to-[oklch(0.3_0.13_155)]"
-      style={url ? { backgroundImage: `url(${url})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}
-    >
+    <div className="relative mx-4 mt-3 h-32 overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--sa-green)] to-[oklch(0.3_0.13_155)]" style={url ? { backgroundImage: `url(${url})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
       <button onClick={() => ref.current?.click()} className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/60 px-3 py-1.5 text-[11px] font-semibold text-white">
         {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />} Cover
       </button>
@@ -180,13 +195,16 @@ function ProfileEditor() {
   const [city, setCity] = useState(profile?.city ?? "");
   const [country, setCountry] = useState(profile?.country ?? "South Africa");
   const [favourite_team, setTeam] = useState(profile?.favourite_team ?? "");
+  const [interests, setInterests] = useState<string[]>(profile?.interests ?? []);
   const [busy, setBusy] = useState(false);
+
+  const toggleInterest = (i: string) => setInterests((arr) => arr.includes(i) ? arr.filter((x) => x !== i) : [...arr, i]);
 
   const save = async () => {
     if (!user) return;
     setBusy(true);
     const { error } = await db.from("profiles").update({
-      full_name, username: username || null, bio: bio || null, city: city || null, country, favourite_team: favourite_team || null,
+      full_name, username: username || null, bio: bio || null, city: city || null, country, favourite_team: favourite_team || null, interests,
     }).eq("id", user.id);
     setBusy(false);
     if (error) return toast.error(error.message);
@@ -204,6 +222,16 @@ function ProfileEditor() {
         <Field label="Country"><input value={country} onChange={(e) => setCountry(e.target.value)} className="input-base" /></Field>
       </div>
       <Field label="Favourite team"><input value={favourite_team} onChange={(e) => setTeam(e.target.value)} className="input-base" placeholder="Bafana Bafana, Kaizer Chiefs…" /></Field>
+      <Field label="Football interests">
+        <div className="flex flex-wrap gap-1.5">
+          {INTEREST_OPTIONS.map((i) => {
+            const on = interests.includes(i);
+            return (
+              <button key={i} type="button" onClick={() => toggleInterest(i)} className={`rounded-full px-2.5 py-1 text-[11px] font-bold transition ${on ? "bg-primary text-primary-foreground" : "bg-surface-2 text-muted-foreground hover:text-foreground"}`}>{i}</button>
+            );
+          })}
+        </div>
+      </Field>
       <button onClick={save} disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-xs font-black uppercase tracking-wider text-primary-foreground disabled:opacity-60">
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Save changes
       </button>
@@ -237,7 +265,7 @@ function ChangePasswordRow() {
   };
   return (
     <div>
-      <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center gap-3 px-4 py-3 hover:bg-white/5">
+      <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center gap-3 border-t border-border/40 px-4 py-3 hover:bg-white/5">
         <div className="grid h-8 w-8 place-items-center rounded-md bg-surface-2"><KeyRound className="h-4 w-4" /></div>
         <div className="flex-1 text-left text-sm font-semibold">Change password</div>
       </button>
@@ -247,6 +275,16 @@ function ChangePasswordRow() {
           <button onClick={save} disabled={busy} className="mt-2 w-full rounded-lg bg-primary py-2 text-xs font-black uppercase tracking-wider text-primary-foreground disabled:opacity-60">{busy ? "Saving…" : "Update password"}</button>
         </div>
       )}
+    </div>
+  );
+}
+
+function DangerZone({ onLogout }: { onLogout: () => void }) {
+  return (
+    <div className="space-y-2">
+      <button onClick={onLogout} className="glass flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-muted-foreground hover:text-foreground">
+        <LogOut className="h-4 w-4" /> Sign out
+      </button>
     </div>
   );
 }
@@ -271,9 +309,7 @@ function PlanCard({ plan, current }: { plan: (typeof PLANS)[number]; current: "f
       <button
         disabled={isCurrent}
         onClick={() => toast.info("Billing coming soon — plans are in preview.")}
-        className={`mt-4 w-full rounded-xl py-2.5 text-xs font-black uppercase tracking-wider transition ${
-          isCurrent ? "bg-surface-2 text-muted-foreground" : plan.highlight ? "bg-primary text-primary-foreground" : "bg-surface-2 ring-1 ring-primary text-foreground"
-        }`}
+        className={`mt-4 w-full rounded-xl py-2.5 text-xs font-black uppercase tracking-wider transition ${isCurrent ? "bg-surface-2 text-muted-foreground" : plan.highlight ? "bg-primary text-primary-foreground" : "bg-surface-2 ring-1 ring-primary text-foreground"}`}
       >
         {isCurrent ? "Current plan" : isUpgrade ? "Upgrade" : "Switch plan"}
       </button>
