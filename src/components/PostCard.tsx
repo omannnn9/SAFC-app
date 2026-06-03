@@ -72,7 +72,7 @@ export function PostCard({ post, onChange }: { post: FeedPost; onChange?: () => 
     <article className="glass overflow-hidden rounded-2xl">
       <header className="flex items-center gap-3 px-4 pt-4">
         <Link to="/u/$id" params={{ id: post.user_id }}>
-          <UserAvatar name={post.author?.full_name} src={post.author?.avatar_url} size={40} ring={post.author?.plan === "vip" ? "gold" : null} />
+          <UserAvatar name={post.author?.full_name} src={post.author?.avatar_url} size={40} ring={post.author?.plan === "gold" ? "gold" : null} />
         </Link>
         <div className="min-w-0 flex-1">
           <Link to="/u/$id" params={{ id: post.user_id }} className="block truncate font-display text-sm font-black hover:text-primary">
@@ -82,7 +82,7 @@ export function PostCard({ post, onChange }: { post: FeedPost; onChange?: () => 
             {post.author?.username ? `@${post.author.username} · ` : ""}{when}
           </div>
         </div>
-        {post.author?.plan === "vip" && (
+        {post.author?.plan === "gold" && (
           <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-primary">VIP</span>
         )}
         <div className="relative">

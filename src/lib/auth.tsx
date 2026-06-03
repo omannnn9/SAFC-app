@@ -16,7 +16,7 @@ export type Profile = {
   favourite_team: string | null;
   is_premium: boolean;
   premium_until: string | null;
-  plan: "free" | "plus" | "vip";
+  plan: "bronze" | "silver" | "gold";
   interests: string[] | null;
 };
 

@@ -103,7 +103,7 @@ function UsersTab() {
     <div className="space-y-2">
       {q.data?.map((p: any) => (
         <div key={p.id} className="glass flex items-center gap-3 rounded-2xl p-3">
-          <UserAvatar name={p.full_name} src={p.avatar_url} size={40} ring={p.plan === "vip" ? "gold" : null} />
+          <UserAvatar name={p.full_name} src={p.avatar_url} size={40} ring={p.plan === "gold" ? "gold" : null} />
           <div className="min-w-0 flex-1">
             <Link to="/u/$id" params={{ id: p.id }} className="block truncate text-sm font-bold hover:text-primary">{p.full_name}</Link>
             <div className="text-[10px] text-muted-foreground">{p.username ? `@${p.username} · ` : ""}{p.country}</div>

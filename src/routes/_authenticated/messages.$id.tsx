@@ -121,7 +121,7 @@ function ThreadPage() {
         <button onClick={() => navigate({ to: "/messages" })} className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-white/5">
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <UserAvatar name={other?.full_name} src={other?.avatar_url} size={40} ring={other?.plan === "vip" ? "gold" : null} />
+        <UserAvatar name={other?.full_name} src={other?.avatar_url} size={40} ring={other?.plan === "gold" ? "gold" : null} />
         <Link to="/u/$id" params={{ id: other?.id ?? "" }} className="min-w-0 flex-1">
           <div className="truncate font-display text-sm font-black">{other?.full_name ?? "Supporter"}</div>
           <div className="text-[10px] text-muted-foreground">

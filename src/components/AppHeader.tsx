@@ -27,11 +27,11 @@ export function AppHeader({ title }: { title?: string }) {
           to={user ? "/account" : "/login"}
           className="glass flex items-center gap-2 rounded-full px-2.5 py-1.5 text-xs transition hover:ring-glow-gold"
         >
-          {profile?.plan === "vip" && <Crown className="h-3.5 w-3.5 text-primary" />}
+          {profile?.plan === "gold" && <Crown className="h-3.5 w-3.5 text-primary" />}
           <span className="max-w-[80px] truncate font-semibold">
             {user ? profile?.full_name?.split(" ")[0] || "Profile" : "Sign in"}
           </span>
-          <div className={`grid h-6 w-6 place-items-center rounded-full ${profile?.plan === "vip" ? "shimmer-gold text-black" : "bg-surface-2"}`}>
+          <div className={`grid h-6 w-6 place-items-center rounded-full ${profile?.plan === "gold" ? "shimmer-gold text-black" : "bg-surface-2"}`}>
             <UserIcon className="h-3.5 w-3.5" />
           </div>
         </Link>

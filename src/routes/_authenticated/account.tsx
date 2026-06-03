@@ -17,16 +17,16 @@ export const Route = createFileRoute("/_authenticated/account")({
 });
 
 const PLANS: ReadonlyArray<{
-  id: "free" | "plus" | "vip";
+  id: "bronze" | "silver" | "gold";
   name: string;
   price: string;
   blurb: string;
   perks: string[];
   highlight?: boolean;
 }> = [
-  { id: "free", name: "Free", price: "R0", blurb: "Start connecting", perks: ["Create profile", "Follow supporters", "Join up to 3 events / month", "Community feed"] },
-  { id: "plus", name: "Supporter Plus", price: "R49 / mo", blurb: "Get in the game", perks: ["Unlimited event joins", "Priority profile visibility", "Exclusive community groups", "Saved posts library"], highlight: true },
-  { id: "vip", name: "VIP Supporter", price: "R149 / mo", blurb: "Premium experience", perks: ["Everything in Plus", "VIP badge on profile", "Premium supporter lounges", "Exclusive events", "Partner perks (coming soon)"] },
+  { id: "bronze", name: "Free", price: "R0", blurb: "Start connecting", perks: ["Create profile", "Follow supporters", "Join up to 3 events / month", "Community feed"] },
+  { id: "silver", name: "Supporter Plus", price: "R49 / mo", blurb: "Get in the game", perks: ["Unlimited event joins", "Priority profile visibility", "Exclusive community groups", "Saved posts library"], highlight: true },
+  { id: "gold", name: "VIP Supporter", price: "R149 / mo", blurb: "Premium experience", perks: ["Everything in Plus", "VIP badge on profile", "Premium supporter lounges", "Exclusive events", "Partner perks (coming soon)"] },
 ];
 
 const INTEREST_OPTIONS = [
@@ -66,9 +66,9 @@ function AccountPage() {
 
       <section className="px-4 -mt-10">
         <div className="flex items-end gap-3">
-          <AvatarEditor userId={user.id} name={profile?.full_name} url={profile?.avatar_url ?? null} plan={profile?.plan ?? "free"} onUpdated={refreshProfile} />
+          <AvatarEditor userId={user.id} name={profile?.full_name} url={profile?.avatar_url ?? null} plan={profile?.plan ?? "bronze"} onUpdated={refreshProfile} />
           <div className="ml-auto pb-2">
-            <PlanBadge plan={profile?.plan ?? "free"} />
+            <PlanBadge plan={profile?.plan ?? "bronze"} />
           </div>
         </div>
         <h1 className="mt-2 font-display text-2xl font-black">{profile?.full_name || "Supporter"}</h1>
@@ -108,7 +108,7 @@ function AccountPage() {
       {tab === "subscription" && (
         <section className="mt-4 px-4 pb-32 space-y-3">
           <p className="text-sm text-muted-foreground">Choose the plan that fits how you supporter.</p>
-          {PLANS.map((plan) => (<PlanCard key={plan.id} plan={plan} current={profile?.plan ?? "free"} />))}
+          {PLANS.map((plan) => (<PlanCard key={plan.id} plan={plan} current={profile?.plan ?? "bronze"} />))}
           <p className="px-1 pt-2 text-[11px] text-muted-foreground">Billing coming soon. Plans are currently in preview.</p>
         </section>
       )}
@@ -136,9 +136,9 @@ function AccountPage() {
   );
 }
 
-function PlanBadge({ plan }: { plan: "free" | "plus" | "vip" }) {
-  if (plan === "vip") return <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary"><Crown className="h-3 w-3" /> VIP</span>;
-  if (plan === "plus") return <span className="rounded-full bg-accent/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-accent-foreground">Plus</span>;
+function PlanBadge({ plan }: { plan: "bronze" | "silver" | "gold" }) {
+  if (plan === "gold") return <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary"><Crown className="h-3 w-3" /> VIP</span>;
+  if (plan === "silver") return <span className="rounded-full bg-accent/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-accent-foreground">Plus</span>;
   return <span className="rounded-full bg-surface-2 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-muted-foreground">Free</span>;
 }
 
@@ -164,7 +164,7 @@ function CoverEditor({ userId, url, onUpdated }: { userId: string; url: string |
   );
 }
 
-function AvatarEditor({ userId, name, url, plan, onUpdated }: { userId: string; name?: string | null; url: string | null; plan: "free" | "plus" | "vip"; onUpdated: () => void }) {
+function AvatarEditor({ userId, name, url, plan, onUpdated }: { userId: string; name?: string | null; url: string | null; plan: "bronze" | "silver" | "gold"; onUpdated: () => void }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const onPick = async (f: File) => {
@@ -178,7 +178,7 @@ function AvatarEditor({ userId, name, url, plan, onUpdated }: { userId: string; 
   };
   return (
     <div className="relative">
-      <UserAvatar name={name} src={url} size={88} ring={plan === "vip" ? "gold" : null} className="ring-4 ring-background" />
+      <UserAvatar name={name} src={url} size={88} ring={plan === "gold" ? "gold" : null} className="ring-4 ring-background" />
       <button onClick={() => ref.current?.click()} className="absolute -bottom-1 -right-1 grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground shadow">
         {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
       </button>
@@ -289,7 +289,7 @@ function DangerZone({ onLogout }: { onLogout: () => void }) {
   );
 }
 
-function PlanCard({ plan, current }: { plan: (typeof PLANS)[number]; current: "free" | "plus" | "vip" }) {
+function PlanCard({ plan, current }: { plan: (typeof PLANS)[number]; current: "bronze" | "silver" | "gold" }) {
   const isCurrent = plan.id === current;
   const isUpgrade = (PLANS.findIndex((p) => p.id === plan.id) ?? 0) > (PLANS.findIndex((p) => p.id === current) ?? 0);
   return (
@@ -298,7 +298,7 @@ function PlanCard({ plan, current }: { plan: (typeof PLANS)[number]; current: "f
       <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">{plan.blurb}</div>
       <div className="mt-1 flex items-baseline gap-2">
         <div className="font-display text-2xl font-black">{plan.name}</div>
-        {plan.id === "vip" && <Crown className="h-4 w-4 text-primary" />}
+        {plan.id === "gold" && <Crown className="h-4 w-4 text-primary" />}
       </div>
       <div className="mt-1 text-sm text-muted-foreground">{plan.price}</div>
       <ul className="mt-3 space-y-1.5 text-sm">
