@@ -1,16 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
-import { Trophy, Radio, CalendarDays, Loader2, Download, RefreshCw } from "lucide-react";
+import { Trophy, Radio, CalendarDays, Loader2, Download, RefreshCw, Globe } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import type { EventRow } from "@/lib/social";
 import { importWorldCupFixtures, refreshLiveScores } from "@/lib/worldcup.functions";
+import { scrapeWorldCupFromFifa } from "@/lib/wc-scrape.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-
 
 export const Route = createFileRoute("/worldcup")({
   head: () => ({ meta: [
@@ -35,7 +35,7 @@ function WorldCupPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [filter, setFilter] = useState<"all" | "live" | "upcoming" | "finished">("all");
-
+  const scrapeFn = useServerFn(scrapeWorldCupFromFifa);
 
   const isAdminQ = useQuery({
     queryKey: ["is-admin", user?.id],
@@ -58,7 +58,7 @@ function WorldCupPage() {
 
   const importFn = useServerFn(importWorldCupFixtures);
   const refreshFn = useServerFn(refreshLiveScores);
-  const [busy, setBusy] = useState<"import" | "refresh" | null>(null);
+  const [busy, setBusy] = useState<"import" | "refresh" | "scrape" | null>(null);
 
   const grouped = useMemo(() => {
     const list = (matchesQ.data ?? []).filter((m) => {
@@ -96,8 +96,15 @@ function WorldCupPage() {
     } catch (e) { toast.error((e as Error).message); }
     setBusy(null);
   };
-
-
+  const runScrape = async () => {
+    setBusy("scrape");
+    try {
+      const res = await scrapeFn();
+      toast.success(res.message);
+      qc.invalidateQueries({ queryKey: ["wc-matches"] });
+    } catch (e) { toast.error((e as Error).message); }
+    setBusy(null);
+  };
 
   return (
     <PageContainer>
@@ -120,8 +127,9 @@ function WorldCupPage() {
             <button onClick={runRefresh} disabled={busy !== null} className="inline-flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-[11px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground disabled:opacity-60">
               {busy === "refresh" ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />} Refresh live scores
             </button>
-
-
+            <button onClick={runScrape} disabled={busy !== null} className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--sa-gold)]/20 px-3 py-2 text-[11px] font-black uppercase tracking-wider text-[var(--sa-gold)] hover:bg-[var(--sa-gold)]/30 disabled:opacity-60">
+              {busy === "scrape" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Globe className="h-3 w-3" />} Scrape fifa.com now
+            </button>
           </div>
         </section>
       )}
