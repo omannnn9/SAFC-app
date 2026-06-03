@@ -117,9 +117,6 @@ function WorldCupPage() {
             <button onClick={runRefresh} disabled={busy !== null} className="inline-flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-[11px] font-black uppercase tracking-wider text-muted-foreground hover:text-foreground disabled:opacity-60">
               {busy === "refresh" ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />} Refresh live scores
             </button>
-            <button onClick={runScrape} disabled={busy !== null} className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--sa-gold)]/20 px-3 py-2 text-[11px] font-black uppercase tracking-wider text-[var(--sa-gold)] hover:bg-[var(--sa-gold)]/30 disabled:opacity-60">
-              {busy === "scrape" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Globe className="h-3 w-3" />} Scrape fifa.com now
-            </button>
           </div>
         </section>
       )}
