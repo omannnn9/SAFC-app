@@ -95,13 +95,40 @@ function EventChatPage() {
         { event: "INSERT", schema: "public", table: "event_chat_messages", filter: `chat_id=eq.${chatId}` },
         (payload) => {
           const m = payload.new as ChatMessage;
-          setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+          setMessages((prev) => {
+            // Drop matching optimistic temp, then dedupe by id
+            const withoutTemp = prev.filter(
+              (x) => !(x.id.startsWith("tmp-") && x.sender_id === m.sender_id && x.body === m.body),
+            );
+            return withoutTemp.some((x) => x.id === m.id) ? withoutTemp : [...withoutTemp, m];
+          });
         },
       )
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
+  }, [chatId]);
+
+  // Polling fallback in case realtime drops
+  useEffect(() => {
+    const t = setInterval(async () => {
+      const { data } = await db
+        .from("event_chat_messages")
+        .select("id, chat_id, sender_id, body, created_at")
+        .eq("chat_id", chatId)
+        .order("created_at", { ascending: true })
+        .limit(300);
+      if (!data) return;
+      const real = data as ChatMessage[];
+      setMessages((prev) => {
+        const pendingTemps = prev.filter(
+          (x) => x.id.startsWith("tmp-") && !real.some((r) => r.sender_id === x.sender_id && r.body === x.body),
+        );
+        return [...real, ...pendingTemps];
+      });
+    }, 5000);
+    return () => clearInterval(t);
   }, [chatId]);
 
   // Scroll to bottom
@@ -120,11 +147,21 @@ function EventChatPage() {
     if (!body) return;
     setText("");
     setBusy(true);
+    const tempId = `tmp-${Date.now()}`;
+    const optimistic: ChatMessage = {
+      id: tempId,
+      chat_id: chatId,
+      sender_id: user.id,
+      body,
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimistic]);
     const { error } = await db
       .from("event_chat_messages")
       .insert({ chat_id: chatId, sender_id: user.id, body });
     if (error) {
-      toast.error("Couldn't send");
+      toast.error(error.message || "Couldn't send");
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setText(body);
     }
     setBusy(false);
