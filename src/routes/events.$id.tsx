@@ -1,6 +1,7 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { joinEventChat } from "@/lib/event-chat.functions";
 import { CalendarDays, MapPin, Users, ArrowLeft, Check, Star, X as XIcon, Clock, HelpCircle, Camera, Loader2, Radio } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
@@ -39,9 +40,12 @@ function EventDetailPage() {
   const { id } = Route.useParams();
   const { user, profile } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<"feed" | "attendees" | "meetups" | "photos">("feed");
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState<string | undefined>();
+  const [chatId, setChatId] = useState<string | null>(null);
+  const [joiningChat, setJoiningChat] = useState(false);
 
   const eventQ = useQuery({
     queryKey: ["event", id],
@@ -111,13 +115,32 @@ function EventDetailPage() {
       qc.invalidateQueries({ queryKey: ["event-attendees", id] });
       qc.invalidateQueries({ queryKey: ["attendee-counts"] });
       qc.invalidateQueries({ queryKey: ["my-events"] });
-      // Auto-join the official community group for this event
+
       if (next === "going" || next === "interested") {
+        // Legacy: also seed the community group (kept for the Groups page)
         joinEventCommunity({ data: { eventId: id } })
           .then(() => qc.invalidateQueries({ queryKey: ["event-groups", id] }))
           .catch(() => {});
+
+        // Per-event chat: auto-create / auto-join, then navigate when "going"
+        try {
+          const res = await joinEventChat({ data: { eventId: id } });
+          setChatId(res.chatId);
+          if (next === "going") {
+            toast.success("You're going! Opening matchday chat…");
+            navigate({ to: "/event-chat/$id", params: { id: res.chatId } });
+            return;
+          }
+          toast.success("Marked as interested · matchday chat unlocked");
+          return;
+        } catch (err) {
+          console.warn("event chat join failed", err);
+        }
       }
-      toast.success(next === "going" ? "You're going! Joined the event community." : next === "interested" ? "Marked as interested · joined community" : next === "maybe" ? "Marked as maybe" : next === "not_going" ? "Not attending" : "RSVP cleared");
+      toast.success(
+        next === "maybe" ? "Marked as maybe" :
+        next === "not_going" ? "Not attending" : "RSVP cleared"
+      );
     } catch (e) {
       if (e instanceof PlanLimitError) {
         setUpgradeReason(e.message);
@@ -125,6 +148,32 @@ function EventDetailPage() {
         return;
       }
       toast.error("Could not update RSVP");
+    }
+  };
+
+  // Look up existing chat id when user already RSVP'd (for the Join Chat button)
+  useEffect(() => {
+    if (!user || !myAttendance || (myAttendance !== "going" && myAttendance !== "interested")) {
+      setChatId(null);
+      return;
+    }
+    db.from("event_chats").select("id").eq("event_id", id).maybeSingle()
+      .then(({ data }: { data: { id: string } | null }) => setChatId(data?.id ?? null));
+  }, [user, myAttendance, id]);
+
+  const openChat = async () => {
+    if (chatId) {
+      navigate({ to: "/event-chat/$id", params: { id: chatId } });
+      return;
+    }
+    setJoiningChat(true);
+    try {
+      const res = await joinEventChat({ data: { eventId: id } });
+      navigate({ to: "/event-chat/$id", params: { id: res.chatId } });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setJoiningChat(false);
     }
   };
 
@@ -217,8 +266,18 @@ function EventDetailPage() {
             <RsvpBtn active={myAttendance === "maybe"} onClick={() => setRSVP("maybe")} icon={<HelpCircle className="h-4 w-4" />} label="Maybe" />
             <RsvpBtn active={myAttendance === "not_going"} onClick={() => setRSVP("not_going")} icon={<XIcon className="h-4 w-4" />} label="Can't" />
           </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+          <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
             <span className="inline-flex items-center gap-1"><Users className="h-3 w-3 text-primary" /> {goingList.length} going · {interestedList.length} interested · {maybeList.length} maybe</span>
+            {(myAttendance === "going" || myAttendance === "interested") && (
+              <button
+                onClick={openChat}
+                disabled={joiningChat}
+                className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-primary-foreground disabled:opacity-50"
+              >
+                {joiningChat ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                Join chat
+              </button>
+            )}
           </div>
         </div>
       </section>

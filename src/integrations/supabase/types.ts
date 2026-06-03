@@ -233,6 +233,99 @@ export type Database = {
           },
         ]
       }
+      event_chat_members: {
+        Row: {
+          chat_id: string
+          joined_at: string
+          last_read_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          joined_at?: string
+          last_read_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          joined_at?: string
+          last_read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_chat_members_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "event_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_chat_messages: {
+        Row: {
+          body: string
+          chat_id: string
+          created_at: string
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          chat_id: string
+          created_at?: string
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          chat_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_chat_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "event_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_chats: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          event_id: string
+          id: string
+          last_message_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+          id?: string
+          last_message_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+          id?: string
+          last_message_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_chats_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_photos: {
         Row: {
           caption: string | null
@@ -1191,6 +1284,10 @@ export type Database = {
       }
       is_conv_participant: {
         Args: { _conv: string; _user: string }
+        Returns: boolean
+      }
+      is_event_chat_member: {
+        Args: { _chat: string; _user: string }
         Returns: boolean
       }
       log_audit: {
