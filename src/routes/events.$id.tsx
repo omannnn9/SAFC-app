@@ -25,9 +25,10 @@ export const Route = createFileRoute("/events/$id")({
 
 type Attendee = { user_id: string; status: AttendanceStatus; profile: AuthorMini | null };
 
-function useCountdown(target: string) {
+function useCountdown(target?: string | null) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
+  if (!target) return { d: 0, h: 0, m: 0, s: 0, past: true };
   const diff = Math.max(0, new Date(target).getTime() - now);
   const d = Math.floor(diff / 86400000);
   const h = Math.floor((diff % 86400000) / 3600000);
@@ -106,6 +107,8 @@ function EventDetailPage() {
   });
   const followingSet = followingQ.data ?? new Set<string>();
   const friendsGoing = goingList.filter((a) => followingSet.has(a.user_id));
+  const event = eventQ.data;
+  const cd = useCountdown(event?.kickoff);
 
   const setRSVP = async (status: AttendanceStatus) => {
     if (!user) return toast.error("Sign in to RSVP");
@@ -180,9 +183,8 @@ function EventDetailPage() {
   if (eventQ.isLoading) return <PageContainer><AppHeader title="Event" /><div className="glass mx-4 mt-5 h-64 animate-pulse rounded-2xl" /></PageContainer>;
   if (!eventQ.data) return <PageContainer><AppHeader title="Event" /><div className="p-8 text-center text-muted-foreground">Event not found.</div></PageContainer>;
 
-  const event = eventQ.data;
+  if (!event) return <PageContainer><AppHeader title="Event" /><div className="p-8 text-center text-muted-foreground">Event not found.</div></PageContainer>;
   const date = new Date(event.kickoff);
-  const cd = useCountdown(event.kickoff);
   const isLive = event.status === "live";
   const isFinished = event.status === "finished";
   const isWC = event.event_type === "wc_match";
