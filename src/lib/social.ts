@@ -5,15 +5,23 @@ export type EventRow = {
   id: string;
   title: string;
   description: string | null;
-  event_type: "match" | "tournament" | "fan_zone" | "meetup" | "festival";
+  event_type: "wc_match" | "match" | "tournament" | "fan_zone" | "meetup" | "festival" | "travel";
+  stage: "group" | "r32" | "r16" | "qf" | "sf" | "third" | "final" | "friendly" | "other" | null;
   competition: string | null;
   home_team: string | null;
   away_team: string | null;
+  home_team_flag: string | null;
+  away_team_flag: string | null;
   kickoff: string;
   venue: string | null;
   city: string | null;
   country: string | null;
   cover_url: string | null;
+  status: "scheduled" | "live" | "finished";
+  home_score: number | null;
+  away_score: number | null;
+  minute: number | null;
+  is_featured: boolean;
   created_by: string | null;
 };
 
