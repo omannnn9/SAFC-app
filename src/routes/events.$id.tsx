@@ -12,6 +12,7 @@ import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchFeed, setAttendance, fetchEventPhotos, uploadEventPhoto, fetchGroups, PlanLimitError, type AttendanceStatus } from "@/lib/social";
+import { joinEventCommunity } from "@/lib/events.functions";
 import type { EventRow, AuthorMini, EventPhoto, GroupRow } from "@/lib/social";
 import type { Plan } from "@/lib/plans";
 import { toast } from "sonner";
@@ -109,7 +110,14 @@ function EventDetailPage() {
       await setAttendance(id, user.id, next, { plan: (profile?.plan as Plan | undefined) ?? "bronze", currentStatus: myAttendance });
       qc.invalidateQueries({ queryKey: ["event-attendees", id] });
       qc.invalidateQueries({ queryKey: ["attendee-counts"] });
-      toast.success(next === "going" ? "You're going!" : next === "interested" ? "Marked as interested" : next === "maybe" ? "Marked as maybe" : next === "not_going" ? "Not attending" : "RSVP cleared");
+      qc.invalidateQueries({ queryKey: ["my-events"] });
+      // Auto-join the official community group for this event
+      if (next === "going" || next === "interested") {
+        joinEventCommunity({ data: { eventId: id } })
+          .then(() => qc.invalidateQueries({ queryKey: ["event-groups", id] }))
+          .catch(() => {});
+      }
+      toast.success(next === "going" ? "You're going! Joined the event community." : next === "interested" ? "Marked as interested · joined community" : next === "maybe" ? "Marked as maybe" : next === "not_going" ? "Not attending" : "RSVP cleared");
     } catch (e) {
       if (e instanceof PlanLimitError) {
         setUpgradeReason(e.message);
