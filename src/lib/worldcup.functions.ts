@@ -2,6 +2,13 @@
 // Server-only — secrets read inside handler.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+async function assertAdmin(supabase: { from: (t: string) => { select: (s: string) => { eq: (a: string, b: string) => { eq: (a: string, b: string) => { maybeSingle: () => Promise<{ data: unknown }> } } } } }, userId: string) {
+  const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+  if (!data) throw new Error("Admin only");
+}
+
 
 const WC_LEAGUE_ID = 1; // FIFA World Cup (API-Football)
 const WC_SEASON = 2026;
