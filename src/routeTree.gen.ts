@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorldcupRouteImport } from './routes/worldcup'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as RegisterRouteImport } from './routes/register'
@@ -31,6 +32,11 @@ import { Route as ApiPublicHooksMatchPollRouteImport } from './routes/api/public
 import { Route as ApiPublicHooksKickoffReminderRouteImport } from './routes/api/public/hooks/kickoff-reminder'
 import { Route as ApiPublicHooksArticlePollRouteImport } from './routes/api/public/hooks/article-poll'
 
+const WorldcupRoute = WorldcupRouteImport.update({
+  id: '/worldcup',
+  path: '/worldcup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/worldcup': typeof WorldcupRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/worldcup': typeof WorldcupRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/worldcup': typeof WorldcupRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRouteWithChildren
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/search'
     | '/signup'
+    | '/worldcup'
     | '/account'
     | '/admin'
     | '/messages'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/search'
     | '/signup'
+    | '/worldcup'
     | '/account'
     | '/admin'
     | '/messages'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/search'
     | '/signup'
+    | '/worldcup'
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/messages'
@@ -287,6 +299,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
+  WorldcupRoute: typeof WorldcupRoute
   NewsSlugRoute: typeof NewsSlugRoute
   UIdRoute: typeof UIdRoute
   NewsIndexRoute: typeof NewsIndexRoute
@@ -297,6 +310,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/worldcup': {
+      id: '/worldcup'
+      path: '/worldcup'
+      fullPath: '/worldcup'
+      preLoaderRoute: typeof WorldcupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -499,6 +519,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
+  WorldcupRoute: WorldcupRoute,
   NewsSlugRoute: NewsSlugRoute,
   UIdRoute: UIdRoute,
   NewsIndexRoute: NewsIndexRoute,
