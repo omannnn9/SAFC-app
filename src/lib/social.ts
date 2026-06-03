@@ -117,6 +117,21 @@ export async function togglePostLike(postId: string, userId: string, currentlyLi
     await db.from("post_likes").delete().eq("post_id", postId).eq("user_id", userId);
   } else {
     await db.from("post_likes").insert({ post_id: postId, user_id: userId });
+    // Notify post owner
+    const { data: post } = await db.from("posts").select("user_id").eq("id", postId).maybeSingle();
+    const ownerId = (post as { user_id: string } | null)?.user_id;
+    if (ownerId && ownerId !== userId) {
+      const { data: actor } = await db.from("profiles").select("full_name").eq("id", userId).maybeSingle();
+      const name = (actor as { full_name: string } | null)?.full_name || "A supporter";
+      const { createNotification } = await import("@/lib/notifications");
+      await createNotification({
+        userId: ownerId,
+        actorId: userId,
+        type: "like",
+        title: `${name} liked your post`,
+        link: `/u/${userId}`,
+      });
+    }
   }
 }
 
@@ -137,11 +152,14 @@ export async function toggleFollow(targetId: string, userId: string, currentlyFo
     await db.from("follows").delete().eq("follower_id", userId).eq("following_id", targetId);
   } else {
     await db.from("follows").insert({ follower_id: userId, following_id: targetId });
-    await db.from("notifications").insert({
-      user_id: targetId,
+    const { data: actor } = await db.from("profiles").select("full_name").eq("id", userId).maybeSingle();
+    const name = (actor as { full_name: string } | null)?.full_name || "A supporter";
+    const { createNotification } = await import("@/lib/notifications");
+    await createNotification({
+      userId: targetId,
+      actorId: userId,
       type: "follow",
-      title: "New follower",
-      body: "Someone just followed you",
+      title: `${name} followed you`,
       link: `/u/${userId}`,
     });
     await db.from("user_achievements").insert({ user_id: userId, achievement_id: "first_follow" }).then(() => {}, () => {});
