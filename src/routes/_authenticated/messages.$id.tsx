@@ -61,10 +61,30 @@ function ThreadPage() {
   useEffect(() => {
     if (!user) return;
     const unsub = subscribeToMessages(id, (m) => {
-      setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+      setMessages((prev) => {
+        const withoutTemp = prev.filter(
+          (x) => !(x.id.startsWith("tmp-") && x.sender_id === m.sender_id && x.body === m.body && x.image_url === m.image_url),
+        );
+        return withoutTemp.some((x) => x.id === m.id) ? withoutTemp : [...withoutTemp, m];
+      });
       markRead(id, user.id);
     });
     return unsub;
+  }, [id, user]);
+
+  // Polling fallback so chats still update if realtime is delayed or reconnecting.
+  useEffect(() => {
+    if (!user) return;
+    const t = window.setInterval(async () => {
+      const latest = await fetchMessages(id);
+      setMessages((prev) => {
+        const pendingTemps = prev.filter(
+          (x) => x.id.startsWith("tmp-") && !latest.some((m) => m.sender_id === x.sender_id && m.body === x.body && m.image_url === x.image_url),
+        );
+        return [...latest, ...pendingTemps];
+      });
+    }, 5000);
+    return () => window.clearInterval(t);
   }, [id, user]);
 
   // presence
@@ -111,14 +131,26 @@ function ThreadPage() {
   };
 
   const onSend = async () => {
-    if (!user || (!text.trim() && !busy)) return;
+    if (!user || busy) return;
     const body = text.trim();
     if (!body) return;
     setText("");
+    const tempId = `tmp-${Date.now()}`;
+    const optimistic: Message = {
+      id: tempId,
+      conversation_id: id,
+      sender_id: user.id,
+      body,
+      image_url: null,
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimistic]);
     try {
-      await sendMessage(id, user.id, body, null);
+      const sent = await sendMessage(id, user.id, body, null);
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? sent : m)));
     } catch (e) {
-      toast.error("Couldn't send");
+      toast.error((e as Error).message || "Couldn't send");
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setText(body);
     }
   };
