@@ -81,23 +81,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1, viewport-fit=cover",
-      },
-      { name: "theme-color", content: "#000000" },
-      { title: "Bafana Supporters Club" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "theme-color", content: "#1F6E3F" },
+      { title: "SAFC — South African Football Community" },
       {
         name: "description",
         content:
-          "Official supporters club of the South African national football team. News, squad, fixtures, and exclusive content.",
+          "SAFC — South African Football Community. The supporter platform for matchday energy, events, and culture. Join the community.",
       },
-      { name: "author", content: "Bafana Supporters Club" },
-      { property: "og:title", content: "Bafana Supporters Club" },
-      {
-        property: "og:description",
-        content: "Join the Pulse of the Nation — official supporters club for Bafana Bafana.",
-      },
+      { name: "author", content: "SAFC" },
+      { property: "og:title", content: "SAFC — South African Football Community" },
+      { property: "og:description", content: "The supporter platform for South African football culture." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
