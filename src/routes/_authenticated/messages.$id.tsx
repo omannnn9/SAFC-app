@@ -80,6 +80,24 @@ function ThreadPage() {
     if (user) markRead(id, user.id).then(() => qc.invalidateQueries({ queryKey: ["conversations"] }));
   }, [id, user, qc]);
 
+  // poll other participant's last_read_at for read receipts
+  useEffect(() => {
+    if (!user) return;
+    const tick = async () => {
+      const otherId = otherIdRef.current;
+      if (!otherId) return;
+      const { data } = await db
+        .from("conversation_participants")
+        .select("last_read_at")
+        .eq("conversation_id", id)
+        .eq("user_id", otherId)
+        .maybeSingle();
+      if (data) setOtherLastRead((data as { last_read_at: string }).last_read_at);
+    };
+    const t = window.setInterval(tick, 4000);
+    return () => window.clearInterval(t);
+  }, [id, user]);
+
   // scroll to bottom
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -138,13 +156,15 @@ function ThreadPage() {
       <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
         {messages.map((m) => {
           const mine = m.sender_id === user.id;
+          const read = mine && otherLastRead && new Date(m.created_at) <= new Date(otherLastRead);
           return (
             <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${mine ? "bg-primary text-primary-foreground" : "bg-surface-2 text-foreground"}`}>
                 {m.body && <div className="whitespace-pre-wrap">{m.body}</div>}
                 {m.image_url && <img src={m.image_url} alt="" className="mt-1 max-h-72 rounded-lg" />}
-                <div className={`mt-1 text-[9px] ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                  {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                <div className={`mt-1 flex items-center gap-1 text-[9px] ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                  <span>{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                  {mine && (read ? <CheckCheck className="h-3 w-3" /> : <Check className="h-3 w-3 opacity-70" />)}
                 </div>
               </div>
             </div>
