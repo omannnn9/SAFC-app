@@ -63,13 +63,35 @@ export function MockCheckoutModal({
       return;
     }
 
-    // Activate plan (demo: only update profile; payment ledger is skipped)
+    // Activate plan: update profile, then record payment + subscription
     const { error: pErr } = await db.from("profiles").update({ plan: plan.id }).eq("id", userId);
     if (pErr) {
       setStage("failure");
       setError(pErr.message);
       return;
     }
+
+    const priceCents = Math.round(parseFloat(plan.price.match(/[\d.]+/)?.[0] ?? "0") * 100);
+    const ref = `mock_${Date.now()}`;
+
+    await db.from("payments").insert({
+      user_id: userId,
+      amount_cents: priceCents,
+      currency: "ZAR",
+      status: "succeeded",
+      provider: "mock",
+      provider_ref: ref,
+    }).then(() => {}, () => {});
+
+    await db.from("subscriptions").insert({
+      user_id: userId,
+      plan: plan.id,
+      status: "active",
+      provider: "mock",
+      provider_ref: ref,
+      current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    }).then(() => {}, () => {});
+
     await db
       .from("user_achievements")
       .insert({ user_id: userId, achievement_id: `${plan.id}_supporter` })
