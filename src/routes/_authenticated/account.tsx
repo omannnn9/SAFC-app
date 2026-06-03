@@ -371,3 +371,100 @@ function PlanCard({ plan, current, userId, onChanged }: { plan: (typeof PLANS)[n
     </div>
   );
 }
+
+function PrivacyRow() {
+  const { user, profile, refreshProfile } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const isPrivate = !!(profile as any)?.is_private;
+  const toggle = async () => {
+    if (!user) return;
+    setBusy(true);
+    const next = !isPrivate;
+    const { error } = await db.from("profiles").update({ is_private: next }).eq("id", user.id);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    await logAudit("UPDATE", "profile_privacy", user.id, { is_private: isPrivate }, { is_private: next });
+    toast.success(next ? "Profile set to private" : "Profile set to public");
+    refreshProfile();
+  };
+  return (
+    <div className="glass overflow-hidden rounded-2xl">
+      <button onClick={toggle} disabled={busy} className="flex w-full items-center gap-3 px-4 py-3 hover:bg-white/5 disabled:opacity-60">
+        <div className="grid h-8 w-8 place-items-center rounded-md bg-surface-2">
+          {isPrivate ? <Lock className="h-4 w-4 text-[var(--safc-pink)]" /> : <Globe className="h-4 w-4 text-primary" />}
+        </div>
+        <div className="min-w-0 flex-1 text-left">
+          <div className="text-sm font-semibold">{isPrivate ? "Private profile" : "Public profile"}</div>
+          <div className="text-[11px] text-muted-foreground">
+            {isPrivate
+              ? "Only approved followers see your posts. Follow requests required."
+              : "Posts are visible to everyone. Anyone can follow instantly."}
+          </div>
+        </div>
+        <span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${isPrivate ? "bg-[var(--safc-pink)]/15 text-[var(--safc-pink)]" : "bg-primary/15 text-primary"}`}>
+          {busy ? "…" : isPrivate ? "Private" : "Public"}
+        </span>
+      </button>
+    </div>
+  );
+}
+
+function FollowRequestsInbox() {
+  const { user } = useAuth();
+  const q = useQuery({
+    queryKey: ["follow-requests", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await db
+        .from("follows")
+        .select("follower_id, created_at, follower:profiles!follows_follower_id_fkey(id, full_name, avatar_url, username)")
+        .eq("following_id", user!.id)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      // join may not be configured; fall back to manual lookup
+      if (data && data.length > 0 && !data[0].follower) {
+        const ids = data.map((r: any) => r.follower_id);
+        const { data: profs } = await db.from("profiles").select("id, full_name, avatar_url, username").in("id", ids);
+        const byId = new Map((profs ?? []).map((p: any) => [p.id, p]));
+        return data.map((r: any) => ({ ...r, follower: byId.get(r.follower_id) }));
+      }
+      return data ?? [];
+    },
+  });
+
+  const respond = async (followerId: string, accept: boolean) => {
+    if (!user) return;
+    if (accept) {
+      const { error } = await db.from("follows").update({ status: "accepted" }).eq("follower_id", followerId).eq("following_id", user.id);
+      if (error) return toast.error(error.message);
+      await logAudit("UPDATE", "follow_request", `${followerId}->${user.id}`, { status: "pending" }, { status: "accepted" });
+      toast.success("Request accepted");
+    } else {
+      const { error } = await db.from("follows").delete().eq("follower_id", followerId).eq("following_id", user.id);
+      if (error) return toast.error(error.message);
+      await logAudit("DELETE", "follow_request", `${followerId}->${user.id}`, { status: "pending" }, null);
+      toast.success("Request declined");
+    }
+    q.refetch();
+  };
+
+  if (!q.data || q.data.length === 0) return null;
+
+  return (
+    <div className="glass space-y-2 rounded-2xl p-3">
+      <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Follow requests · {q.data.length}</div>
+      {q.data.map((r: any) => (
+        <div key={r.follower_id} className="flex items-center gap-3">
+          <UserAvatar name={r.follower?.full_name} src={r.follower?.avatar_url} size={36} />
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-bold">{r.follower?.full_name ?? "Supporter"}</div>
+            {r.follower?.username && <div className="text-[10px] text-muted-foreground">@{r.follower.username}</div>}
+          </div>
+          <button onClick={() => respond(r.follower_id, true)} className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground"><UserCheck className="h-4 w-4" /></button>
+          <button onClick={() => respond(r.follower_id, false)} className="grid h-8 w-8 place-items-center rounded-full bg-surface-2 text-muted-foreground"><UserX className="h-4 w-4" /></button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
