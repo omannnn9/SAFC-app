@@ -53,7 +53,7 @@ function EventDetailPage() {
 
   const feedQ = useQuery({
     queryKey: ["event-feed", id, user?.id ?? "anon"],
-    queryFn: () => fetchFeed(user?.id ?? null, id),
+    queryFn: () => fetchFeed(user?.id ?? null, { eventId: id }),
   });
 
   const myAttendance = attendeesQ.data?.find((a) => a.user_id === user?.id)?.status ?? null;

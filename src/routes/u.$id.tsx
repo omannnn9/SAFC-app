@@ -54,8 +54,7 @@ function UserPage() {
   const postsQ = useQuery({
     queryKey: ["user-posts", id, user?.id ?? "anon"],
     queryFn: async () => {
-      const all = await fetchFeed(user?.id ?? null);
-      return all.filter((p) => p.user_id === id);
+      return fetchFeed(user?.id ?? null, { userId: id });
     },
   });
 
