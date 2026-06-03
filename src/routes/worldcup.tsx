@@ -58,7 +58,7 @@ function WorldCupPage() {
 
   const importFn = useServerFn(importWorldCupFixtures);
   const refreshFn = useServerFn(refreshLiveScores);
-  const [busy, setBusy] = useState<"import" | "refresh" | null>(null);
+  const [busy, setBusy] = useState<"import" | "refresh" | "scrape" | null>(null);
 
   const grouped = useMemo(() => {
     const list = (matchesQ.data ?? []).filter((m) => {
