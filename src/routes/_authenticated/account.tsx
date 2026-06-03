@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useRef, useState } from "react";
-import { Loader2, LogOut, Check, Camera, Bell, KeyRound, Shield, Sparkles, Star } from "lucide-react";
+import { Loader2, LogOut, Check, Camera, Bell, KeyRound, Shield, Sparkles, Star, Trash2, AlertTriangle } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -11,6 +12,7 @@ import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadUserFile, computeProfileCompletion } from "@/lib/social";
 import { PLANS, planTone, type Plan } from "@/lib/plans";
+import { deleteMyAccount } from "@/lib/account.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/account")({
