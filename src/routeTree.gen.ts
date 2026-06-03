@@ -29,6 +29,7 @@ import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedMessagesIdRouteImport } from './routes/_authenticated/messages.$id'
+import { Route as AuthenticatedEventChatIdRouteImport } from './routes/_authenticated/event-chat.$id'
 import { Route as ApiPublicHooksMatchPollRouteImport } from './routes/api/public/hooks/match-poll'
 import { Route as ApiPublicHooksKickoffReminderRouteImport } from './routes/api/public/hooks/kickoff-reminder'
 import { Route as ApiPublicHooksArticlePollRouteImport } from './routes/api/public/hooks/article-poll'
@@ -133,6 +134,12 @@ const AuthenticatedMessagesIdRoute = AuthenticatedMessagesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedMessagesRoute,
 } as any)
+const AuthenticatedEventChatIdRoute =
+  AuthenticatedEventChatIdRouteImport.update({
+    id: '/event-chat/$id',
+    path: '/event-chat/$id',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const ApiPublicHooksMatchPollRoute = ApiPublicHooksMatchPollRouteImport.update({
   id: '/api/public/hooks/match-poll',
   path: '/api/public/hooks/match-poll',
@@ -170,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
   '/news/': typeof NewsIndexRoute
+  '/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/messages/$id': typeof AuthenticatedMessagesIdRoute
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
   '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
@@ -194,6 +202,7 @@ export interface FileRoutesByTo {
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
   '/news': typeof NewsIndexRoute
+  '/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/messages/$id': typeof AuthenticatedMessagesIdRoute
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
   '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
@@ -220,6 +229,7 @@ export interface FileRoutesById {
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
   '/news/': typeof NewsIndexRoute
+  '/_authenticated/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/_authenticated/messages/$id': typeof AuthenticatedMessagesIdRoute
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
   '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/news/$slug'
     | '/u/$id'
     | '/news/'
+    | '/event-chat/$id'
     | '/messages/$id'
     | '/api/public/hooks/article-poll'
     | '/api/public/hooks/kickoff-reminder'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/news/$slug'
     | '/u/$id'
     | '/news'
+    | '/event-chat/$id'
     | '/messages/$id'
     | '/api/public/hooks/article-poll'
     | '/api/public/hooks/kickoff-reminder'
@@ -295,6 +307,7 @@ export interface FileRouteTypes {
     | '/news/$slug'
     | '/u/$id'
     | '/news/'
+    | '/_authenticated/event-chat/$id'
     | '/_authenticated/messages/$id'
     | '/api/public/hooks/article-poll'
     | '/api/public/hooks/kickoff-reminder'
@@ -462,6 +475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMessagesIdRouteImport
       parentRoute: typeof AuthenticatedMessagesRoute
     }
+    '/_authenticated/event-chat/$id': {
+      id: '/_authenticated/event-chat/$id'
+      path: '/event-chat/$id'
+      fullPath: '/event-chat/$id'
+      preLoaderRoute: typeof AuthenticatedEventChatIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/api/public/hooks/match-poll': {
       id: '/api/public/hooks/match-poll'
       path: '/api/public/hooks/match-poll'
@@ -505,6 +525,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRouteWithChildren
   AuthenticatedMyEventsRoute: typeof AuthenticatedMyEventsRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedEventChatIdRoute: typeof AuthenticatedEventChatIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -513,6 +534,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMessagesRoute: AuthenticatedMessagesRouteWithChildren,
   AuthenticatedMyEventsRoute: AuthenticatedMyEventsRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedEventChatIdRoute: AuthenticatedEventChatIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
