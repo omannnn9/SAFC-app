@@ -148,14 +148,31 @@ export async function toggleFollow(targetId: string, userId: string, currentlyFo
   }
 }
 
+export type AttendanceStatus = "going" | "interested" | "maybe" | "not_going";
+
+export class PlanLimitError extends Error {
+  feature: "join_event";
+  constructor(message: string) { super(message); this.feature = "join_event"; }
+}
+
 export async function setAttendance(
   eventId: string,
   userId: string,
-  status: "going" | "interested" | "not_going" | null,
+  status: AttendanceStatus | null,
+  opts: { plan?: "bronze" | "silver" | "gold"; currentStatus?: AttendanceStatus | null } = {},
 ) {
   if (status === null) {
     await db.from("event_attendees").delete().eq("event_id", eventId).eq("user_id", userId);
     return;
+  }
+  // Bronze monthly cap: 5 going/interested per calendar month
+  if (opts.plan === "bronze" && (status === "going" || status === "interested")) {
+    const wasCounted = opts.currentStatus === "going" || opts.currentStatus === "interested";
+    if (!wasCounted) {
+      const { data } = await db.rpc("monthly_event_joins", { _user: userId });
+      const count = typeof data === "number" ? data : 0;
+      if (count >= 5) throw new PlanLimitError("Bronze members can join up to 5 events per month. Upgrade to Silver for unlimited access.");
+    }
   }
   await db
     .from("event_attendees")
@@ -170,8 +187,62 @@ export async function uploadUserFile(userId: string, file: File, prefix: string)
   const path = `${userId}/${prefix}-${Date.now()}.${ext}`;
   const { error } = await supabase.storage.from("user-content").upload(path, file, { upsert: true });
   if (error) throw error;
-  const { data } = supabase.storage.from("user-content").getPublicUrl(path);
-  return data.publicUrl;
+  // 10-year signed URL (private bucket; public policy reads it too via select RLS)
+  const { data, error: sErr } = await supabase.storage.from("user-content").createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+  if (sErr || !data) throw sErr ?? new Error("Failed to sign URL");
+  return data.signedUrl;
+}
+
+export type EventPhoto = { id: string; event_id: string; user_id: string; image_url: string; caption: string | null; created_at: string; uploader: { full_name: string; username: string | null; avatar_url: string | null } | null };
+
+export async function fetchEventPhotos(eventId: string): Promise<EventPhoto[]> {
+  const { data } = await db.from("event_photos").select("*").eq("event_id", eventId).order("created_at", { ascending: false });
+  const rows = (data ?? []) as EventPhoto[];
+  if (!rows.length) return [];
+  const ids = Array.from(new Set(rows.map((r) => r.user_id)));
+  const { data: profs } = await db.from("profiles").select("id, full_name, username, avatar_url").in("id", ids);
+  const m = new Map(((profs ?? []) as { id: string; full_name: string; username: string | null; avatar_url: string | null }[]).map((p) => [p.id, p]));
+  return rows.map((r) => ({ ...r, uploader: m.get(r.user_id) ?? null }));
+}
+
+export async function uploadEventPhoto(eventId: string, userId: string, file: File, caption?: string) {
+  const url = await uploadUserFile(userId, file, `event-${eventId}`);
+  await db.from("event_photos").insert({ event_id: eventId, user_id: userId, image_url: url, caption: caption ?? null });
+  return url;
+}
+
+export type GroupRow = {
+  id: string; event_id: string | null; type: "travel" | "meetup" | "community" | "private" | "gold";
+  name: string; description: string | null; city: string | null; country: string | null;
+  cover_url: string | null; is_private: boolean; min_plan: "bronze" | "silver" | "gold";
+  owner_id: string; created_at: string; member_count?: number;
+};
+
+export async function fetchGroups(opts: { eventId?: string; type?: GroupRow["type"]; limit?: number } = {}): Promise<GroupRow[]> {
+  let q = db.from("groups").select("*").order("created_at", { ascending: false }).limit(opts.limit ?? 50);
+  if (opts.eventId) q = q.eq("event_id", opts.eventId);
+  if (opts.type) q = q.eq("type", opts.type);
+  const { data } = await q;
+  const rows = (data ?? []) as GroupRow[];
+  if (!rows.length) return [];
+  const { data: members } = await db.from("group_members").select("group_id").in("group_id", rows.map((r) => r.id));
+  const counts = new Map<string, number>();
+  for (const m of (members ?? []) as { group_id: string }[]) counts.set(m.group_id, (counts.get(m.group_id) ?? 0) + 1);
+  return rows.map((r) => ({ ...r, member_count: counts.get(r.id) ?? 0 }));
+}
+
+export async function createGroup(input: Omit<GroupRow, "id" | "created_at" | "member_count">) {
+  const { data, error } = await db.from("groups").insert(input).select("id").single();
+  if (error) throw error;
+  await db.from("group_members").insert({ group_id: (data as { id: string }).id, user_id: input.owner_id, role: "owner" });
+  return (data as { id: string }).id;
+}
+
+export async function joinGroup(groupId: string, userId: string) {
+  await db.from("group_members").insert({ group_id: groupId, user_id: userId });
+}
+export async function leaveGroup(groupId: string, userId: string) {
+  await db.from("group_members").delete().eq("group_id", groupId).eq("user_id", userId);
 }
 
 export type SuggestedUser = AuthorMini & {
