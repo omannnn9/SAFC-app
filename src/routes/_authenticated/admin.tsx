@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Admin — Bafana Connect" }] }),
+  head: () => ({ meta: [{ title: "Admin — SAFC" }] }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getUser();
     const uid = data.user?.id;

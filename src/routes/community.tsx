@@ -21,7 +21,7 @@ type DiscoverProfile = {
 };
 
 export const Route = createFileRoute("/community")({
-  head: () => ({ meta: [{ title: "Community — Bafana Connect" }] }),
+  head: () => ({ meta: [{ title: "Community — SAFC" }] }),
   component: CommunityPage,
 });
 

@@ -16,10 +16,10 @@ import { db } from "@/lib/db";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Bafana Connect — Premium supporter network" },
-      { name: "description", content: "Connect with South African football supporters attending the same matches, tournaments and fan zones." },
-      { property: "og:title", content: "Bafana Connect" },
-      { property: "og:description", content: "The premium social network for South African football supporters." },
+      { title: "SAFC — South African Football Community" },
+      { name: "description", content: "SAFC — connect with South African football supporters attending the same matches, tournaments and fan zones." },
+      { property: "og:title", content: "SAFC" },
+      { property: "og:description", content: "The supporter platform for South African football culture." },
     ],
   }),
   component: HomePage,
@@ -67,10 +67,10 @@ function HomePage() {
       <AppHeader title="Connect" />
 
       <section className="px-4 pt-5">
-        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Bafana Connect</div>
-        <h1 className="mt-1 font-display text-3xl font-black tracking-tight">
+        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">South African Football Community</div>
+        <h1 className="mt-1 font-display text-3xl font-extrabold tracking-tight">
           {user ? `Welcome back, ${profile?.full_name?.split(" ")[0] ?? "supporter"}` : (
-            <>The pulse of <span className="text-gradient-gold">SA supporters</span></>
+            <>The pulse of <span className="text-gradient-safc">SA supporters</span></>
           )}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">Share match-day moments. Meet supporters going to the same events.</p>

@@ -2,11 +2,12 @@ import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-ro
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Mail, Lock, User, Shield, Loader2, Trophy, Eye, EyeOff, CheckCircle2 } from "lucide-react";
-import heroPlayer from "@/assets/hero-player.jpg";
+import { Mail, Lock, User, Shield, Loader2, Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import safcHero from "@/assets/safc-hero.jpg.asset.json";
+import { SafcLogo } from "@/components/SafcLogo";
 
 export const Route = createFileRoute("/signup")({
-  head: () => ({ meta: [{ title: "Join — Bafana Supporters Club" }] }),
+  head: () => ({ meta: [{ title: "Join — SAFC" }] }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (data.session) throw redirect({ to: "/" });
@@ -46,18 +47,12 @@ function SignupPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background">
-      {/* Stadium backdrop */}
+      {/* SAFC deck backdrop */}
       <div className="absolute inset-0">
-        <img src={heroPlayer} alt="" className="h-full w-full object-cover opacity-25 slow-zoom" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/85 to-background" />
-        <div
-          className="absolute inset-0 opacity-60"
-          style={{ background: "var(--gradient-stadium)" }}
-        />
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{ background: "var(--gradient-spotlight)" }}
-        />
+        <img src={safcHero.url} alt="" className="h-full w-full object-cover opacity-40 slow-zoom" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/55 via-background/85 to-background" />
+        <div className="absolute inset-0 mix-blend-overlay opacity-50"
+             style={{ background: "var(--gradient-stadium)" }} />
       </div>
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-10 animate-[reveal-up_0.7s_var(--ease-out-expo)]">
@@ -65,31 +60,32 @@ function SignupPage() {
           <Link to="/" className="text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition">
             ← Back
           </Link>
-          <Link to="/login" className="text-xs font-semibold text-[color:var(--sa-gold)]">
+          <Link to="/login" className="text-xs font-semibold text-[color:var(--safc-yellow)]">
             Sign in →
           </Link>
         </div>
 
         {/* Brand */}
-        <div className="mt-10 flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[color:var(--sa-gold)] shadow-[var(--shadow-glow-gold)]">
-            <Trophy className="h-4.5 w-4.5 text-black" strokeWidth={2.5} />
-          </div>
-          <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
-            Bafana <span className="text-foreground">Supporters Club</span>
+        <div className="mt-10 flex items-center gap-3">
+          <SafcLogo size={44} />
+          <div>
+            <div className="font-display text-sm font-extrabold tracking-tight">SAFC</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              South African Football Community
+            </div>
           </div>
         </div>
 
         <div className="mt-8">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--sa-gold)] live-dot" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--safc-yellow)] live-dot" />
             Free Membership
           </div>
-          <h1 className="font-display text-[2.6rem] font-bold leading-[0.95] tracking-tight">
-            Join the <span className="text-gradient-gold">movement.</span>
+          <h1 className="font-display text-[2.6rem] font-extrabold leading-[0.95] tracking-tight">
+            Join the <span className="text-gradient-safc">movement.</span>
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Become an official supporter — match notifications, exclusive content, and member perks.
+            Become an SAFC supporter — events, fan-zones, exclusive content and the community.
           </p>
         </div>
 
@@ -156,14 +152,14 @@ function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[color:var(--sa-gold)] py-3.5 text-sm font-bold uppercase tracking-[0.14em] text-black shadow-[var(--shadow-glow-gold)] transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60"
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[color:var(--safc-pink)] py-3.5 text-sm font-bold uppercase tracking-[0.14em] text-white shadow-[var(--shadow-glow-pink)] transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60"
           >
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" /> Creating…
               </>
             ) : (
-              "Join Bafana Supporters Club"
+              "Join SAFC"
             )}
           </button>
 

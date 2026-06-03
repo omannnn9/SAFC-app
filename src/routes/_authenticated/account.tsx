@@ -17,7 +17,7 @@ import { deleteMyAccount } from "@/lib/account.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/account")({
-  head: () => ({ meta: [{ title: "Account — Bafana Connect" }] }),
+  head: () => ({ meta: [{ title: "Account — SAFC" }] }),
   component: AccountPage,
 });
 

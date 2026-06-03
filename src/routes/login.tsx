@@ -2,12 +2,13 @@ import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-ro
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Mail, Lock, Eye, EyeOff, Loader2, Trophy } from "lucide-react";
-import heroPlayer from "@/assets/hero-player.jpg";
+import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import safcHero from "@/assets/safc-hero.jpg.asset.json";
+import { SafcLogo } from "@/components/SafcLogo";
 
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — Bafana Supporters Club" }] }),
+  head: () => ({ meta: [{ title: "Sign in — SAFC" }] }),
   validateSearch: (s: Record<string, unknown>): { redirect?: string } => ({
     redirect: typeof s.redirect === "string" ? s.redirect : undefined,
   }),
@@ -38,20 +39,12 @@ function LoginPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background">
-      
-
-      {/* Stadium backdrop */}
+      {/* SAFC deck backdrop */}
       <div className="absolute inset-0">
-        <img src={heroPlayer} alt="" className="h-full w-full object-cover opacity-30 slow-zoom" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/85 to-background" />
-        <div
-          className="absolute inset-0 opacity-60"
-          style={{ background: "var(--gradient-stadium)" }}
-        />
-        <div
-          className="absolute inset-0 opacity-40"
-          style={{ background: "var(--gradient-spotlight)" }}
-        />
+        <img src={safcHero.url} alt="" className="h-full w-full object-cover opacity-45 slow-zoom" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/55 via-background/85 to-background" />
+        <div className="absolute inset-0 mix-blend-overlay opacity-60"
+             style={{ background: "var(--gradient-stadium)" }} />
       </div>
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-10 animate-[reveal-up_0.7s_var(--ease-out-expo)]">
@@ -60,25 +53,26 @@ function LoginPage() {
         </Link>
 
         {/* Brand */}
-        <div className="mt-10 flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[color:var(--sa-green)] shadow-[var(--shadow-glow-green)]">
-            <Trophy className="h-4.5 w-4.5 text-white" strokeWidth={2.5} />
-          </div>
-          <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
-            Bafana <span className="text-foreground">Supporters Club</span>
+        <div className="mt-10 flex items-center gap-3">
+          <SafcLogo size={44} />
+          <div>
+            <div className="font-display text-sm font-extrabold tracking-tight">SAFC</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              South African Football Community
+            </div>
           </div>
         </div>
 
         <div className="mt-8">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--sa-green)] live-dot" />
+            <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--safc-green)] live-dot" />
             Members area
           </div>
-          <h1 className="font-display text-[2.6rem] font-bold leading-[0.95] tracking-tight">
-            Welcome <span className="text-gradient-gold">back.</span>
+          <h1 className="font-display text-[2.6rem] font-extrabold leading-[0.95] tracking-tight">
+            Welcome <span className="text-gradient-safc">back.</span>
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to access live match updates, exclusive news, and member perks.
+            Sign in to the community — match-day energy, events, and supporters near you.
           </p>
         </div>
 

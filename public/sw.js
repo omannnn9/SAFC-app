@@ -1,4 +1,4 @@
-// Bafana Supporters Club — Web Push service worker
+// SAFC — South African Football Community — Web Push service worker
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
@@ -12,14 +12,14 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch (e) {
-    data = { title: "Bafana", body: event.data ? event.data.text() : "" };
+    data = { title: "SAFC", body: event.data ? event.data.text() : "" };
   }
-  const title = data.title || "Bafana Supporters Club";
+  const title = data.title || "SAFC — South African Football Community";
   const options = {
     body: data.body || "",
-    icon: data.icon || "/favicon.ico",
-    badge: "/favicon.ico",
-    tag: data.tag || "bafana",
+    icon: data.icon || "/favicon.png",
+    badge: "/favicon.png",
+    tag: data.tag || "safc",
     data: { url: data.url || "/" },
     vibrate: [80, 40, 80],
     renotify: true,

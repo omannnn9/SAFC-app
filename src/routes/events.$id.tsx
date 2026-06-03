@@ -18,7 +18,7 @@ import type { Plan } from "@/lib/plans";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/events/$id")({
-  head: () => ({ meta: [{ title: "Event — Bafana Connect" }] }),
+  head: () => ({ meta: [{ title: "Event — SAFC" }] }),
   component: EventDetailPage,
 });
 
