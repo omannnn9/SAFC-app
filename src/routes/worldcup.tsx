@@ -34,7 +34,7 @@ function WorldCupPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [filter, setFilter] = useState<"all" | "live" | "upcoming" | "finished">("all");
-  const scrapeFn = useServerFn(scrapeWorldCupFromFifa);
+  
 
   const isAdminQ = useQuery({
     queryKey: ["is-admin", user?.id],
