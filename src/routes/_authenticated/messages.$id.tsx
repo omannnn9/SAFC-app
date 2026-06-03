@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ImagePlus, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, ImagePlus, Send, Loader2, Check, CheckCheck } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -27,11 +27,13 @@ function ThreadPage() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [other, setOther] = useState<AuthorMini | null>(null);
+  const [otherLastRead, setOtherLastRead] = useState<string | null>(null);
   const [presence, setPresence] = useState<Map<string, PresenceMeta>>(new Map());
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimer = useRef<number | null>(null);
   const presenceApi = useRef<{ setTyping: (t: boolean) => Promise<void> } | null>(null);
+  const otherIdRef = useRef<string | null>(null);
 
   // initial load
   useQuery({
@@ -39,12 +41,15 @@ function ThreadPage() {
     queryFn: async () => {
       const [msgs, partsRes] = await Promise.all([
         fetchMessages(id),
-        db.from("conversation_participants").select("user_id").eq("conversation_id", id),
+        db.from("conversation_participants").select("user_id, last_read_at").eq("conversation_id", id),
       ]);
       setMessages(msgs);
-      const otherId = ((partsRes.data ?? []) as { user_id: string }[]).map((r) => r.user_id).find((u) => u !== user?.id);
-      if (otherId) {
-        const { data: prof } = await db.from("profiles").select("id, full_name, username, avatar_url, plan").eq("id", otherId).maybeSingle();
+      const parts = (partsRes.data ?? []) as { user_id: string; last_read_at: string }[];
+      const otherPart = parts.find((r) => r.user_id !== user?.id);
+      if (otherPart) {
+        otherIdRef.current = otherPart.user_id;
+        setOtherLastRead(otherPart.last_read_at);
+        const { data: prof } = await db.from("profiles").select("id, full_name, username, avatar_url, plan").eq("id", otherPart.user_id).maybeSingle();
         setOther((prof as AuthorMini) ?? null);
       }
       return true;
@@ -74,6 +79,24 @@ function ThreadPage() {
   useEffect(() => {
     if (user) markRead(id, user.id).then(() => qc.invalidateQueries({ queryKey: ["conversations"] }));
   }, [id, user, qc]);
+
+  // poll other participant's last_read_at for read receipts
+  useEffect(() => {
+    if (!user) return;
+    const tick = async () => {
+      const otherId = otherIdRef.current;
+      if (!otherId) return;
+      const { data } = await db
+        .from("conversation_participants")
+        .select("last_read_at")
+        .eq("conversation_id", id)
+        .eq("user_id", otherId)
+        .maybeSingle();
+      if (data) setOtherLastRead((data as { last_read_at: string }).last_read_at);
+    };
+    const t = window.setInterval(tick, 4000);
+    return () => window.clearInterval(t);
+  }, [id, user]);
 
   // scroll to bottom
   useEffect(() => {
@@ -133,13 +156,15 @@ function ThreadPage() {
       <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
         {messages.map((m) => {
           const mine = m.sender_id === user.id;
+          const read = mine && otherLastRead && new Date(m.created_at) <= new Date(otherLastRead);
           return (
             <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${mine ? "bg-primary text-primary-foreground" : "bg-surface-2 text-foreground"}`}>
                 {m.body && <div className="whitespace-pre-wrap">{m.body}</div>}
                 {m.image_url && <img src={m.image_url} alt="" className="mt-1 max-h-72 rounded-lg" />}
-                <div className={`mt-1 text-[9px] ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                  {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                <div className={`mt-1 flex items-center gap-1 text-[9px] ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                  <span>{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                  {mine && (read ? <CheckCheck className="h-3 w-3" /> : <Check className="h-3 w-3 opacity-70" />)}
                 </div>
               </div>
             </div>

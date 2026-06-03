@@ -9,7 +9,7 @@ import { FollowButton } from "@/components/FollowButton";
 import { AchievementsList } from "@/components/AchievementsList";
 import { db } from "@/lib/db";
 import { fetchFeed } from "@/lib/social";
-import { findOrCreateDirectConversation } from "@/lib/messaging";
+import { startDirectConversation } from "@/lib/dm.functions";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
@@ -67,10 +67,11 @@ function UserPage() {
     if (!user) return toast.error("Sign in to message");
     if (user.id === id) return;
     try {
-      const cid = await findOrCreateDirectConversation(user.id, id);
-      navigate({ to: "/messages/$id", params: { id: cid } });
+      const res = await startDirectConversation({ data: { recipientId: id } });
+      navigate({ to: "/messages/$id", params: { id: res.conversationId } });
     } catch (e) {
-      toast.error("Couldn't open chat");
+      const msg = (e as Error)?.message ?? "Couldn't open chat";
+      toast.error(msg, { duration: 6000 });
     }
   };
 
