@@ -38,12 +38,12 @@ function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-background">
+    <div className="relative min-h-screen w-full overflow-hidden">
       {/* SAFC deck backdrop */}
       <div className="absolute inset-0">
-        <img src={safcHero.url} alt="" className="h-full w-full object-cover opacity-45 slow-zoom" />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/55 via-background/85 to-background" />
-        <div className="absolute inset-0 mix-blend-overlay opacity-60"
+        <img src={safcHero.url} alt="" className="h-full w-full object-cover opacity-70 slow-zoom" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-[color:var(--safc-green)]/55 to-[color:var(--safc-ink)]/90" />
+        <div className="absolute inset-0 mix-blend-overlay opacity-50"
              style={{ background: "var(--gradient-stadium)" }} />
       </div>
 
