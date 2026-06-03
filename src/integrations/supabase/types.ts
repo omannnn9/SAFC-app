@@ -162,6 +162,251 @@ export type Database = {
         }
         Relationships: []
       }
+      event_attendees: {
+        Row: {
+          created_at: string
+          event_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attendees_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          event_id: string
+          id: string
+          image_url: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          event_id: string
+          id?: string
+          image_url: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          image_url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_photos_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          away_score: number | null
+          away_team: string | null
+          away_team_flag: string | null
+          city: string | null
+          competition: string | null
+          country: string | null
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          event_type: Database["public"]["Enums"]["event_type"]
+          external_id: string | null
+          home_score: number | null
+          home_team: string | null
+          home_team_flag: string | null
+          id: string
+          is_featured: boolean
+          kickoff: string
+          minute: number | null
+          stage: Database["public"]["Enums"]["event_stage"] | null
+          status: string
+          title: string
+          updated_at: string
+          venue: string | null
+        }
+        Insert: {
+          away_score?: number | null
+          away_team?: string | null
+          away_team_flag?: string | null
+          city?: string | null
+          competition?: string | null
+          country?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_type?: Database["public"]["Enums"]["event_type"]
+          external_id?: string | null
+          home_score?: number | null
+          home_team?: string | null
+          home_team_flag?: string | null
+          id?: string
+          is_featured?: boolean
+          kickoff: string
+          minute?: number | null
+          stage?: Database["public"]["Enums"]["event_stage"] | null
+          status?: string
+          title: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Update: {
+          away_score?: number | null
+          away_team?: string | null
+          away_team_flag?: string | null
+          city?: string | null
+          competition?: string | null
+          country?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          event_type?: Database["public"]["Enums"]["event_type"]
+          external_id?: string | null
+          home_score?: number | null
+          home_team?: string | null
+          home_team_flag?: string | null
+          id?: string
+          is_featured?: boolean
+          kickoff?: string
+          minute?: number | null
+          stage?: Database["public"]["Enums"]["event_stage"] | null
+          status?: string
+          title?: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Relationships: []
+      }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+        }
+        Relationships: []
+      }
+      group_members: {
+        Row: {
+          group_id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          city: string | null
+          country: string | null
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          event_id: string | null
+          id: string
+          is_private: boolean
+          min_plan: Database["public"]["Enums"]["membership_plan"]
+          name: string
+          owner_id: string
+          type: Database["public"]["Enums"]["group_type"]
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          event_id?: string | null
+          id?: string
+          is_private?: boolean
+          min_plan?: Database["public"]["Enums"]["membership_plan"]
+          name: string
+          owner_id: string
+          type?: Database["public"]["Enums"]["group_type"]
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          event_id?: string | null
+          id?: string
+          is_private?: boolean
+          min_plan?: Database["public"]["Enums"]["membership_plan"]
+          name?: string
+          owner_id?: string
+          type?: Database["public"]["Enums"]["group_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "groups_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_state: {
         Row: {
           away_score: number | null
@@ -437,6 +682,64 @@ export type Database = {
         }
         Relationships: []
       }
+      post_comments: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_likes: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_saves: {
         Row: {
           created_at: string
@@ -479,45 +782,122 @@ export type Database = {
         }
         Relationships: []
       }
+      posts: {
+        Row: {
+          body: string | null
+          created_at: string
+          event_id: string | null
+          group_id: string | null
+          id: string
+          image_url: string | null
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          event_id?: string | null
+          group_id?: string | null
+          id?: string
+          image_url?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          event_id?: string | null
+          group_id?: string | null
+          id?: string
+          image_url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_visits: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+          visitor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id: string
+          visitor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+          visitor_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
+          city: string | null
           country: string
+          cover_url: string | null
           created_at: string
+          favourite_team: string | null
           full_name: string
           id: string
           interests: string[]
           is_premium: boolean
           last_seen: string | null
           phone: string | null
+          plan: Database["public"]["Enums"]["membership_plan"]
           premium_until: string | null
           updated_at: string
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
           country?: string
+          cover_url?: string | null
           created_at?: string
+          favourite_team?: string | null
           full_name?: string
           id: string
           interests?: string[]
           is_premium?: boolean
           last_seen?: string | null
           phone?: string | null
+          plan?: Database["public"]["Enums"]["membership_plan"]
           premium_until?: string | null
           updated_at?: string
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
           country?: string
+          cover_url?: string | null
           created_at?: string
+          favourite_team?: string | null
           full_name?: string
           id?: string
           interests?: string[]
           is_premium?: boolean
           last_seen?: string | null
           phone?: string | null
+          plan?: Database["public"]["Enums"]["membership_plan"]
           premium_until?: string | null
           updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }
@@ -704,10 +1084,32 @@ export type Database = {
         Args: { _conv: string; _user: string }
         Returns: boolean
       }
+      monthly_event_joins: { Args: { _user: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user"
+      attendance_status: "going" | "interested" | "maybe" | "not_going"
+      event_stage:
+        | "group"
+        | "r32"
+        | "r16"
+        | "qf"
+        | "sf"
+        | "third"
+        | "final"
+        | "friendly"
+        | "other"
+      event_type:
+        | "wc_match"
+        | "match"
+        | "tournament"
+        | "fan_zone"
+        | "meetup"
+        | "festival"
+        | "travel"
+      group_type: "travel" | "meetup" | "community" | "private" | "gold"
       match_status: "upcoming" | "live" | "completed"
+      membership_plan: "bronze" | "silver" | "gold"
       news_category: "team" | "match" | "player" | "supporter"
       player_position: "GK" | "DEF" | "MID" | "FWD"
       subscription_status: "active" | "cancelled" | "expired" | "pending"
@@ -839,7 +1241,30 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      attendance_status: ["going", "interested", "maybe", "not_going"],
+      event_stage: [
+        "group",
+        "r32",
+        "r16",
+        "qf",
+        "sf",
+        "third",
+        "final",
+        "friendly",
+        "other",
+      ],
+      event_type: [
+        "wc_match",
+        "match",
+        "tournament",
+        "fan_zone",
+        "meetup",
+        "festival",
+        "travel",
+      ],
+      group_type: ["travel", "meetup", "community", "private", "gold"],
       match_status: ["upcoming", "live", "completed"],
+      membership_plan: ["bronze", "silver", "gold"],
       news_category: ["team", "match", "player", "supporter"],
       player_position: ["GK", "DEF", "MID", "FWD"],
       subscription_status: ["active", "cancelled", "expired", "pending"],
