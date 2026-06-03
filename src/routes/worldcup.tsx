@@ -95,15 +95,6 @@ function WorldCupPage() {
     } catch (e) { toast.error((e as Error).message); }
     setBusy(null);
   };
-  const runScrape = async () => {
-    setBusy("scrape");
-    try {
-      const res = await scrapeFn();
-      toast.success(res.message);
-      qc.invalidateQueries({ queryKey: ["wc-matches"] });
-    } catch (e) { toast.error((e as Error).message); }
-    setBusy(null);
-  };
 
   return (
     <PageContainer>
