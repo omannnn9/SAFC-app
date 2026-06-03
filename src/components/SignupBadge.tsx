@@ -11,7 +11,8 @@ export function SignupBadge({ hideOn }: { hideOn?: "signup" }) {
     <Link
       to="/signup"
       className="group fixed right-3 top-3 z-50 sm:right-5 sm:top-5"
-      aria-label="Sign up today and join the Bafana movement"
+      aria-label="Sign up today and join the SAFC community"
+
     >
       <div className="relative">
         <span className="absolute -inset-1 rounded-full bg-[color:var(--sa-gold)]/40 blur-md opacity-70 group-hover:opacity-100 transition-opacity" />
