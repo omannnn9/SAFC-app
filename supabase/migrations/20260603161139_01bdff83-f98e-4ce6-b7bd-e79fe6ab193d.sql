@@ -1,0 +1,1 @@
+SELECT cron.unschedule('wc-scrape-refresh') WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'wc-scrape-refresh');

@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/public/hooks/match-poll")({
   },
 });
 
-const SA_TEAM_ID = 1531;
+const SA_TEAM_ID = 1465;
 
 type ApiFixture = {
   fixture: { id: number; status: { short: string; long: string }; date: string };
