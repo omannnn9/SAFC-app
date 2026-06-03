@@ -113,8 +113,9 @@ function UserPage() {
         </div>
         <div className="mt-2 flex items-center gap-2">
           <h1 className="font-display text-2xl font-black">{p.full_name || "Supporter"}</h1>
-          {p.plan === "gold" && <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-primary"><Crown className="h-3 w-3" /> VIP</span>}
-          {p.plan === "silver" && <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-accent-foreground">Plus</span>}
+          {p.plan === "gold" && <span className="inline-flex items-center gap-1 rounded-full bg-[var(--sa-gold)]/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[var(--sa-gold)]"><Crown className="h-3 w-3" /> Gold</span>}
+          {p.plan === "silver" && <span className="rounded-full bg-zinc-300/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-zinc-200">Silver</span>}
+          {p.plan === "bronze" && <span className="rounded-full bg-amber-700/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-500">Bronze</span>}
         </div>
         {p.username && <div className="text-xs text-muted-foreground">@{p.username}</div>}
         {p.bio && <p className="mt-2 text-sm text-foreground/90">{p.bio}</p>}
