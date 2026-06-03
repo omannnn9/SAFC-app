@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Heart, MessageCircle, Share2, Bookmark, CalendarDays, MoreHorizontal, Flag } from "lucide-react";
+import { Heart, MessageCircle, Share2, Bookmark, CalendarDays, MoreHorizontal, Flag, Pencil, Trash2, Check, X, Loader2 } from "lucide-react";
 import { UserAvatar } from "@/components/UserAvatar";
+import { PostComments } from "@/components/PostComments";
 import { useAuth } from "@/lib/auth";
 import { togglePostLike, togglePostSave, recordShare } from "@/lib/social";
 import type { FeedPost } from "@/lib/social";
@@ -14,8 +15,17 @@ export function PostCard({ post, onChange }: { post: FeedPost; onChange?: () => 
   const [saved, setSaved] = useState(post.saved_by_me);
   const [likes, setLikes] = useState(post.likes);
   const [shares, setShares] = useState(post.shares);
+  const [commentCount, setCommentCount] = useState(post.comments);
   const [pending, setPending] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(post.body ?? "");
+  const [body, setBody] = useState(post.body);
+  const [deleted, setDeleted] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const isOwner = user?.id === post.user_id;
 
   const onLike = async () => {
     if (!user) return toast.error("Sign in to like posts");
@@ -51,7 +61,7 @@ export function PostCard({ post, onChange }: { post: FeedPost; onChange?: () => 
   const onShare = async () => {
     const url = `${window.location.origin}/`;
     try {
-      if (navigator.share) await navigator.share({ title: "Bafana Connect", text: post.body ?? "Check this out", url });
+      if (navigator.share) await navigator.share({ title: "Bafana Connect", text: body ?? "Check this out", url });
       else { await navigator.clipboard.writeText(url); toast.success("Link copied"); }
       if (user) { await recordShare(post.id, user.id); setShares((s) => s + 1); }
     } catch { /* user cancel */ }
@@ -65,6 +75,33 @@ export function PostCard({ post, onChange }: { post: FeedPost; onChange?: () => 
     });
     toast.success("Reported — thanks");
   };
+
+  const onDelete = async () => {
+    setMenuOpen(false);
+    if (!confirm("Delete this post? This also removes its comments, likes and shares.")) return;
+    setBusy(true);
+    const { error } = await db.from("posts").delete().eq("id", post.id);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    setDeleted(true);
+    toast.success("Post deleted");
+    onChange?.();
+  };
+
+  const onSaveEdit = async () => {
+    const trimmed = draft.trim();
+    if (!trimmed && !post.image_url) return toast.error("Post can't be empty");
+    if (trimmed.length > 2000) return toast.error("Max 2000 characters");
+    setBusy(true);
+    const { error } = await db.from("posts").update({ body: trimmed || null }).eq("id", post.id);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    setBody(trimmed || null);
+    setEditing(false);
+    toast.success("Post updated");
+  };
+
+  if (deleted) return null;
 
   const when = new Date(post.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short" });
 
@@ -91,15 +128,47 @@ export function PostCard({ post, onChange }: { post: FeedPost; onChange?: () => 
           </button>
           {menuOpen && (
             <div className="absolute right-0 top-9 z-10 w-40 overflow-hidden rounded-xl bg-popover shadow-lg ring-1 ring-border">
-              <button onClick={onReport} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-white/5">
-                <Flag className="h-3.5 w-3.5" /> Report post
-              </button>
+              {isOwner ? (
+                <>
+                  <button onClick={() => { setEditing(true); setMenuOpen(false); }} className="flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-white/5">
+                    <Pencil className="h-3.5 w-3.5" /> Edit post
+                  </button>
+                  <button onClick={onDelete} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-destructive hover:bg-white/5">
+                    <Trash2 className="h-3.5 w-3.5" /> Delete post
+                  </button>
+                </>
+              ) : (
+                <button onClick={onReport} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-white/5">
+                  <Flag className="h-3.5 w-3.5" /> Report post
+                </button>
+              )}
             </div>
           )}
         </div>
       </header>
 
-      {post.body && <p className="px-4 pt-3 text-[15px] leading-relaxed whitespace-pre-wrap">{post.body}</p>}
+      {editing ? (
+        <div className="px-4 pt-3">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={3}
+            maxLength={2000}
+            className="w-full resize-none rounded-lg bg-surface-2 px-3 py-2 text-sm outline-none ring-1 ring-border focus:ring-primary"
+          />
+          <div className="mt-2 flex gap-2">
+            <button onClick={onSaveEdit} disabled={busy} className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground disabled:opacity-50">
+              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />} Save
+            </button>
+            <button onClick={() => { setEditing(false); setDraft(body ?? ""); }} className="flex items-center gap-1 rounded-md bg-surface-2 px-3 py-1.5 text-xs font-bold">
+              <X className="h-3.5 w-3.5" /> Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        body && <p className="px-4 pt-3 text-[15px] leading-relaxed whitespace-pre-wrap">{body}</p>
+      )}
+
       {post.image_url && (
         <div className="mt-3">
           <img src={post.image_url} alt="" className="max-h-[520px] w-full object-cover" loading="lazy" />
@@ -123,9 +192,12 @@ export function PostCard({ post, onChange }: { post: FeedPost; onChange?: () => 
         >
           <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} /> {likes}
         </button>
-        <div className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-muted-foreground">
-          <MessageCircle className="h-4 w-4" /> {post.comments}
-        </div>
+        <button
+          onClick={() => setShowComments((o) => !o)}
+          className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition ${showComments ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          <MessageCircle className="h-4 w-4" /> {commentCount}
+        </button>
         <button onClick={onShare} className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground">
           <Share2 className="h-4 w-4" /> {shares > 0 ? shares : ""}
         </button>
@@ -136,6 +208,8 @@ export function PostCard({ post, onChange }: { post: FeedPost; onChange?: () => 
           <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
         </button>
       </footer>
+
+      {showComments && <PostComments postId={post.id} onCountChange={setCommentCount} />}
     </article>
   );
 }

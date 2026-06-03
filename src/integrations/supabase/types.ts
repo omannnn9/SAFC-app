@@ -688,6 +688,7 @@ export type Database = {
           created_at: string
           id: string
           post_id: string
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -695,6 +696,7 @@ export type Database = {
           created_at?: string
           id?: string
           post_id: string
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -702,6 +704,7 @@ export type Database = {
           created_at?: string
           id?: string
           post_id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -756,7 +759,15 @@ export type Database = {
           post_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "post_saves_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       post_shares: {
         Row: {
@@ -780,7 +791,15 @@ export type Database = {
           post_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "post_shares_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       posts: {
         Row: {
@@ -849,10 +868,12 @@ export type Database = {
           country: string
           cover_url: string | null
           created_at: string
+          deleted_at: string | null
           favourite_team: string | null
           full_name: string
           id: string
           interests: string[]
+          is_deleted: boolean
           is_premium: boolean
           last_seen: string | null
           phone: string | null
@@ -868,10 +889,12 @@ export type Database = {
           country?: string
           cover_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           favourite_team?: string | null
           full_name?: string
           id: string
           interests?: string[]
+          is_deleted?: boolean
           is_premium?: boolean
           last_seen?: string | null
           phone?: string | null
@@ -887,10 +910,12 @@ export type Database = {
           country?: string
           cover_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           favourite_team?: string | null
           full_name?: string
           id?: string
           interests?: string[]
+          is_deleted?: boolean
           is_premium?: boolean
           last_seen?: string | null
           phone?: string | null
