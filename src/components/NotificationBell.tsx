@@ -1,122 +1,150 @@
-import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import { Bell, BellOff, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { Bell, Loader2, CheckCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { getVapidPublic, subscribePush, unsubscribePush } from "@/lib/push.functions";
+import {
+  fetchMyNotifications,
+  fetchUnreadCount,
+  markAllRead,
+  markOneRead,
+  subscribeToMyNotifications,
+  type NotificationRow,
+} from "@/lib/notifications";
 
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const raw = atob(base64);
-  const out = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
-  return out;
-}
-
-function arrayBufferToB64Url(buf: ArrayBuffer | null): string {
-  if (!buf) return "";
-  const bytes = new Uint8Array(buf);
-  let s = "";
-  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
-  return btoa(s).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+function relTime(iso: string) {
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+  return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short" });
 }
 
 export function NotificationBell() {
   const { user } = useAuth();
-  const [supported, setSupported] = useState(false);
-  const [subscribed, setSubscribed] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const fetchKey = useServerFn(getVapidPublic);
-  const subscribe = useServerFn(subscribePush);
-  const unsubscribe = useServerFn(unsubscribePush);
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState<NotificationRow[]>([]);
+  const [unread, setUnread] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const popRef = useRef<HTMLDivElement>(null);
 
+  // Initial count + realtime subscription
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const inIframe = (() => {
-      try { return window.self !== window.top; } catch { return true; }
-    })();
-    const previewHost =
-      window.location.hostname.includes("id-preview--") ||
-      window.location.hostname.includes("lovableproject.com");
-    const ok = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window && !inIframe && !previewHost;
-    setSupported(ok);
-    if (!ok) return;
-    navigator.serviceWorker
-      .register("/sw.js")
-      .then((reg) => reg.pushManager.getSubscription())
-      .then((sub) => setSubscribed(!!sub))
-      .catch(() => {});
-  }, []);
+    if (!user) return;
+    let unsub: (() => void) | undefined;
+    fetchUnreadCount().then(setUnread).catch(() => {});
+    unsub = subscribeToMyNotifications(user.id, (n) => {
+      setUnread((c) => c + 1);
+      setItems((prev) => [n, ...prev].slice(0, 30));
+    });
+    return () => {
+      unsub?.();
+    };
+  }, [user]);
 
-  if (!supported || !user) return null;
+  // Click outside to close
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (popRef.current && !popRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
 
-  const enable = async () => {
-    setBusy(true);
-    try {
-      const perm = await Notification.requestPermission();
-      if (perm !== "granted") {
-        toast.error("Notifications blocked. Enable them in your browser settings.");
-        return;
-      }
-      const reg = await navigator.serviceWorker.register("/sw.js");
-      const { publicKey } = await fetchKey();
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey).buffer as ArrayBuffer,
-      });
-      const json = sub.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
-      await subscribe({
-        data: {
-          endpoint: json.endpoint!,
-          p256dh: json.keys?.p256dh ?? arrayBufferToB64Url(sub.getKey("p256dh")),
-          auth: json.keys?.auth ?? arrayBufferToB64Url(sub.getKey("auth")),
-          userAgent: navigator.userAgent.slice(0, 500),
-        },
-      });
-      setSubscribed(true);
-      toast.success("Notifications enabled! 🔔");
-    } catch (e) {
-      console.error(e);
-      toast.error("Couldn't enable notifications");
-    } finally {
-      setBusy(false);
+  const openPanel = async () => {
+    setOpen((o) => !o);
+    if (!open && user) {
+      setLoading(true);
+      const list = await fetchMyNotifications(30);
+      setItems(list);
+      setLoading(false);
     }
   };
 
-  const disable = async () => {
-    setBusy(true);
-    try {
-      const reg = await navigator.serviceWorker.getRegistration();
-      const sub = await reg?.pushManager.getSubscription();
-      if (sub) {
-        await unsubscribe({ data: { endpoint: sub.endpoint } });
-        await sub.unsubscribe();
-      }
-      setSubscribed(false);
-      toast.success("Notifications turned off");
-    } catch (e) {
-      console.error(e);
-      toast.error("Couldn't unsubscribe");
-    } finally {
-      setBusy(false);
-    }
+  const onClear = async () => {
+    if (!user) return;
+    await markAllRead(user.id);
+    setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+    setUnread(0);
   };
+
+  const onItemClick = async (n: NotificationRow) => {
+    if (!n.read) {
+      await markOneRead(n.id);
+      setItems((prev) => prev.map((x) => (x.id === n.id ? { ...x, read: true } : x)));
+      setUnread((c) => Math.max(0, c - 1));
+    }
+    setOpen(false);
+  };
+
+  if (!user) return null;
 
   return (
-    <button
-      onClick={subscribed ? disable : enable}
-      disabled={busy}
-      aria-label={subscribed ? "Disable notifications" : "Enable notifications"}
-      className="glass grid h-9 w-9 place-items-center rounded-full transition hover:ring-glow-gold disabled:opacity-50"
-    >
-      {busy ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : subscribed ? (
-        <Bell className="h-4 w-4 text-primary" />
-      ) : (
-        <BellOff className="h-4 w-4 text-muted-foreground" />
+    <div className="relative" ref={popRef}>
+      <button
+        onClick={openPanel}
+        aria-label="Notifications"
+        className="glass relative grid h-9 w-9 place-items-center rounded-full transition hover:ring-glow-gold"
+      >
+        <Bell className="h-4 w-4" />
+        {unread > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 grid min-h-[18px] min-w-[18px] place-items-center rounded-full bg-primary px-1 text-[10px] font-black text-primary-foreground">
+            {unread > 99 ? "99+" : unread}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-11 z-50 w-[340px] max-w-[92vw] overflow-hidden rounded-2xl border border-border bg-popover shadow-2xl">
+          <div className="flex items-center justify-between border-b border-border/40 px-4 py-3">
+            <div className="font-display text-sm font-black">Notifications</div>
+            {unread > 0 && (
+              <button onClick={onClear} className="flex items-center gap-1 text-[11px] font-bold text-primary hover:underline">
+                <CheckCheck className="h-3 w-3" /> Mark all read
+              </button>
+            )}
+          </div>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {loading ? (
+              <div className="flex justify-center py-6"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+            ) : items.length === 0 ? (
+              <div className="px-4 py-8 text-center text-sm text-muted-foreground">No notifications yet</div>
+            ) : (
+              <ul className="divide-y divide-border/30">
+                {items.map((n) => {
+                  const content = (
+                    <div className={`flex items-start gap-3 px-4 py-3 transition hover:bg-white/5 ${!n.read ? "bg-primary/5" : ""}`}>
+                      {!n.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />}
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-semibold">{n.title}</div>
+                        {n.body && <div className="line-clamp-2 text-xs text-muted-foreground">{n.body}</div>}
+                        <div className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">{relTime(n.created_at)}</div>
+                      </div>
+                    </div>
+                  );
+                  return (
+                    <li key={n.id}>
+                      {n.link ? (
+                        <Link to={n.link} onClick={() => onItemClick(n)} className="block">{content}</Link>
+                      ) : (
+                        <button onClick={() => onItemClick(n)} className="block w-full text-left">{content}</button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+          <Link
+            to="/notifications"
+            onClick={() => setOpen(false)}
+            className="block border-t border-border/40 px-4 py-2.5 text-center text-xs font-bold text-primary hover:bg-white/5"
+          >
+            Notification settings
+          </Link>
+        </div>
       )}
-    </button>
+    </div>
   );
 }
