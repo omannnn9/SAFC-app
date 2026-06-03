@@ -144,7 +144,7 @@ function ArticlePage() {
               Unlock the full story with Bafana Premium Pass.
             </p>
             <Link
-              to="/premium"
+              to="/account"
               className="mt-4 inline-flex rounded-full bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground"
             >
               Upgrade
