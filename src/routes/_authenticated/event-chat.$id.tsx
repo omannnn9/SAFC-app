@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Send, Users, Loader2, Clock } from "lucide-react";
-import { AppHeader } from "@/components/AppHeader";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -178,11 +177,8 @@ function EventChatPage() {
     : event?.title ?? "Event chat";
 
   return (
-    <div className="flex h-dvh flex-col">
-      <AppHeader title="Event chat" />
-
-      {/* Header card */}
-      <div className="mx-4 mt-3 flex items-center gap-3 rounded-[28px] border border-border bg-[color-mix(in_oklab,var(--safc-green)_24%,transparent)] p-3 shadow-card-lift">
+    <div className="flex h-dvh flex-col bg-background">
+      <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-[color-mix(in_oklab,var(--safc-green)_34%,var(--background))] px-3 py-3 shadow-card-lift">
         <button
           onClick={() => navigate({ to: "/events/$id", params: { id: event?.id ?? "" } })}
           className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-white/5"
