@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Bell, Loader2, CheckCheck } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import {
