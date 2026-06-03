@@ -13,6 +13,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as GroupsRouteImport } from './routes/groups'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -48,6 +49,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroupsRoute = GroupsRouteImport.update({
+  id: '/groups',
+  path: '/groups',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsRoute = EventsRouteImport.update({
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/community': typeof CommunityRoute
   '/events': typeof EventsRouteWithChildren
+  '/groups': typeof GroupsRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/community': typeof CommunityRoute
   '/events': typeof EventsRouteWithChildren
+  '/groups': typeof GroupsRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/community': typeof CommunityRoute
   '/events': typeof EventsRouteWithChildren
+  '/groups': typeof GroupsRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/'
     | '/community'
     | '/events'
+    | '/groups'
     | '/login'
     | '/register'
     | '/search'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/'
     | '/community'
     | '/events'
+    | '/groups'
     | '/login'
     | '/register'
     | '/search'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/community'
     | '/events'
+    | '/groups'
     | '/login'
     | '/register'
     | '/search'
@@ -270,6 +282,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   CommunityRoute: typeof CommunityRoute
   EventsRoute: typeof EventsRouteWithChildren
+  GroupsRoute: typeof GroupsRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   SearchRoute: typeof SearchRoute
@@ -310,6 +323,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/groups': {
+      id: '/groups'
+      path: '/groups'
+      fullPath: '/groups'
+      preLoaderRoute: typeof GroupsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events': {
@@ -474,6 +494,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   CommunityRoute: CommunityRoute,
   EventsRoute: EventsRouteWithChildren,
+  GroupsRoute: GroupsRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   SearchRoute: SearchRoute,
