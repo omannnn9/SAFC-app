@@ -126,11 +126,15 @@ export function NotificationBell() {
                   );
                   return (
                     <li key={n.id}>
-                      {n.link ? (
-                        <Link to={n.link} onClick={() => onItemClick(n)} className="block">{content}</Link>
-                      ) : (
-                        <button onClick={() => onItemClick(n)} className="block w-full text-left">{content}</button>
-                      )}
+                      <button
+                        onClick={() => {
+                          onItemClick(n);
+                          if (n.link) navigate({ to: n.link });
+                        }}
+                        className="block w-full text-left"
+                      >
+                        {content}
+                      </button>
                     </li>
                   );
                 })}
