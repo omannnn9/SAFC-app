@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
 import { PlanBadge } from "@/components/PlanBadge";
+import { MockCheckoutModal } from "@/components/MockCheckoutModal";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
