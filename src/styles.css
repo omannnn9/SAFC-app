@@ -283,6 +283,27 @@
   .animate-scale-in { animation: scale-in 0.25s var(--ease-out-expo) both; }
   .hover-scale { transition: transform 0.2s var(--ease-out-expo); }
   .hover-scale:hover { transform: scale(1.03); }
+
+  /* SAFC poster backdrop — deck imagery, darkened, with brand tint */
+  .safc-backdrop {
+    position: absolute; inset: 0; overflow: hidden; z-index: 0;
+    background-image:
+      linear-gradient(180deg,
+        color-mix(in oklab, var(--safc-green) 35%, #000 65%) 0%,
+        color-mix(in oklab, var(--safc-green) 18%, #000 82%) 100%),
+      url("/__l5e/assets-v1/d2164c56-7db8-4c27-b85a-ac119cd06178/safc-texture.jpg");
+    background-size: cover, 140%;
+    background-position: center, center;
+    background-blend-mode: multiply, normal;
+  }
+  .safc-backdrop::after {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at top, color-mix(in oklab, var(--safc-pink) 25%, transparent), transparent 55%),
+      radial-gradient(ellipse at bottom right, color-mix(in oklab, var(--safc-cobalt) 25%, transparent), transparent 55%);
+    pointer-events: none;
+  }
 }
 
 /* Scraped news article rendering */
