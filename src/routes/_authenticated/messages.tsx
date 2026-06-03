@@ -14,8 +14,12 @@ export const Route = createFileRoute("/_authenticated/messages")({
 
 function MessagesInbox() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { user } = useAuth();
   if (path !== "/messages" && path !== "/messages/") return <Outlet />;
+  return <MessagesIndex />;
+}
+
+function MessagesIndex() {
+  const { user } = useAuth();
 
   const q = useQuery({
     queryKey: ["conversations", user?.id],
