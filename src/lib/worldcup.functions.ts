@@ -91,8 +91,10 @@ export const importWorldCupFixtures = createServerFn({ method: "POST" }).middlew
 });
 
 export const refreshLiveScores = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ live: z.boolean().optional() }).parse)
-  .handler(async () => {
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase as never, context.userId);
     const key = process.env.API_FOOTBALL_KEY;
     if (!key) throw new Error("API_FOOTBALL_KEY not configured");
 
