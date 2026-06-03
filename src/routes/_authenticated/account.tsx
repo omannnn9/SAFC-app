@@ -328,17 +328,7 @@ function PlanCard({ plan, current, userId, onChanged }: { plan: (typeof PLANS)[n
   const isCurrent = plan.id === current;
   const rank = { bronze: 0, silver: 1, gold: 2 } as const;
   const isUpgrade = rank[plan.id] > rank[current];
-  const [busy, setBusy] = useState(false);
-  const choose = async () => {
-    if (isCurrent) return;
-    setBusy(true);
-    const { error } = await db.from("profiles").update({ plan: plan.id }).eq("id", userId);
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    await db.from("user_achievements").insert({ user_id: userId, achievement_id: `${plan.id}_supporter` }).then(() => {}, () => {});
-    toast.success(`Welcome to ${plan.name} ${plan.badge}`);
-    onChanged();
-  };
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   return (
     <div className={`glass relative overflow-hidden rounded-2xl p-5 ring-1 ${plan.highlight ? "ring-2 ring-[var(--sa-gold)]/60 shadow-[0_0_40px_-12px_var(--sa-gold)]" : "ring-border/40"}`}>
       {plan.highlight && (
@@ -361,12 +351,19 @@ function PlanCard({ plan, current, userId, onChanged }: { plan: (typeof PLANS)[n
         {plan.perks.map((perk) => (<li key={perk} className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> {perk}</li>))}
       </ul>
       <button
-        disabled={isCurrent || busy}
-        onClick={choose}
+        disabled={isCurrent}
+        onClick={() => setCheckoutOpen(true)}
         className={`mt-4 w-full rounded-xl py-3 text-xs font-black uppercase tracking-wider transition disabled:opacity-60 ${isCurrent ? "bg-surface-2 text-muted-foreground" : plan.highlight ? "bg-[var(--sa-gold)] text-black hover:opacity-90" : "bg-primary text-primary-foreground hover:opacity-90"}`}
       >
-        {busy ? "Updating…" : isCurrent ? "Current plan" : isUpgrade ? `Upgrade to ${plan.name}` : `Switch to ${plan.name}`}
+        {isCurrent ? "Current plan" : isUpgrade ? `Upgrade to ${plan.name}` : `Switch to ${plan.name}`}
       </button>
+      <MockCheckoutModal
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        plan={plan}
+        userId={userId}
+        onSuccess={onChanged}
+      />
     </div>
   );
 }
