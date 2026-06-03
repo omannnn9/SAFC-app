@@ -16,8 +16,12 @@ export const Route = createFileRoute("/events")({
 
 function EventsPage() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { user } = useAuth();
   if (path !== "/events" && path !== "/events/") return <Outlet />;
+  return <EventsIndex />;
+}
+
+function EventsIndex() {
+  const { user } = useAuth();
 
   const eventsQ = useQuery({
     queryKey: ["events-all"],
