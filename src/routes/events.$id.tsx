@@ -65,6 +65,19 @@ function EventDetailPage() {
     return () => { supabase.removeChannel(ch); };
   }, [id, qc]);
 
+  // Realtime RSVP counts + attendee list
+  useEffect(() => {
+    const ch = supabase
+      .channel(`event-attendees-${id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_attendees", filter: `event_id=eq.${id}` }, () => {
+        qc.invalidateQueries({ queryKey: ["event-attendees", id] });
+        qc.invalidateQueries({ queryKey: ["attendee-counts"] });
+        qc.invalidateQueries({ queryKey: ["my-events"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [id, qc]);
+
   const attendeesQ = useQuery({
     queryKey: ["event-attendees", id],
     queryFn: async (): Promise<Attendee[]> => {
@@ -115,6 +128,18 @@ function EventDetailPage() {
     const next = myAttendance === status ? null : status;
     try {
       await setAttendance(id, user.id, next, { plan: (profile?.plan as Plan | undefined) ?? "bronze", currentStatus: myAttendance });
+      qc.setQueryData<Attendee[]>(["event-attendees", id], (prev = []) => {
+        const withoutMe = prev.filter((a) => a.user_id !== user.id);
+        if (!next) return withoutMe;
+        const me: AuthorMini = {
+          id: user.id,
+          full_name: profile?.full_name ?? user.email ?? "Supporter",
+          username: profile?.username ?? null,
+          avatar_url: profile?.avatar_url ?? null,
+          plan: (profile?.plan as Plan | undefined) ?? "bronze",
+        };
+        return [...withoutMe, { user_id: user.id, status: next, profile: me }];
+      });
       qc.invalidateQueries({ queryKey: ["event-attendees", id] });
       qc.invalidateQueries({ queryKey: ["attendee-counts"] });
       qc.invalidateQueries({ queryKey: ["my-events"] });
