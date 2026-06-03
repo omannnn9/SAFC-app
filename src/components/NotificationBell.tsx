@@ -129,7 +129,7 @@ export function NotificationBell() {
                       <button
                         onClick={() => {
                           onItemClick(n);
-                          if (n.link) navigate({ to: n.link });
+                          if (n.link) navigate({ to: n.link as string });
                         }}
                         className="block w-full text-left"
                       >
