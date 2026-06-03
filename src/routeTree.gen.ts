@@ -28,6 +28,7 @@ import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedMessagesIdRouteImport } from './routes/_authenticated/messages.$id'
+import { Route as ApiPublicHooksWcScrapeRouteImport } from './routes/api/public/hooks/wc-scrape'
 import { Route as ApiPublicHooksMatchPollRouteImport } from './routes/api/public/hooks/match-poll'
 import { Route as ApiPublicHooksKickoffReminderRouteImport } from './routes/api/public/hooks/kickoff-reminder'
 import { Route as ApiPublicHooksArticlePollRouteImport } from './routes/api/public/hooks/article-poll'
@@ -127,6 +128,11 @@ const AuthenticatedMessagesIdRoute = AuthenticatedMessagesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedMessagesRoute,
 } as any)
+const ApiPublicHooksWcScrapeRoute = ApiPublicHooksWcScrapeRouteImport.update({
+  id: '/api/public/hooks/wc-scrape',
+  path: '/api/public/hooks/wc-scrape',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksMatchPollRoute = ApiPublicHooksMatchPollRouteImport.update({
   id: '/api/public/hooks/match-poll',
   path: '/api/public/hooks/match-poll',
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
   '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
   '/api/public/hooks/match-poll': typeof ApiPublicHooksMatchPollRoute
+  '/api/public/hooks/wc-scrape': typeof ApiPublicHooksWcScrapeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -190,6 +197,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
   '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
   '/api/public/hooks/match-poll': typeof ApiPublicHooksMatchPollRoute
+  '/api/public/hooks/wc-scrape': typeof ApiPublicHooksWcScrapeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -215,6 +223,7 @@ export interface FileRoutesById {
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
   '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
   '/api/public/hooks/match-poll': typeof ApiPublicHooksMatchPollRoute
+  '/api/public/hooks/wc-scrape': typeof ApiPublicHooksWcScrapeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -240,6 +249,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/article-poll'
     | '/api/public/hooks/kickoff-reminder'
     | '/api/public/hooks/match-poll'
+    | '/api/public/hooks/wc-scrape'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/article-poll'
     | '/api/public/hooks/kickoff-reminder'
     | '/api/public/hooks/match-poll'
+    | '/api/public/hooks/wc-scrape'
   id:
     | '__root__'
     | '/'
@@ -287,6 +298,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/article-poll'
     | '/api/public/hooks/kickoff-reminder'
     | '/api/public/hooks/match-poll'
+    | '/api/public/hooks/wc-scrape'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -306,6 +318,7 @@ export interface RootRouteChildren {
   ApiPublicHooksArticlePollRoute: typeof ApiPublicHooksArticlePollRoute
   ApiPublicHooksKickoffReminderRoute: typeof ApiPublicHooksKickoffReminderRoute
   ApiPublicHooksMatchPollRoute: typeof ApiPublicHooksMatchPollRoute
+  ApiPublicHooksWcScrapeRoute: typeof ApiPublicHooksWcScrapeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -443,6 +456,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMessagesIdRouteImport
       parentRoute: typeof AuthenticatedMessagesRoute
     }
+    '/api/public/hooks/wc-scrape': {
+      id: '/api/public/hooks/wc-scrape'
+      path: '/api/public/hooks/wc-scrape'
+      fullPath: '/api/public/hooks/wc-scrape'
+      preLoaderRoute: typeof ApiPublicHooksWcScrapeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/match-poll': {
       id: '/api/public/hooks/match-poll'
       path: '/api/public/hooks/match-poll'
@@ -526,6 +546,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksArticlePollRoute: ApiPublicHooksArticlePollRoute,
   ApiPublicHooksKickoffReminderRoute: ApiPublicHooksKickoffReminderRoute,
   ApiPublicHooksMatchPollRoute: ApiPublicHooksMatchPollRoute,
+  ApiPublicHooksWcScrapeRoute: ApiPublicHooksWcScrapeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
