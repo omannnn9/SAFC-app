@@ -10,11 +10,6 @@ import { nitro } from "nitro/vite";
 // - nitro preset "vercel": emits .vercel/output for Vercel serverless deploy
 // - default start entry: src/start.ts
 export default defineConfig({
-  build: {
-    rollupOptions: {
-      external: ["undici"],
-    },
-  },
   plugins: [
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
     tailwindcss(),

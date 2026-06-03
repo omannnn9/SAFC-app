@@ -288,12 +288,11 @@ export async function enrichSafaFixturesWithImages(
   return out;
 }
 
-// ============= PLAYER PHOTOS (via Firecrawl) =============
+// ============= PLAYER PHOTOS =============
 //
 // SAFA player pages live at https://www.safa.net/player/{slug}/. The photo is
 // embedded in inline CSS as `--match-centre-primary-background-pattern-image:
-// url(...)`. We scrape via Firecrawl (rawHtml) which handles WAF/CDN edges
-// more reliably than plain fetch, then regex-extract the URL.
+// url(...)`. We fetch the HTML and regex-extract the URL.
 
 export function safaPlayerSlug(name: string): string {
   return name
@@ -330,39 +329,16 @@ export async function fetchSafaPlayerPhoto(name: string): Promise<string | null>
   const cacheKey = `headshot-v2:${slug}`;
   if (playerPhotoCache.has(cacheKey)) return playerPhotoCache.get(cacheKey) ?? null;
 
-  const apiKey = process.env.FIRECRAWL_API_KEY;
-  if (!apiKey) {
-    console.warn("[safa] FIRECRAWL_API_KEY not configured; skipping player photo");
-    playerPhotoCache.set(cacheKey, null);
-    return null;
-  }
-
   const url = `https://www.safa.net/player/${slug}/`;
   try {
     const plain = await fetch(url, {
       headers: { "user-agent": "Mozilla/5.0 (compatible; BafanaApp/1.0)" },
     }).then((res) => (res.ok ? res.text() : ""));
-    const plainPhoto = plain ? extractPlayerPhoto(plain) : null;
-    if (plainPhoto) {
-      playerPhotoCache.set(cacheKey, plainPhoto);
-      return plainPhoto;
-    }
-
-    const { default: Firecrawl } = await import("@mendable/firecrawl-js");
-    const firecrawl = new Firecrawl({ apiKey });
-    const res = await firecrawl.scrape(url, {
-      formats: ["rawHtml"],
-      onlyMainContent: false,
-    });
-    const html =
-      (res as { rawHtml?: string }).rawHtml ??
-      (res as { data?: { rawHtml?: string } }).data?.rawHtml ??
-      "";
-    const photo = html ? extractPlayerPhoto(html) : null;
+    const photo = plain ? extractPlayerPhoto(plain) : null;
     playerPhotoCache.set(cacheKey, photo);
     return photo;
   } catch (err) {
-    console.error(`[safa] firecrawl player photo failed for ${slug}:`, err);
+    console.error(`[safa] player photo fetch failed for ${slug}:`, err);
     playerPhotoCache.set(cacheKey, null);
     return null;
   }
