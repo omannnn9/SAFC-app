@@ -10,13 +10,15 @@ import markAsset from "@/assets/safc-mark.png.asset.json";
 export function SafcLogo({
   className,
   size = 40,
-  variant = "mark",
+  variant = "glyph",
 }: {
   className?: string;
   size?: number;
   variant?: "mark" | "glyph";
 }) {
-  const src = variant === "glyph" ? logoAsset.url : markAsset.url;
+  // glyph = transparent SAFC letterforms (works on any background) — default
+  // mark  = SAFC on black square tile (use for favicon-style chips)
+  const src = variant === "mark" ? markAsset.url : logoAsset.url;
   return (
     <img
       src={src}
