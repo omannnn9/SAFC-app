@@ -15,7 +15,14 @@ export const Route = createFileRoute("/_authenticated/account")({
   component: AccountPage,
 });
 
-const PLANS = [
+const PLANS: ReadonlyArray<{
+  id: "free" | "plus" | "vip";
+  name: string;
+  price: string;
+  blurb: string;
+  perks: string[];
+  highlight?: boolean;
+}> = [
   {
     id: "free",
     name: "Free",
@@ -38,7 +45,7 @@ const PLANS = [
     blurb: "Premium experience",
     perks: ["Everything in Plus", "VIP badge on profile", "Premium supporter lounges", "Exclusive events", "Advanced networking"],
   },
-] as const;
+];
 
 function AccountPage() {
   const { user, profile, signOut, refreshProfile } = useAuth();
