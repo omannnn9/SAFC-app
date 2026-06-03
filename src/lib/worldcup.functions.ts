@@ -46,7 +46,8 @@ function statusFromShort(s: string): "scheduled" | "live" | "finished" {
   return "scheduled";
 }
 
-export const importWorldCupFixtures = createServerFn({ method: "POST" }).handler(async () => {
+export const importWorldCupFixtures = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
+  await assertAdmin(context.supabase as never, context.userId);
   const key = process.env.API_FOOTBALL_KEY;
   if (!key) throw new Error("API_FOOTBALL_KEY not configured");
 
