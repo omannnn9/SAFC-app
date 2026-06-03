@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { CalendarDays, Sparkles, Trophy, Users, Star } from "lucide-react";
@@ -15,13 +15,17 @@ export const Route = createFileRoute("/events")({
 });
 
 function EventsPage() {
+  const path = useRouterState({ select: (s) => s.location.pathname });
   const { user } = useAuth();
+  if (path !== "/events" && path !== "/events/") return <Outlet />;
+
   const eventsQ = useQuery({
     queryKey: ["events-all"],
     queryFn: async () => {
       const { data } = await db.from("events").select("*").order("kickoff", { ascending: true });
       return (data ?? []) as EventRow[];
     },
+    refetchInterval: 30_000,
   });
 
   const attendeesQ = useQuery({
@@ -34,6 +38,7 @@ function EventsPage() {
       }
       return map;
     },
+    refetchInterval: 10_000,
   });
 
   const { upcoming, past } = useMemo(() => {
