@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MessageCircle, Plus } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
@@ -13,7 +13,14 @@ export const Route = createFileRoute("/_authenticated/messages")({
 });
 
 function MessagesInbox() {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  if (path !== "/messages" && path !== "/messages/") return <Outlet />;
+  return <MessagesIndex />;
+}
+
+function MessagesIndex() {
   const { user } = useAuth();
+
   const q = useQuery({
     queryKey: ["conversations", user?.id],
     queryFn: () => listConversations(user!.id),

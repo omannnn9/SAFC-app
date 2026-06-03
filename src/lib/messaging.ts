@@ -117,7 +117,12 @@ export async function fetchMessages(conversationId: string): Promise<Message[]> 
 }
 
 export async function sendMessage(conversationId: string, senderId: string, body: string | null, imageUrl: string | null) {
-  await db.from("messages").insert({ conversation_id: conversationId, sender_id: senderId, body, image_url: imageUrl });
+  const { data: inserted, error } = await db
+    .from("messages")
+    .insert({ conversation_id: conversationId, sender_id: senderId, body, image_url: imageUrl })
+    .select("id, conversation_id, sender_id, body, image_url, created_at")
+    .single();
+  if (error) throw error;
   // Notify other participants
   try {
     const { data: parts } = await db
@@ -146,6 +151,7 @@ export async function sendMessage(conversationId: string, senderId: string, body
   } catch (e) {
     console.warn("DM notification failed", e);
   }
+  return inserted as Message;
 }
 
 export async function markRead(conversationId: string, userId: string) {

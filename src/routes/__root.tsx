@@ -138,7 +138,10 @@ function Shell() {
     return () => data.subscription.unsubscribe();
   }, [router, qc]);
 
-  const hideNav = HIDE_NAV.some((p) => path.startsWith(p));
+  const hideNav =
+    HIDE_NAV.some((p) => path.startsWith(p)) ||
+    /^\/messages\/[^/]+/.test(path) ||
+    path.startsWith("/event-chat/");
 
   return (
     <>

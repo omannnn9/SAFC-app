@@ -2,8 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ImagePlus, Send, Loader2, Check, CheckCheck } from "lucide-react";
-import { AppHeader } from "@/components/AppHeader";
-import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -61,10 +59,30 @@ function ThreadPage() {
   useEffect(() => {
     if (!user) return;
     const unsub = subscribeToMessages(id, (m) => {
-      setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+      setMessages((prev) => {
+        const withoutTemp = prev.filter(
+          (x) => !(x.id.startsWith("tmp-") && x.sender_id === m.sender_id && x.body === m.body && x.image_url === m.image_url),
+        );
+        return withoutTemp.some((x) => x.id === m.id) ? withoutTemp : [...withoutTemp, m];
+      });
       markRead(id, user.id);
     });
     return unsub;
+  }, [id, user]);
+
+  // Polling fallback so chats still update if realtime is delayed or reconnecting.
+  useEffect(() => {
+    if (!user) return;
+    const t = window.setInterval(async () => {
+      const latest = await fetchMessages(id);
+      setMessages((prev) => {
+        const pendingTemps = prev.filter(
+          (x) => x.id.startsWith("tmp-") && !latest.some((m) => m.sender_id === x.sender_id && m.body === x.body && m.image_url === x.image_url),
+        );
+        return [...latest, ...pendingTemps];
+      });
+    }, 5000);
+    return () => window.clearInterval(t);
   }, [id, user]);
 
   // presence
@@ -111,14 +129,26 @@ function ThreadPage() {
   };
 
   const onSend = async () => {
-    if (!user || (!text.trim() && !busy)) return;
+    if (!user || busy) return;
     const body = text.trim();
     if (!body) return;
     setText("");
+    const tempId = `tmp-${Date.now()}`;
+    const optimistic: Message = {
+      id: tempId,
+      conversation_id: id,
+      sender_id: user.id,
+      body,
+      image_url: null,
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, optimistic]);
     try {
-      await sendMessage(id, user.id, body, null);
+      const sent = await sendMessage(id, user.id, body, null);
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? sent : m)));
     } catch (e) {
-      toast.error("Couldn't send");
+      toast.error((e as Error).message || "Couldn't send");
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setText(body);
     }
   };
@@ -138,9 +168,8 @@ function ThreadPage() {
   if (!user) return null;
 
   return (
-    <div className="flex h-dvh flex-col">
-      <AppHeader title="Chat" />
-      <div className="glass mx-4 mt-3 flex items-center gap-3 rounded-2xl p-3">
+    <div className="flex h-dvh flex-col bg-background">
+      <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-[color-mix(in_oklab,var(--safc-green)_34%,var(--background))] px-3 py-3 shadow-card-lift">
         <button onClick={() => navigate({ to: "/messages" })} className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-white/5">
           <ArrowLeft className="h-4 w-4" />
         </button>
@@ -159,10 +188,13 @@ function ThreadPage() {
           const read = mine && otherLastRead && new Date(m.created_at) <= new Date(otherLastRead);
           return (
             <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${mine ? "bg-primary text-primary-foreground" : "bg-surface-2 text-foreground"}`}>
+              <div className={`max-w-[82%] rounded-[22px] px-3 py-2 text-sm shadow-card-lift ${mine ? "rounded-br-md bg-[var(--safc-green)] text-foreground" : "rounded-bl-md bg-surface-2 text-foreground"}`}>
+                <div className="mb-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                  {mine ? "You" : other?.full_name ?? "Supporter"}
+                </div>
                 {m.body && <div className="whitespace-pre-wrap">{m.body}</div>}
                 {m.image_url && <img src={m.image_url} alt="" className="mt-1 max-h-72 rounded-lg" />}
-                <div className={`mt-1 flex items-center gap-1 text-[9px] ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                <div className="mt-1 flex items-center justify-end gap-1 text-[9px] text-muted-foreground">
                   <span>{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                   {mine && (read ? <CheckCheck className="h-3 w-3" /> : <Check className="h-3 w-3 opacity-70" />)}
                 </div>
@@ -175,7 +207,7 @@ function ThreadPage() {
         )}
       </div>
 
-      <div className="glass mx-4 mb-[max(env(safe-area-inset-bottom),12px)] flex items-end gap-2 rounded-2xl p-2">
+      <div className="mx-3 mb-[max(env(safe-area-inset-bottom),10px)] flex items-end gap-2 rounded-[28px] border border-border bg-[color-mix(in_oklab,var(--safc-green)_24%,transparent)] p-2 shadow-card-lift">
         <button onClick={() => fileRef.current?.click()} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-white/5">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
         </button>

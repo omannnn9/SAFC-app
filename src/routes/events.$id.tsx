@@ -25,9 +25,10 @@ export const Route = createFileRoute("/events/$id")({
 
 type Attendee = { user_id: string; status: AttendanceStatus; profile: AuthorMini | null };
 
-function useCountdown(target: string) {
+function useCountdown(target?: string | null) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
+  if (!target) return { d: 0, h: 0, m: 0, s: 0, past: true };
   const diff = Math.max(0, new Date(target).getTime() - now);
   const d = Math.floor(diff / 86400000);
   const h = Math.floor((diff % 86400000) / 3600000);
@@ -61,6 +62,19 @@ function EventDetailPage() {
     const ch = supabase.channel(`event-${id}`).on("postgres_changes", { event: "UPDATE", schema: "public", table: "events", filter: `id=eq.${id}` }, () => {
       qc.invalidateQueries({ queryKey: ["event", id] });
     }).subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [id, qc]);
+
+  // Realtime RSVP counts + attendee list
+  useEffect(() => {
+    const ch = supabase
+      .channel(`event-attendees-${id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_attendees", filter: `event_id=eq.${id}` }, () => {
+        qc.invalidateQueries({ queryKey: ["event-attendees", id] });
+        qc.invalidateQueries({ queryKey: ["attendee-counts"] });
+        qc.invalidateQueries({ queryKey: ["my-events"] });
+      })
+      .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [id, qc]);
 
@@ -106,12 +120,26 @@ function EventDetailPage() {
   });
   const followingSet = followingQ.data ?? new Set<string>();
   const friendsGoing = goingList.filter((a) => followingSet.has(a.user_id));
+  const event = eventQ.data;
+  const cd = useCountdown(event?.kickoff);
 
   const setRSVP = async (status: AttendanceStatus) => {
     if (!user) return toast.error("Sign in to RSVP");
     const next = myAttendance === status ? null : status;
     try {
       await setAttendance(id, user.id, next, { plan: (profile?.plan as Plan | undefined) ?? "bronze", currentStatus: myAttendance });
+      qc.setQueryData<Attendee[]>(["event-attendees", id], (prev = []) => {
+        const withoutMe = prev.filter((a) => a.user_id !== user.id);
+        if (!next) return withoutMe;
+        const me: AuthorMini = {
+          id: user.id,
+          full_name: profile?.full_name ?? user.email ?? "Supporter",
+          username: profile?.username ?? null,
+          avatar_url: profile?.avatar_url ?? null,
+          plan: (profile?.plan as Plan | undefined) ?? "bronze",
+        };
+        return [...withoutMe, { user_id: user.id, status: next, profile: me }];
+      });
       qc.invalidateQueries({ queryKey: ["event-attendees", id] });
       qc.invalidateQueries({ queryKey: ["attendee-counts"] });
       qc.invalidateQueries({ queryKey: ["my-events"] });
@@ -180,9 +208,8 @@ function EventDetailPage() {
   if (eventQ.isLoading) return <PageContainer><AppHeader title="Event" /><div className="glass mx-4 mt-5 h-64 animate-pulse rounded-2xl" /></PageContainer>;
   if (!eventQ.data) return <PageContainer><AppHeader title="Event" /><div className="p-8 text-center text-muted-foreground">Event not found.</div></PageContainer>;
 
-  const event = eventQ.data;
+  if (!event) return <PageContainer><AppHeader title="Event" /><div className="p-8 text-center text-muted-foreground">Event not found.</div></PageContainer>;
   const date = new Date(event.kickoff);
-  const cd = useCountdown(event.kickoff);
   const isLive = event.status === "live";
   const isFinished = event.status === "finished";
   const isWC = event.event_type === "wc_match";

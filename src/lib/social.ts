@@ -180,7 +180,8 @@ export async function setAttendance(
   opts: { plan?: "bronze" | "silver" | "gold"; currentStatus?: AttendanceStatus | null } = {},
 ) {
   if (status === null) {
-    await db.from("event_attendees").delete().eq("event_id", eventId).eq("user_id", userId);
+    const { error } = await db.from("event_attendees").delete().eq("event_id", eventId).eq("user_id", userId);
+    if (error) throw error;
     return;
   }
   // Bronze monthly cap: 5 going/interested per calendar month
@@ -192,9 +193,10 @@ export async function setAttendance(
       if (count >= 5) throw new PlanLimitError("Bronze members can join up to 5 events per month. Upgrade to Silver for unlimited access.");
     }
   }
-  await db
+  const { error } = await db
     .from("event_attendees")
     .upsert({ event_id: eventId, user_id: userId, status }, { onConflict: "event_id,user_id" });
+  if (error) throw error;
   if (status === "going") {
     await db.from("user_achievements").insert({ user_id: userId, achievement_id: "first_event" }).then(() => {}, () => {});
   }

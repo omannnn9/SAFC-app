@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Send, Users, Loader2, Clock } from "lucide-react";
-import { AppHeader } from "@/components/AppHeader";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -156,13 +155,17 @@ function EventChatPage() {
       created_at: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, optimistic]);
-    const { error } = await db
+    const { data: sent, error } = await db
       .from("event_chat_messages")
-      .insert({ chat_id: chatId, sender_id: user.id, body });
+      .insert({ chat_id: chatId, sender_id: user.id, body })
+      .select("id, chat_id, sender_id, body, created_at")
+      .single();
     if (error) {
       toast.error(error.message || "Couldn't send");
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setText(body);
+    } else if (sent) {
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? (sent as ChatMessage) : m)));
     }
     setBusy(false);
   };
@@ -174,11 +177,8 @@ function EventChatPage() {
     : event?.title ?? "Event chat";
 
   return (
-    <div className="flex h-dvh flex-col">
-      <AppHeader title="Event chat" />
-
-      {/* Header card */}
-      <div className="glass mx-4 mt-3 flex items-center gap-3 rounded-2xl p-3">
+    <div className="flex h-dvh flex-col bg-background">
+      <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-[color-mix(in_oklab,var(--safc-green)_34%,var(--background))] px-3 py-3 shadow-card-lift">
         <button
           onClick={() => navigate({ to: "/events/$id", params: { id: event?.id ?? "" } })}
           className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-white/5"
@@ -243,12 +243,10 @@ function EventChatPage() {
           const showAuthor = !mine && (i === 0 || messages[i - 1].sender_id !== m.sender_id);
           return (
             <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${mine ? "bg-primary text-primary-foreground" : "bg-surface-2 text-foreground"}`}>
-                {showAuthor && (
-                  <div className="mb-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-                    {prof?.full_name ?? "Supporter"}
-                  </div>
-                )}
+              <div className={`max-w-[82%] rounded-[22px] px-3 py-2 text-sm shadow-card-lift ${mine ? "rounded-br-md bg-[var(--safc-green)] text-foreground" : "rounded-bl-md bg-surface-2 text-foreground"}`}>
+                <div className="mb-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                  {mine ? "You" : showAuthor ? prof?.full_name ?? "Supporter" : prof?.full_name ?? "Supporter"}
+                </div>
                 <div className="whitespace-pre-wrap">{m.body}</div>
                 <div className={`mt-1 text-[9px] ${mine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
                   {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -260,7 +258,7 @@ function EventChatPage() {
       </div>
 
       {/* Composer */}
-      <div className="glass mx-4 mb-[max(env(safe-area-inset-bottom),12px)] flex items-end gap-2 rounded-2xl p-2">
+      <div className="mx-4 mb-[max(env(safe-area-inset-bottom),12px)] flex items-end gap-2 rounded-[28px] border border-border bg-[color-mix(in_oklab,var(--safc-green)_24%,transparent)] p-2 shadow-card-lift">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
