@@ -266,8 +266,18 @@ function EventDetailPage() {
             <RsvpBtn active={myAttendance === "maybe"} onClick={() => setRSVP("maybe")} icon={<HelpCircle className="h-4 w-4" />} label="Maybe" />
             <RsvpBtn active={myAttendance === "not_going"} onClick={() => setRSVP("not_going")} icon={<XIcon className="h-4 w-4" />} label="Can't" />
           </div>
-          <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+          <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
             <span className="inline-flex items-center gap-1"><Users className="h-3 w-3 text-primary" /> {goingList.length} going · {interestedList.length} interested · {maybeList.length} maybe</span>
+            {(myAttendance === "going" || myAttendance === "interested") && (
+              <button
+                onClick={openChat}
+                disabled={joiningChat}
+                className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-primary-foreground disabled:opacity-50"
+              >
+                {joiningChat ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                Join chat
+              </button>
+            )}
           </div>
         </div>
       </section>
