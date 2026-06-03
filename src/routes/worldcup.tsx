@@ -14,7 +14,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/worldcup")({
   head: () => ({ meta: [
-    { title: "FIFA World Cup 2026 — Bafana Connect" },
+    { title: "FIFA World Cup 2026 — SAFC" },
     { name: "description", content: "Every FIFA World Cup 2026 match as a living supporter community. Find who's going, share photos, plan travel." },
   ] }),
   component: WorldCupPage,

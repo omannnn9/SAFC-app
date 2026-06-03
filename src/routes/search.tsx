@@ -8,7 +8,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { db } from "@/lib/db";
 
 export const Route = createFileRoute("/search")({
-  head: () => ({ meta: [{ title: "Search — Bafana Connect" }] }),
+  head: () => ({ meta: [{ title: "Search — SAFC" }] }),
   component: SearchPage,
 });
 

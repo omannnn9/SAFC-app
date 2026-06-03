@@ -54,7 +54,7 @@ async function run() {
       "article",
       {
         title: "📰 " + a.title,
-        body: a.excerpt?.slice(0, 140) ?? "Tap to read on Bafana Supporters Club",
+        body: a.excerpt?.slice(0, 140) ?? "Tap to read on SAFC",
         url,
         icon: a.cover_url ?? undefined,
         tag: `article-${a.id}`,

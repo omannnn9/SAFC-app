@@ -10,7 +10,7 @@ import { Bell, Zap, Goal, Flag, Users, Newspaper } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
   component: NotificationsPage,
-  head: () => ({ meta: [{ title: "Notifications · Bafana Supporters Club" }] }),
+  head: () => ({ meta: [{ title: "Notifications · SAFC" }] }),
 });
 
 type Prefs = { kickoff: boolean; goal: boolean; fulltime: boolean; squad: boolean; article: boolean };

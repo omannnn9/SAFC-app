@@ -1,4 +1,4 @@
-// Bafana Connect membership plans — single source of truth
+// SAFC membership plans — single source of truth
 import type { LucideIcon } from "lucide-react";
 import { Medal, Award, Crown } from "lucide-react";
 

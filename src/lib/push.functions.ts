@@ -97,7 +97,7 @@ export const sendTestPush = createServerFn({ method: "POST" })
       const r = await sendPush(
         { endpoint: s.endpoint, p256dh: s.p256dh, auth: s.auth },
         {
-          title: "Bafana Supporters Club",
+          title: "SAFC",
           body: "Notifications are working! 🇿🇦",
           url: "/",
           tag: "test",

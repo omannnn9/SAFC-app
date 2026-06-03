@@ -29,7 +29,7 @@ type FullProfile = {
 };
 
 export const Route = createFileRoute("/u/$id")({
-  head: () => ({ meta: [{ title: "Supporter — Bafana Connect" }] }),
+  head: () => ({ meta: [{ title: "Supporter — SAFC" }] }),
   component: UserPage,
 });
 
