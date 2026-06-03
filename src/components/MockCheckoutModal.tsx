@@ -63,26 +63,8 @@ export function MockCheckoutModal({
       return;
     }
 
-    // Activate plan + log a mock payment record (best-effort; doesn't block UX)
-    const planUpdate = db.from("profiles").update({ plan: plan.id }).eq("id", userId);
-    const periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    const paymentInsert = db.from("payments").insert({
-      user_id: userId,
-      amount_cents: plan.priceCents,
-      currency: "ZAR",
-      status: "succeeded",
-      provider: "mock",
-      provider_ref: `mock_${Date.now()}`,
-    });
-    const subInsert = db.from("subscriptions").insert({
-      user_id: userId,
-      plan: plan.id,
-      status: "active",
-      current_period_end: periodEnd,
-      provider: "mock",
-      provider_ref: `mock_sub_${Date.now()}`,
-    });
-    const [{ error: pErr }] = await Promise.all([planUpdate, paymentInsert, subInsert]);
+    // Activate plan (demo: only update profile; payment ledger is skipped)
+    const { error: pErr } = await db.from("profiles").update({ plan: plan.id }).eq("id", userId);
     if (pErr) {
       setStage("failure");
       setError(pErr.message);
