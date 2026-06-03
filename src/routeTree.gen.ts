@@ -12,11 +12,16 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as EventsRouteImport } from './routes/events'
+import { Route as CommunityRouteImport } from './routes/community'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as NewsIndexRouteImport } from './routes/news.index'
+import { Route as UIdRouteImport } from './routes/u.$id'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
+import { Route as EventsIdRouteImport } from './routes/events.$id'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as ApiPublicHooksMatchPollRouteImport } from './routes/api/public/hooks/match-poll'
 import { Route as ApiPublicHooksKickoffReminderRouteImport } from './routes/api/public/hooks/kickoff-reminder'
 import { Route as ApiPublicHooksArticlePollRouteImport } from './routes/api/public/hooks/article-poll'
@@ -36,6 +41,16 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventsRoute = EventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -50,10 +65,20 @@ const NewsIndexRoute = NewsIndexRouteImport.update({
   path: '/news/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UIdRoute = UIdRouteImport.update({
+  id: '/u/$id',
+  path: '/u/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NewsSlugRoute = NewsSlugRouteImport.update({
   id: '/news/$slug',
   path: '/news/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const EventsIdRoute = EventsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => EventsRoute,
 } as any)
 const AuthenticatedNotificationsRoute =
   AuthenticatedNotificationsRouteImport.update({
@@ -61,6 +86,11 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const ApiPublicHooksMatchPollRoute = ApiPublicHooksMatchPollRouteImport.update({
   id: '/api/public/hooks/match-poll',
   path: '/api/public/hooks/match-poll',
@@ -81,11 +111,16 @@ const ApiPublicHooksArticlePollRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
+  '/events': typeof EventsRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/signup': typeof SignupRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
+  '/u/$id': typeof UIdRoute
   '/news/': typeof NewsIndexRoute
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
   '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
@@ -93,11 +128,16 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
+  '/events': typeof EventsRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/signup': typeof SignupRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
+  '/u/$id': typeof UIdRoute
   '/news': typeof NewsIndexRoute
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
   '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
@@ -107,11 +147,16 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/community': typeof CommunityRoute
+  '/events': typeof EventsRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/signup': typeof SignupRoute
+  '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
+  '/u/$id': typeof UIdRoute
   '/news/': typeof NewsIndexRoute
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
   '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
@@ -121,11 +166,16 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/community'
+    | '/events'
     | '/login'
     | '/register'
     | '/signup'
+    | '/account'
     | '/notifications'
+    | '/events/$id'
     | '/news/$slug'
+    | '/u/$id'
     | '/news/'
     | '/api/public/hooks/article-poll'
     | '/api/public/hooks/kickoff-reminder'
@@ -133,11 +183,16 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/community'
+    | '/events'
     | '/login'
     | '/register'
     | '/signup'
+    | '/account'
     | '/notifications'
+    | '/events/$id'
     | '/news/$slug'
+    | '/u/$id'
     | '/news'
     | '/api/public/hooks/article-poll'
     | '/api/public/hooks/kickoff-reminder'
@@ -146,11 +201,16 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/community'
+    | '/events'
     | '/login'
     | '/register'
     | '/signup'
+    | '/_authenticated/account'
     | '/_authenticated/notifications'
+    | '/events/$id'
     | '/news/$slug'
+    | '/u/$id'
     | '/news/'
     | '/api/public/hooks/article-poll'
     | '/api/public/hooks/kickoff-reminder'
@@ -160,10 +220,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  CommunityRoute: typeof CommunityRoute
+  EventsRoute: typeof EventsRouteWithChildren
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   SignupRoute: typeof SignupRoute
   NewsSlugRoute: typeof NewsSlugRoute
+  UIdRoute: typeof UIdRoute
   NewsIndexRoute: typeof NewsIndexRoute
   ApiPublicHooksArticlePollRoute: typeof ApiPublicHooksArticlePollRoute
   ApiPublicHooksKickoffReminderRoute: typeof ApiPublicHooksKickoffReminderRoute
@@ -193,6 +256,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/events': {
+      id: '/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof EventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -214,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NewsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/u/$id': {
+      id: '/u/$id'
+      path: '/u/$id'
+      fullPath: '/u/$id'
+      preLoaderRoute: typeof UIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/news/$slug': {
       id: '/news/$slug'
       path: '/news/$slug'
@@ -221,11 +305,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NewsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/events/$id': {
+      id: '/events/$id'
+      path: '/$id'
+      fullPath: '/events/$id'
+      preLoaderRoute: typeof EventsIdRouteImport
+      parentRoute: typeof EventsRoute
+    }
     '/_authenticated/notifications': {
       id: '/_authenticated/notifications'
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/api/public/hooks/match-poll': {
@@ -253,10 +351,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
 }
 
@@ -264,13 +364,27 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface EventsRouteChildren {
+  EventsIdRoute: typeof EventsIdRoute
+}
+
+const EventsRouteChildren: EventsRouteChildren = {
+  EventsIdRoute: EventsIdRoute,
+}
+
+const EventsRouteWithChildren =
+  EventsRoute._addFileChildren(EventsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  CommunityRoute: CommunityRoute,
+  EventsRoute: EventsRouteWithChildren,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   SignupRoute: SignupRoute,
   NewsSlugRoute: NewsSlugRoute,
+  UIdRoute: UIdRoute,
   NewsIndexRoute: NewsIndexRoute,
   ApiPublicHooksArticlePollRoute: ApiPublicHooksArticlePollRoute,
   ApiPublicHooksKickoffReminderRoute: ApiPublicHooksKickoffReminderRoute,
