@@ -121,7 +121,7 @@ export function planLabel(plan: Plan): string {
 }
 
 export function planTone(plan: Plan): { bg: string; text: string; ring: string } {
-  if (plan === "gold") return { bg: "bg-[var(--sa-gold)]/15", text: "text-[var(--sa-gold)]", ring: "ring-[var(--sa-gold)]" };
-  if (plan === "silver") return { bg: "bg-zinc-300/15", text: "text-zinc-200", ring: "ring-zinc-300" };
-  return { bg: "bg-amber-700/15", text: "text-amber-500", ring: "ring-amber-700" };
+  if (plan === "gold") return { bg: "bg-[var(--safc-yellow)]/15", text: "text-[var(--safc-yellow)]", ring: "ring-[var(--safc-yellow)]" };
+  if (plan === "silver") return { bg: "bg-[var(--safc-pink)]/15", text: "text-[var(--safc-pink)]", ring: "ring-[var(--safc-pink)]" };
+  return { bg: "bg-[var(--safc-red)]/15", text: "text-[var(--safc-red)]", ring: "ring-[var(--safc-red)]" };
 }
