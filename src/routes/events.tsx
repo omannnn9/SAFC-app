@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { CalendarDays, Sparkles, Trophy, Users } from "lucide-react";
+import { CalendarDays, Sparkles, Trophy, Users, Star } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { EventCard } from "@/components/EventCard";
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/events")({
 });
 
 function EventsPage() {
+  const { user } = useAuth();
   const eventsQ = useQuery({
     queryKey: ["events-all"],
     queryFn: async () => {
@@ -65,13 +67,23 @@ function EventsPage() {
             <div className="truncate text-[10px] text-muted-foreground">Every match · live updates</div>
           </div>
         </Link>
-        <Link to="/groups" className="glass flex items-center gap-2 rounded-2xl p-3 transition hover:bg-white/5">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/15"><Users className="h-5 w-5 text-primary" /></div>
-          <div className="min-w-0">
-            <div className="font-display text-sm font-black">Travel & meetups</div>
-            <div className="truncate text-[10px] text-muted-foreground">Coordinate with supporters</div>
-          </div>
-        </Link>
+        {user ? (
+          <Link to="/my-events" className="glass flex items-center gap-2 rounded-2xl p-3 transition hover:bg-white/5">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/15"><Star className="h-5 w-5 text-primary" /></div>
+            <div className="min-w-0">
+              <div className="font-display text-sm font-black">My events</div>
+              <div className="truncate text-[10px] text-muted-foreground">Everything you've joined</div>
+            </div>
+          </Link>
+        ) : (
+          <Link to="/groups" className="glass flex items-center gap-2 rounded-2xl p-3 transition hover:bg-white/5">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/15"><Users className="h-5 w-5 text-primary" /></div>
+            <div className="min-w-0">
+              <div className="font-display text-sm font-black">Travel & meetups</div>
+              <div className="truncate text-[10px] text-muted-foreground">Coordinate with supporters</div>
+            </div>
+          </Link>
+        )}
       </section>
 
       <section className="mt-5 px-4">
