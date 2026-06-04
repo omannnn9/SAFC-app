@@ -1270,6 +1270,30 @@ export type Database = {
         }
         Relationships: []
       }
+      world_cup_country_flags: {
+        Row: {
+          country_name: string
+          created_at: string
+          flag: string
+          is_placeholder: boolean
+          updated_at: string
+        }
+        Insert: {
+          country_name: string
+          created_at?: string
+          flag: string
+          is_placeholder?: boolean
+          updated_at?: string
+        }
+        Update: {
+          country_name?: string
+          created_at?: string
+          flag?: string
+          is_placeholder?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       world_cup_matches: {
         Row: {
           away_flag: string
@@ -1283,8 +1307,12 @@ export type Database = {
           home_team: string
           id: string
           kickoff: string
+          kickoff_datetime_utc: string
+          match_number: number
           notes: string | null
           stage: string
+          status: string
+          status_override: string | null
           updated_at: string
           venue: string | null
           winner: string | null
@@ -1301,8 +1329,12 @@ export type Database = {
           home_team: string
           id?: string
           kickoff: string
+          kickoff_datetime_utc: string
+          match_number: number
           notes?: string | null
           stage?: string
+          status?: string
+          status_override?: string | null
           updated_at?: string
           venue?: string | null
           winner?: string | null
@@ -1319,8 +1351,12 @@ export type Database = {
           home_team?: string
           id?: string
           kickoff?: string
+          kickoff_datetime_utc?: string
+          match_number?: number
           notes?: string | null
           stage?: string
+          status?: string
+          status_override?: string | null
           updated_at?: string
           venue?: string | null
           winner?: string | null
