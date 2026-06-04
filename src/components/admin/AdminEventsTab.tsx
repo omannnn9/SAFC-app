@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { CalendarDays, Loader2, Plus, Save, Trash2, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 import { db } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import type { EventRow } from "@/lib/social";
+import { adminDeleteEvent, adminClearAllEvents } from "@/lib/admin.functions";
 
 const EVENT_TYPES = ["wc_match", "match", "tournament", "fan_zone", "meetup", "festival", "travel"] as const;
 const STAGES = ["group", "r32", "r16", "qf", "sf", "third", "final", "friendly", "other"] as const;
@@ -53,14 +55,33 @@ function blankEvent(userId?: string): EventDraft {
 export function AdminEventsTab() {
   const { user } = useAuth();
   const [creating, setCreating] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const clearAll = useServerFn(adminClearAllEvents);
   const eventsQ = useQuery({
     queryKey: ["admin-events"],
     queryFn: async () => {
-      const { data, error } = await db.from("events").select("*").order("kickoff", { ascending: false }).limit(120);
+      const { data, error } = await db.from("events").select("*").order("kickoff", { ascending: false }).limit(500);
       if (error) throw error;
       return (data ?? []) as EventDraft[];
     },
   });
+
+  const handleClearAll = async () => {
+    if (!confirm(`Permanently delete ALL ${eventsQ.data?.length ?? 0} events and World Cup matches? This cannot be undone.`)) return;
+    if (!confirm("Are you absolutely sure? Type OK in the next prompt to confirm.")) return;
+    const answer = prompt('Type "DELETE ALL" to confirm');
+    if (answer !== "DELETE ALL") return toast.info("Cancelled");
+    setClearing(true);
+    try {
+      await clearAll();
+      toast.success("All events cleared");
+      eventsQ.refetch();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setClearing(false);
+    }
+  };
 
   return (
     <div className="space-y-3">
@@ -71,12 +92,21 @@ export function AdminEventsTab() {
           </div>
           <p className="mt-1 text-xs text-muted-foreground">Create events and modify every matchday detail.</p>
         </div>
-        <button
-          onClick={() => setCreating((value) => !value)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-[10px] font-black uppercase tracking-wider text-primary-foreground"
-        >
-          <Plus className="h-3 w-3" /> New
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            onClick={handleClearAll}
+            disabled={clearing}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-destructive/15 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-destructive disabled:opacity-50"
+          >
+            {clearing ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertTriangle className="h-3 w-3" />} Clear all
+          </button>
+          <button
+            onClick={() => setCreating((value) => !value)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-[10px] font-black uppercase tracking-wider text-primary-foreground"
+          >
+            <Plus className="h-3 w-3" /> New
+          </button>
+        </div>
       </div>
 
       {creating && (
@@ -99,6 +129,7 @@ function EventEditor({ event, onSaved }: { event: EventDraft; onSaved: () => voi
   const [draft, setDraft] = useState<EventDraft>(event);
   const [busy, setBusy] = useState(false);
   const isNew = draft.id === "new";
+  const deleteEvent = useServerFn(adminDeleteEvent);
   const update = <K extends keyof EventDraft>(key: K, value: EventDraft[K]) => setDraft((prev) => ({ ...prev, [key]: value }));
 
   const payload = () => ({
@@ -140,11 +171,17 @@ function EventEditor({ event, onSaved }: { event: EventDraft; onSaved: () => voi
 
   const remove = async () => {
     if (isNew) return;
-    if (!confirm(`Delete ${draft.title}?`)) return;
-    const { error } = await db.from("events").delete().eq("id", draft.id);
-    if (error) return toast.error(error.message);
-    toast.success("Event deleted");
-    onSaved();
+    if (!confirm(`Delete ${draft.title}? This also removes RSVPs, the group chat, and any linked World Cup match.`)) return;
+    setBusy(true);
+    try {
+      await deleteEvent({ data: { eventId: draft.id } });
+      toast.success("Event deleted");
+      onSaved();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
