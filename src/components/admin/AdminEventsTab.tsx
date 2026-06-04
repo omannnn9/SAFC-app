@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { CalendarDays, Loader2, Plus, Save, Trash2, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 import { db } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import type { EventRow } from "@/lib/social";
+import { adminDeleteEvent, adminClearAllEvents } from "@/lib/admin.functions";
 
 const EVENT_TYPES = ["wc_match", "match", "tournament", "fan_zone", "meetup", "festival", "travel"] as const;
 const STAGES = ["group", "r32", "r16", "qf", "sf", "third", "final", "friendly", "other"] as const;
