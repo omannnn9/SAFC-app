@@ -125,10 +125,28 @@ function UsersTab() {
   const q = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const { data } = await db.from("profiles").select("id, full_name, username, avatar_url, plan, country, is_private, created_at").order("created_at", { ascending: false }).limit(100);
+      const { data } = await db.from("profiles").select("id, full_name, username, avatar_url, plan, country, is_private, created_at").order("created_at", { ascending: false }).limit(200);
       return data ?? [];
     },
   });
+  const deleteUser = useServerFn(adminDeleteUser);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const handleDelete = async (p: any) => {
+    if (!confirm(`Permanently delete ${p.full_name || p.username || p.id}? This wipes their account and all related data.`)) return;
+    setBusyId(p.id);
+    try {
+      await deleteUser({ data: { userId: p.id } });
+      await logAudit("DELETE", "user", p.id, p, null);
+      toast.success("User deleted");
+      q.refetch();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
     <div className="space-y-2">
       {q.data?.map((p: any) => (
@@ -142,6 +160,14 @@ function UsersTab() {
             </div>
           </div>
           <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[9px] font-black uppercase">{p.plan}</span>
+          <button
+            onClick={() => handleDelete(p)}
+            disabled={busyId === p.id}
+            className="inline-flex items-center gap-1 rounded-md bg-destructive/15 px-2 py-1 text-[10px] font-bold text-destructive disabled:opacity-50"
+            title="Delete user"
+          >
+            {busyId === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+          </button>
         </div>
       ))}
     </div>
