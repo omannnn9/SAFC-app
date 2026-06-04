@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, MapPin, Radio, Settings, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { supabase } from "@/integrations/supabase/client";
 import {
   WORLD_CUP_TOTAL_MATCHES,
   WorldCupFlag,
