@@ -171,11 +171,17 @@ function EventEditor({ event, onSaved }: { event: EventDraft; onSaved: () => voi
 
   const remove = async () => {
     if (isNew) return;
-    if (!confirm(`Delete ${draft.title}?`)) return;
-    const { error } = await db.from("events").delete().eq("id", draft.id);
-    if (error) return toast.error(error.message);
-    toast.success("Event deleted");
-    onSaved();
+    if (!confirm(`Delete ${draft.title}? This also removes RSVPs, the group chat, and any linked World Cup match.`)) return;
+    setBusy(true);
+    try {
+      await deleteEvent({ data: { eventId: draft.id } });
+      toast.success("Event deleted");
+      onSaved();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
