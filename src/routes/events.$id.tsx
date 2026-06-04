@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchFeed, fetchEventPhotos, uploadEventPhoto, fetchGroups, type AttendanceStatus } from "@/lib/social";
 import { updateEventRsvp } from "@/lib/rsvp.functions";
 import type { EventRow, AuthorMini, EventPhoto, GroupRow } from "@/lib/social";
+import type { Plan } from "@/lib/plans";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/events/$id")({
@@ -159,8 +160,9 @@ function EventDetailPage() {
         next === "not_going" ? "Not attending" : "RSVP cleared"
       );
     } catch (e) {
-      if ((e as Error).message?.includes("Bronze members")) {
-        setUpgradeReason(e.message);
+      const message = e instanceof Error ? e.message : "Could not update RSVP";
+      if (message.includes("Bronze members")) {
+        setUpgradeReason(message);
         setUpgradeOpen(true);
         return;
       }
