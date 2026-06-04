@@ -30,6 +30,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedMessagesIdRouteImport } from './routes/_authenticated/messages.$id'
 import { Route as AuthenticatedEventChatIdRouteImport } from './routes/_authenticated/event-chat.$id'
+import { Route as AuthenticatedAdminWorldcupRouteImport } from './routes/_authenticated/admin.worldcup'
 import { Route as ApiPublicHooksMatchPollRouteImport } from './routes/api/public/hooks/match-poll'
 import { Route as ApiPublicHooksKickoffReminderRouteImport } from './routes/api/public/hooks/kickoff-reminder'
 import { Route as ApiPublicHooksArticlePollRouteImport } from './routes/api/public/hooks/article-poll'
@@ -140,6 +141,12 @@ const AuthenticatedEventChatIdRoute =
     path: '/event-chat/$id',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminWorldcupRoute =
+  AuthenticatedAdminWorldcupRouteImport.update({
+    id: '/worldcup',
+    path: '/worldcup',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const ApiPublicHooksMatchPollRoute = ApiPublicHooksMatchPollRouteImport.update({
   id: '/api/public/hooks/match-poll',
   path: '/api/public/hooks/match-poll',
@@ -169,7 +176,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/worldcup': typeof WorldcupRoute
   '/account': typeof AuthenticatedAccountRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/my-events': typeof AuthenticatedMyEventsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
   '/news/': typeof NewsIndexRoute
+  '/admin/worldcup': typeof AuthenticatedAdminWorldcupRoute
   '/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/messages/$id': typeof AuthenticatedMessagesIdRoute
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
@@ -194,7 +202,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/worldcup': typeof WorldcupRoute
   '/account': typeof AuthenticatedAccountRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/my-events': typeof AuthenticatedMyEventsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -202,6 +210,7 @@ export interface FileRoutesByTo {
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
   '/news': typeof NewsIndexRoute
+  '/admin/worldcup': typeof AuthenticatedAdminWorldcupRoute
   '/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/messages/$id': typeof AuthenticatedMessagesIdRoute
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
@@ -221,7 +230,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/worldcup': typeof WorldcupRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/_authenticated/my-events': typeof AuthenticatedMyEventsRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -229,6 +238,7 @@ export interface FileRoutesById {
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
   '/news/': typeof NewsIndexRoute
+  '/_authenticated/admin/worldcup': typeof AuthenticatedAdminWorldcupRoute
   '/_authenticated/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/_authenticated/messages/$id': typeof AuthenticatedMessagesIdRoute
   '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/news/$slug'
     | '/u/$id'
     | '/news/'
+    | '/admin/worldcup'
     | '/event-chat/$id'
     | '/messages/$id'
     | '/api/public/hooks/article-poll'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/news/$slug'
     | '/u/$id'
     | '/news'
+    | '/admin/worldcup'
     | '/event-chat/$id'
     | '/messages/$id'
     | '/api/public/hooks/article-poll'
@@ -307,6 +319,7 @@ export interface FileRouteTypes {
     | '/news/$slug'
     | '/u/$id'
     | '/news/'
+    | '/_authenticated/admin/worldcup'
     | '/_authenticated/event-chat/$id'
     | '/_authenticated/messages/$id'
     | '/api/public/hooks/article-poll'
@@ -482,6 +495,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEventChatIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/worldcup': {
+      id: '/_authenticated/admin/worldcup'
+      path: '/worldcup'
+      fullPath: '/admin/worldcup'
+      preLoaderRoute: typeof AuthenticatedAdminWorldcupRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/api/public/hooks/match-poll': {
       id: '/api/public/hooks/match-poll'
       path: '/api/public/hooks/match-poll'
@@ -506,6 +526,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminWorldcupRoute: typeof AuthenticatedAdminWorldcupRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminWorldcupRoute: AuthenticatedAdminWorldcupRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedMessagesRouteChildren {
   AuthenticatedMessagesIdRoute: typeof AuthenticatedMessagesIdRoute
 }
@@ -521,7 +552,7 @@ const AuthenticatedMessagesRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRouteWithChildren
   AuthenticatedMyEventsRoute: typeof AuthenticatedMyEventsRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -530,7 +561,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRouteWithChildren,
   AuthenticatedMyEventsRoute: AuthenticatedMyEventsRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
