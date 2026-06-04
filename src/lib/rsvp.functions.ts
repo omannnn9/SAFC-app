@@ -91,13 +91,14 @@ export const updateEventRsvp = createServerFn({ method: "POST" })
       groupId = (createdGroup as { id?: string } | null)?.id;
     }
     if (groupId) {
-      await supabaseAdmin.from("group_members").upsert(
-        [
-          { group_id: groupId, user_id: ownerId, role: "owner" },
-          { group_id: groupId, user_id: uid, role: "member" },
-        ],
-        { onConflict: "group_id,user_id" },
-      );
+      await supabaseAdmin
+        .from("group_members")
+        .upsert({ group_id: groupId, user_id: ownerId, role: "owner" }, { onConflict: "group_id,user_id" });
+      if (ownerId !== uid) {
+        await supabaseAdmin
+          .from("group_members")
+          .upsert({ group_id: groupId, user_id: uid, role: "member" }, { onConflict: "group_id,user_id" });
+      }
     }
 
     const { data: existingChat } = await supabaseAdmin
