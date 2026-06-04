@@ -232,6 +232,8 @@ function FloatField({
             {label}
           </span>
           <input
+            id={autoComplete || label.toLowerCase().replace(/\s+/g, "-")}
+            name={autoComplete || label.toLowerCase().replace(/\s+/g, "-")}
             type={type}
             required={required}
             value={value}
