@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db";
+import { nameToFlag } from "@/lib/flags";
 import {
   WORLD_CUP_STAGES,
   WorldCupFlag,
@@ -42,6 +43,8 @@ function toLocalInput(iso: string) {
 function WorldCupAdminPage() {
   const queryClient = useQueryClient();
   const [creating, setCreating] = useState(false);
+  const [search, setSearch] = useState("");
+  const [stageFilter, setStageFilter] = useState("");
 
   const matchesQ = useQuery({
     queryKey: ["wc-admin-matches"],
@@ -67,6 +70,17 @@ function WorldCupAdminPage() {
   };
 
   const warnings = useMemo(() => validateWorldCup(matchesQ.data ?? [], flagsQ.data ?? []), [matchesQ.data, flagsQ.data]);
+  const visibleMatches = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return (matchesQ.data ?? []).filter((match) => {
+      if (stageFilter && match.stage !== stageFilter) return false;
+      if (!needle) return true;
+      return [match.match_number, match.home_team, match.away_team, match.venue, match.city, stageLabel(match)]
+        .join(" ")
+        .toLowerCase()
+        .includes(needle);
+    });
+  }, [matchesQ.data, search, stageFilter]);
 
   const addBlank = async () => {
     const used = new Set((matchesQ.data ?? []).map((match) => match.match_number));
@@ -138,9 +152,20 @@ function WorldCupAdminPage() {
         </div>
       </section>
 
+      <section className="mt-4 space-y-3 px-4">
+        <div className="glass grid gap-2 rounded-2xl p-3 sm:grid-cols-[1fr_180px]">
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search match, team, venue, city" className={inputCls} />
+          <select value={stageFilter} onChange={(e) => setStageFilter(e.target.value)} className={inputCls}>
+            <option value="">All stages</option>
+            {WORLD_CUP_STAGES.map((stage) => <option key={stage} value={stage}>{stageLabel({ stage, group_name: null })}</option>)}
+          </select>
+        </div>
+        <FlagManager flags={flagsQ.data ?? []} onChanged={() => queryClient.invalidateQueries({ queryKey: ["wc-admin-flags"] })} />
+      </section>
+
       <section className="mt-4 space-y-3 px-4 pb-32">
         {matchesQ.isLoading && <div className="glass h-24 animate-pulse rounded-2xl" />}
-        {(matchesQ.data ?? []).map((match) => (
+        {visibleMatches.map((match) => (
           <MatchEditor key={match.id} match={match} flags={flagsQ.data ?? []} onChanged={reload} />
         ))}
       </section>
