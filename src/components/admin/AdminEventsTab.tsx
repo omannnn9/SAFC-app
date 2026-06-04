@@ -55,14 +55,33 @@ function blankEvent(userId?: string): EventDraft {
 export function AdminEventsTab() {
   const { user } = useAuth();
   const [creating, setCreating] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const clearAll = useServerFn(adminClearAllEvents);
   const eventsQ = useQuery({
     queryKey: ["admin-events"],
     queryFn: async () => {
-      const { data, error } = await db.from("events").select("*").order("kickoff", { ascending: false }).limit(120);
+      const { data, error } = await db.from("events").select("*").order("kickoff", { ascending: false }).limit(500);
       if (error) throw error;
       return (data ?? []) as EventDraft[];
     },
   });
+
+  const handleClearAll = async () => {
+    if (!confirm(`Permanently delete ALL ${eventsQ.data?.length ?? 0} events and World Cup matches? This cannot be undone.`)) return;
+    if (!confirm("Are you absolutely sure? Type OK in the next prompt to confirm.")) return;
+    const answer = prompt('Type "DELETE ALL" to confirm');
+    if (answer !== "DELETE ALL") return toast.info("Cancelled");
+    setClearing(true);
+    try {
+      await clearAll();
+      toast.success("All events cleared");
+      eventsQ.refetch();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setClearing(false);
+    }
+  };
 
   return (
     <div className="space-y-3">
@@ -73,12 +92,21 @@ export function AdminEventsTab() {
           </div>
           <p className="mt-1 text-xs text-muted-foreground">Create events and modify every matchday detail.</p>
         </div>
-        <button
-          onClick={() => setCreating((value) => !value)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-[10px] font-black uppercase tracking-wider text-primary-foreground"
-        >
-          <Plus className="h-3 w-3" /> New
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            onClick={handleClearAll}
+            disabled={clearing}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-destructive/15 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-destructive disabled:opacity-50"
+          >
+            {clearing ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertTriangle className="h-3 w-3" />} Clear all
+          </button>
+          <button
+            onClick={() => setCreating((value) => !value)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-[10px] font-black uppercase tracking-wider text-primary-foreground"
+          >
+            <Plus className="h-3 w-3" /> New
+          </button>
+        </div>
       </div>
 
       {creating && (
