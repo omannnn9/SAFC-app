@@ -129,6 +129,7 @@ function EventEditor({ event, onSaved }: { event: EventDraft; onSaved: () => voi
   const [draft, setDraft] = useState<EventDraft>(event);
   const [busy, setBusy] = useState(false);
   const isNew = draft.id === "new";
+  const deleteEvent = useServerFn(adminDeleteEvent);
   const update = <K extends keyof EventDraft>(key: K, value: EventDraft[K]) => setDraft((prev) => ({ ...prev, [key]: value }));
 
   const payload = () => ({
