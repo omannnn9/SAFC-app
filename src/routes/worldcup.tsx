@@ -44,8 +44,20 @@ function useNow(intervalMs = 1000) {
 
 function WorldCupPage() {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const now = useNow();
   const [tab, setTab] = useState<"upcoming" | "live" | "results">("upcoming");
+
+  // Live-sync admin edits to matches
+  useEffect(() => {
+    const ch = supabase
+      .channel("wc-matches-rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "world_cup_matches" }, () => {
+        qc.invalidateQueries({ queryKey: ["wc-matches"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [qc]);
 
   const isAdminQ = useQuery({
     queryKey: ["is-admin", user?.id],
