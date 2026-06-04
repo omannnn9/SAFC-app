@@ -12,8 +12,8 @@ import { UpgradeModal } from "@/components/UpgradeModal";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchFeed, setAttendance, fetchEventPhotos, uploadEventPhoto, fetchGroups, PlanLimitError, type AttendanceStatus } from "@/lib/social";
-import { joinEventCommunity } from "@/lib/events.functions";
+import { fetchFeed, fetchEventPhotos, uploadEventPhoto, fetchGroups, type AttendanceStatus } from "@/lib/social";
+import { updateEventRsvp } from "@/lib/rsvp.functions";
 import type { EventRow, AuthorMini, EventPhoto, GroupRow } from "@/lib/social";
 import type { Plan } from "@/lib/plans";
 import { toast } from "sonner";
@@ -127,7 +127,7 @@ function EventDetailPage() {
     if (!user) return toast.error("Sign in to RSVP");
     const next = myAttendance === status ? null : status;
     try {
-      await setAttendance(id, user.id, next, { plan: (profile?.plan as Plan | undefined) ?? "bronze", currentStatus: myAttendance });
+      const res = await updateEventRsvp({ data: { eventId: id, status: next } });
       qc.setQueryData<Attendee[]>(["event-attendees", id], (prev = []) => {
         const withoutMe = prev.filter((a) => a.user_id !== user.id);
         if (!next) return withoutMe;
@@ -144,34 +144,24 @@ function EventDetailPage() {
       qc.invalidateQueries({ queryKey: ["attendee-counts"] });
       qc.invalidateQueries({ queryKey: ["my-events"] });
 
-      if (next === "going" || next === "interested") {
-        // Legacy: also seed the community group (kept for the Groups page)
-        joinEventCommunity({ data: { eventId: id } })
-          .then(() => qc.invalidateQueries({ queryKey: ["event-groups", id] }))
-          .catch(() => {});
-
-        // Per-event chat: auto-create / auto-join, then navigate when "going"
-        try {
-          const res = await joinEventChat({ data: { eventId: id } });
-          setChatId(res.chatId);
-          if (next === "going") {
-            toast.success("You're going! Opening matchday chat…");
-            navigate({ to: "/event-chat/$id", params: { id: res.chatId } });
-            return;
-          }
-          toast.success("Marked as interested · matchday chat unlocked");
+      if ((next === "going" || next === "interested") && res.chatId) {
+        qc.invalidateQueries({ queryKey: ["event-groups", id] });
+        setChatId(res.chatId);
+        if (next === "going") {
+          toast.success("You're going · matchday chat unlocked");
           return;
-        } catch (err) {
-          console.warn("event chat join failed", err);
         }
+        toast.success("Marked as interested · matchday chat unlocked");
+        return;
       }
       toast.success(
         next === "maybe" ? "Marked as maybe" :
         next === "not_going" ? "Not attending" : "RSVP cleared"
       );
     } catch (e) {
-      if (e instanceof PlanLimitError) {
-        setUpgradeReason(e.message);
+      const message = e instanceof Error ? e.message : "Could not update RSVP";
+      if (message.includes("Bronze members")) {
+        setUpgradeReason(message);
         setUpgradeOpen(true);
         return;
       }
@@ -386,9 +376,16 @@ function EventDetailPage() {
 }
 
 function Side({ flag, name }: { flag: string | null; name: string }) {
+  const isImageFlag = !!flag && /^(https?:|\/|data:image)/.test(flag);
   return (
     <div className="flex flex-1 flex-col items-center gap-1.5 text-center">
-      {flag ? <img src={flag} alt={name} className="h-10 w-10 rounded-full object-cover ring-2 ring-border" /> : <div className="grid h-10 w-10 place-items-center rounded-full bg-surface-2 text-xs">{name.slice(0, 2)}</div>}
+      {isImageFlag ? (
+        <img src={flag} alt={name} className="h-10 w-10 rounded-full object-cover ring-2 ring-border" />
+      ) : (
+        <div className="grid h-10 w-10 place-items-center rounded-full bg-surface-2 text-2xl">
+          {flag || name.slice(0, 2)}
+        </div>
+      )}
       <div className="text-xs font-black uppercase tracking-wider">{name}</div>
     </div>
   );

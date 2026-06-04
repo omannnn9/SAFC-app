@@ -83,6 +83,19 @@ export function flagMap(flags: WorldCupFlag[]) {
   return new Map(flags.map((flag) => [flag.country_name, flag.flag]));
 }
 
+export function isPlaceholderTeam(name: string) {
+  return /^(Group [A-L] Team [1-4]|Winner Group [A-L]|Runner-up Group [A-L]|Third Place Group [A-L]|Winner Match \d+|Loser Match \d+|Finalist \d+|TBD)$/i.test(
+    name.trim(),
+  );
+}
+
+export function displayTeamName(name: string) {
+  const groupSlot = name.match(/^Group ([A-L]) Team ([1-4])$/i);
+  if (groupSlot) return { primary: "TBD", secondary: `Group ${groupSlot[1].toUpperCase()} slot ${groupSlot[2]}` };
+  if (isPlaceholderTeam(name)) return { primary: "TBD", secondary: name };
+  return { primary: name, secondary: null };
+}
+
 export function validateWorldCup(matches: WorldCupMatch[], flags: WorldCupFlag[]) {
   const warnings: string[] = [];
   const byNumber = new Map<number, WorldCupMatch[]>();
@@ -112,10 +125,10 @@ export function validateWorldCup(matches: WorldCupMatch[], flags: WorldCupFlag[]
     if (!Number.isFinite(new Date(getKickoff(match)).getTime())) warnings.push(`Match ${match.match_number} has an invalid kickoff date.`);
     const homeExpected = flagsByCountry.get(match.home_team);
     const awayExpected = flagsByCountry.get(match.away_team);
-    if (!homeExpected) warnings.push(`Match ${match.match_number} home team has no verified flag mapping: ${match.home_team}.`);
-    else if (match.home_flag !== homeExpected) warnings.push(`Match ${match.match_number} has invalid home flag for ${match.home_team}.`);
-    if (!awayExpected) warnings.push(`Match ${match.match_number} away team has no verified flag mapping: ${match.away_team}.`);
-    else if (match.away_flag !== awayExpected) warnings.push(`Match ${match.match_number} has invalid away flag for ${match.away_team}.`);
+    if (!homeExpected && !isPlaceholderTeam(match.home_team)) warnings.push(`Match ${match.match_number} home team has no verified flag mapping: ${match.home_team}.`);
+    if (homeExpected && match.home_flag !== homeExpected) warnings.push(`Match ${match.match_number} has invalid home flag for ${match.home_team}.`);
+    if (!awayExpected && !isPlaceholderTeam(match.away_team)) warnings.push(`Match ${match.match_number} away team has no verified flag mapping: ${match.away_team}.`);
+    if (awayExpected && match.away_flag !== awayExpected) warnings.push(`Match ${match.match_number} has invalid away flag for ${match.away_team}.`);
   });
 
   return warnings;

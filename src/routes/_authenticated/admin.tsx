@@ -8,12 +8,13 @@ import {
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
+import { AdminEventsTab } from "@/components/admin/AdminEventsTab";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { logAudit } from "@/lib/audit";
 import { toast } from "sonner";
 
-type Tab = "overview" | "users" | "posts" | "reports" | "plans" | "audit";
+type Tab = "overview" | "users" | "events" | "posts" | "reports" | "plans" | "audit";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Admin — SAFC" }] }),
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "users", label: "Users" },
+  { id: "events", label: "Events" },
   { id: "posts", label: "Posts" },
   { id: "reports", label: "Reports" },
   { id: "plans", label: "Plans" },
@@ -67,6 +69,7 @@ function AdminPage() {
       <section className="mt-4 px-4 pb-32">
         {tab === "overview" && <Overview />}
         {tab === "users" && <UsersTab />}
+        {tab === "events" && <AdminEventsTab />}
         {tab === "posts" && <PostsTab />}
         {tab === "reports" && <ReportsTab />}
         {tab === "plans" && <PlansTab />}

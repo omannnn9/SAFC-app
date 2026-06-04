@@ -10,6 +10,7 @@ import {
   WORLD_CUP_TOTAL_MATCHES,
   WorldCupFlag,
   WorldCupMatch,
+  displayTeamName,
   formatCountdown,
   flagMap,
   getKickoff,
@@ -237,12 +238,22 @@ function TeamRow({
   name: string;
   align?: "left" | "right";
 }) {
+  const display = displayTeamName(name);
   return (
     <div
       className={`flex min-w-0 flex-1 items-center gap-2 ${align === "right" ? "flex-row-reverse text-right" : ""}`}
     >
       <span className="text-2xl leading-none">{flag}</span>
-      <div className="min-w-0 truncate text-xs font-black uppercase tracking-wider">{name}</div>
+      <div className="min-w-0">
+        <div className="break-words text-xs font-black uppercase tracking-wider leading-tight">
+          {display.primary}
+        </div>
+        {display.secondary && (
+          <div className="mt-0.5 break-words text-[8px] font-bold uppercase tracking-wider text-muted-foreground">
+            {display.secondary}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

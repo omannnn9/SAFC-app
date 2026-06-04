@@ -7,6 +7,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db";
+import { nameToFlag } from "@/lib/flags";
 import {
   WORLD_CUP_STAGES,
   WorldCupFlag,
@@ -42,6 +43,8 @@ function toLocalInput(iso: string) {
 function WorldCupAdminPage() {
   const queryClient = useQueryClient();
   const [creating, setCreating] = useState(false);
+  const [search, setSearch] = useState("");
+  const [stageFilter, setStageFilter] = useState("");
 
   const matchesQ = useQuery({
     queryKey: ["wc-admin-matches"],
@@ -67,6 +70,17 @@ function WorldCupAdminPage() {
   };
 
   const warnings = useMemo(() => validateWorldCup(matchesQ.data ?? [], flagsQ.data ?? []), [matchesQ.data, flagsQ.data]);
+  const visibleMatches = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return (matchesQ.data ?? []).filter((match) => {
+      if (stageFilter && match.stage !== stageFilter) return false;
+      if (!needle) return true;
+      return [match.match_number, match.home_team, match.away_team, match.venue, match.city, stageLabel(match)]
+        .join(" ")
+        .toLowerCase()
+        .includes(needle);
+    });
+  }, [matchesQ.data, search, stageFilter]);
 
   const addBlank = async () => {
     const used = new Set((matchesQ.data ?? []).map((match) => match.match_number));
@@ -138,9 +152,20 @@ function WorldCupAdminPage() {
         </div>
       </section>
 
+      <section className="mt-4 space-y-3 px-4">
+        <div className="glass grid gap-2 rounded-2xl p-3 sm:grid-cols-[1fr_180px]">
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search match, team, venue, city" className={inputCls} />
+          <select value={stageFilter} onChange={(e) => setStageFilter(e.target.value)} className={inputCls}>
+            <option value="">All stages</option>
+            {WORLD_CUP_STAGES.map((stage) => <option key={stage} value={stage}>{stageLabel({ stage, group_name: null })}</option>)}
+          </select>
+        </div>
+        <FlagManager flags={flagsQ.data ?? []} onChanged={() => queryClient.invalidateQueries({ queryKey: ["wc-admin-flags"] })} />
+      </section>
+
       <section className="mt-4 space-y-3 px-4 pb-32">
         {matchesQ.isLoading && <div className="glass h-24 animate-pulse rounded-2xl" />}
-        {(matchesQ.data ?? []).map((match) => (
+        {visibleMatches.map((match) => (
           <MatchEditor key={match.id} match={match} flags={flagsQ.data ?? []} onChanged={reload} />
         ))}
       </section>
@@ -156,7 +181,7 @@ function MatchEditor({ match, flags, onChanged }: { match: WorldCupMatch; flags:
 
   const update = <K extends keyof WorldCupMatch>(key: K, value: WorldCupMatch[K]) => setDraft((prev) => ({ ...prev, [key]: value }));
   const syncTeam = (side: "home" | "away", team: string) => {
-    const flag = flags.find((item) => item.country_name === team)?.flag ?? "🏳️";
+    const flag = flags.find((item) => item.country_name.toLowerCase() === team.toLowerCase())?.flag ?? nameToFlag(team);
     setDraft((prev) => ({ ...prev, [`${side}_team`]: team, [`${side}_flag`]: flag } as WorldCupMatch));
   };
 
@@ -239,6 +264,49 @@ function MatchEditor({ match, flags, onChanged }: { match: WorldCupMatch; flags:
         </button>
         <button onClick={save} disabled={saving} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-[11px] font-black uppercase tracking-wider text-primary-foreground disabled:opacity-60">
           {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Save
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function FlagManager({ flags, onChanged }: { flags: WorldCupFlag[]; onChanged: () => void }) {
+  const [country, setCountry] = useState("");
+  const [flag, setFlag] = useState("");
+  const [busy, setBusy] = useState(false);
+  const verifiedCount = flags.filter((item) => !item.is_placeholder).length;
+
+  const save = async () => {
+    const countryName = country.trim();
+    const nextFlag = (flag.trim() || nameToFlag(countryName)).trim();
+    if (!countryName) return toast.error("Country name is required");
+    if (!nextFlag || nextFlag === "🏳️") return toast.error("Add a valid flag");
+    setBusy(true);
+    const { error } = await db.from("world_cup_country_flags").upsert(
+      { country_name: countryName, flag: nextFlag, is_placeholder: false },
+      { onConflict: "country_name" },
+    );
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    setCountry("");
+    setFlag("");
+    toast.success("Flag mapping saved");
+    onChanged();
+  };
+
+  return (
+    <div className="glass rounded-2xl p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-[10px] font-black uppercase tracking-wider text-primary">Flag mappings</div>
+          <p className="mt-0.5 text-[10px] text-muted-foreground">{verifiedCount} verified country flags · placeholders ignored in validation.</p>
+        </div>
+      </div>
+      <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_90px_auto]">
+        <input value={country} onChange={(e) => { setCountry(e.target.value); if (!flag.trim()) setFlag(nameToFlag(e.target.value)); }} placeholder="Country name" className={inputCls} />
+        <input value={flag} onChange={(e) => setFlag(e.target.value)} placeholder="🇿🇦" className={inputCls} />
+        <button onClick={save} disabled={busy} className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-[10px] font-black uppercase tracking-wider text-primary-foreground disabled:opacity-60">
+          {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />} Save flag
         </button>
       </div>
     </div>
