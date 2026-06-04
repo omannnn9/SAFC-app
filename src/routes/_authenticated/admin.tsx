@@ -1,5 +1,6 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useState, useMemo } from "react";
 import {
   Shield, Users, MessageSquare, Flag, CalendarDays, BarChart3, Loader2,
@@ -11,6 +12,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { AdminEventsTab } from "@/components/admin/AdminEventsTab";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
+import { adminDeleteUser } from "@/lib/admin.functions";
 import { logAudit } from "@/lib/audit";
 import { toast } from "sonner";
 
