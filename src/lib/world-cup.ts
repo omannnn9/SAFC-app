@@ -18,6 +18,7 @@ export type WorldCupMatch = {
   home_score: number | null;
   away_score: number | null;
   winner: string | null;
+  event_id: string | null;
   created_at?: string;
   updated_at?: string;
 };

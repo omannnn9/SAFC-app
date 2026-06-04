@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, MapPin, Radio, Settings, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { supabase } from "@/integrations/supabase/client";
 import {
   WORLD_CUP_TOTAL_MATCHES,
   WorldCupFlag,
@@ -43,8 +44,20 @@ function useNow(intervalMs = 1000) {
 
 function WorldCupPage() {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const now = useNow();
   const [tab, setTab] = useState<"upcoming" | "live" | "results">("upcoming");
+
+  // Live-sync admin edits to matches
+  useEffect(() => {
+    const ch = supabase
+      .channel("wc-matches-rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "world_cup_matches" }, () => {
+        qc.invalidateQueries({ queryKey: ["wc-matches"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [qc]);
 
   const isAdminQ = useQuery({
     queryKey: ["is-admin", user?.id],
@@ -187,17 +200,26 @@ function WorldCupPage() {
           <EmptyState text="No upcoming matches." />
         )}
         {tab === "upcoming" &&
-          upcoming.map((match) => <UpcomingCard key={match.id} match={match} now={now} />)}
+          upcoming.map((match) => <MatchLink key={match.id} match={match}><UpcomingCard match={match} now={now} /></MatchLink>)}
         {!matchesQ.isLoading && tab === "live" && live.length === 0 && (
           <EmptyState text="No matches are live right now. Check back at kickoff." />
         )}
-        {tab === "live" && live.map((match) => <LiveCard key={match.id} match={match} now={now} />)}
+        {tab === "live" && live.map((match) => <MatchLink key={match.id} match={match}><LiveCard match={match} now={now} /></MatchLink>)}
         {!matchesQ.isLoading && tab === "results" && finished.length === 0 && (
           <EmptyState text="No finished matches yet." />
         )}
-        {tab === "results" && finished.map((match) => <ResultCard key={match.id} match={match} />)}
+        {tab === "results" && finished.map((match) => <MatchLink key={match.id} match={match}><ResultCard match={match} /></MatchLink>)}
       </section>
     </PageContainer>
+  );
+}
+
+function MatchLink({ match, children }: { match: WorldCupMatch; children: React.ReactNode }) {
+  if (!match.event_id) return <div className="block">{children}</div>;
+  return (
+    <Link to="/events/$id" params={{ id: match.event_id }} className="block transition hover:opacity-90 active:scale-[0.99]">
+      {children}
+    </Link>
   );
 }
 
