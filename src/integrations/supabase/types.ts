@@ -1301,6 +1301,7 @@ export type Database = {
           away_team: string
           city: string | null
           created_at: string
+          event_id: string | null
           group_name: string | null
           home_flag: string
           home_score: number | null
@@ -1323,6 +1324,7 @@ export type Database = {
           away_team: string
           city?: string | null
           created_at?: string
+          event_id?: string | null
           group_name?: string | null
           home_flag?: string
           home_score?: number | null
@@ -1345,6 +1347,7 @@ export type Database = {
           away_team?: string
           city?: string | null
           created_at?: string
+          event_id?: string | null
           group_name?: string | null
           home_flag?: string
           home_score?: number | null
@@ -1361,7 +1364,15 @@ export type Database = {
           venue?: string | null
           winner?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "world_cup_matches_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
