@@ -377,9 +377,16 @@ function EventDetailPage() {
 }
 
 function Side({ flag, name }: { flag: string | null; name: string }) {
+  const isImageFlag = !!flag && /^(https?:|\/|data:image)/.test(flag);
   return (
     <div className="flex flex-1 flex-col items-center gap-1.5 text-center">
-      {flag ? <img src={flag} alt={name} className="h-10 w-10 rounded-full object-cover ring-2 ring-border" /> : <div className="grid h-10 w-10 place-items-center rounded-full bg-surface-2 text-xs">{name.slice(0, 2)}</div>}
+      {isImageFlag ? (
+        <img src={flag} alt={name} className="h-10 w-10 rounded-full object-cover ring-2 ring-border" />
+      ) : (
+        <div className="grid h-10 w-10 place-items-center rounded-full bg-surface-2 text-2xl">
+          {flag || name.slice(0, 2)}
+        </div>
+      )}
       <div className="text-xs font-black uppercase tracking-wider">{name}</div>
     </div>
   );
