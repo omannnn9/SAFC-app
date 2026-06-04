@@ -126,9 +126,9 @@ export function validateWorldCup(matches: WorldCupMatch[], flags: WorldCupFlag[]
     const homeExpected = flagsByCountry.get(match.home_team);
     const awayExpected = flagsByCountry.get(match.away_team);
     if (!homeExpected && !isPlaceholderTeam(match.home_team)) warnings.push(`Match ${match.match_number} home team has no verified flag mapping: ${match.home_team}.`);
-    else if (match.home_flag !== homeExpected) warnings.push(`Match ${match.match_number} has invalid home flag for ${match.home_team}.`);
+    if (homeExpected && match.home_flag !== homeExpected) warnings.push(`Match ${match.match_number} has invalid home flag for ${match.home_team}.`);
     if (!awayExpected && !isPlaceholderTeam(match.away_team)) warnings.push(`Match ${match.match_number} away team has no verified flag mapping: ${match.away_team}.`);
-    else if (match.away_flag !== awayExpected) warnings.push(`Match ${match.match_number} has invalid away flag for ${match.away_team}.`);
+    if (awayExpected && match.away_flag !== awayExpected) warnings.push(`Match ${match.match_number} has invalid away flag for ${match.away_team}.`);
   });
 
   return warnings;
