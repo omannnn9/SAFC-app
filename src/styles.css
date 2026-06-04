@@ -1,62 +1,15 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import url("https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700;800&display=swap");
 
 @custom-variant dark (&:is(.dark *));
 
 /* ============================================================
    SAFC – South African Football Community
-   Official brand fonts: Unbounded (display + UI)
+   Official brand font: Unbounded (via Google Fonts)
    ============================================================ */
-@font-face {
-  font-family: "Unbounded";
-  font-weight: 200;
-  font-style: normal;
-  font-display: swap;
-  src: url("/__l5e/assets-v1/0a1a675f-0db5-41fc-b745-f63960b30fba/Unbounded-ExtraLight.ttf") format("truetype");
-}
-@font-face {
-  font-family: "Unbounded";
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-  src: url("/__l5e/assets-v1/0e999f7d-9895-4e44-96e7-e92702234ee5/Unbounded-Light.ttf") format("truetype");
-}
-@font-face {
-  font-family: "Unbounded";
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  src: url("/__l5e/assets-v1/0d29b43e-71c9-404e-ad28-8ec5cd3adf61/Unbounded-Regular.ttf") format("truetype");
-}
-@font-face {
-  font-family: "Unbounded";
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-  src: url("/__l5e/assets-v1/8c2d5ecc-1b24-48de-bd30-0e78fac42a09/Unbounded-Medium.ttf") format("truetype");
-}
-@font-face {
-  font-family: "Unbounded";
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-  src: url("/__l5e/assets-v1/e26d008e-f7ab-4480-b47c-002003b65b46/Unbounded-SemiBold.ttf") format("truetype");
-}
-@font-face {
-  font-family: "Unbounded";
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-  src: url("/__l5e/assets-v1/426a172a-3b1c-4b90-a9d4-552c664f1eac/Unbounded-Bold.ttf") format("truetype");
-}
-@font-face {
-  font-family: "Unbounded";
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-  src: url("/__l5e/assets-v1/256332b2-2676-4dfd-b6f9-64b46dec8399/Unbounded-ExtraBold.ttf") format("truetype");
-}
+
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
