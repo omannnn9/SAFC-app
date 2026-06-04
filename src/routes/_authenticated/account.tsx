@@ -415,14 +415,14 @@ function FollowRequestsInbox() {
     queryKey: ["follow-requests", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await db
+      const { data, error } = await db
         .from("follows")
-        .select("follower_id, created_at, follower:profiles!follows_follower_id_fkey(id, full_name, avatar_url, username)")
+        .select("follower_id, created_at")
         .eq("following_id", user!.id)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
-      // join may not be configured; fall back to manual lookup
-      if (data && data.length > 0 && !data[0].follower) {
+      if (error) throw error;
+      if (data && data.length > 0) {
         const ids = data.map((r: any) => r.follower_id);
         const { data: profs } = await db.from("profiles").select("id, full_name, avatar_url, username").in("id", ids);
         const byId = new Map((profs ?? []).map((p: any) => [p.id, p]));
