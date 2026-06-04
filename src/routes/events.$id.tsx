@@ -148,8 +148,7 @@ function EventDetailPage() {
         qc.invalidateQueries({ queryKey: ["event-groups", id] });
         setChatId(res.chatId);
         if (next === "going") {
-          toast.success("You're going! Opening matchday chat…");
-          navigate({ to: "/event-chat/$id", params: { id: res.chatId } });
+          toast.success("You're going · matchday chat unlocked");
           return;
         }
         toast.success("Marked as interested · matchday chat unlocked");
