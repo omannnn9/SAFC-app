@@ -200,17 +200,26 @@ function WorldCupPage() {
           <EmptyState text="No upcoming matches." />
         )}
         {tab === "upcoming" &&
-          upcoming.map((match) => <UpcomingCard key={match.id} match={match} now={now} />)}
+          upcoming.map((match) => <MatchLink key={match.id} match={match}><UpcomingCard match={match} now={now} /></MatchLink>)}
         {!matchesQ.isLoading && tab === "live" && live.length === 0 && (
           <EmptyState text="No matches are live right now. Check back at kickoff." />
         )}
-        {tab === "live" && live.map((match) => <LiveCard key={match.id} match={match} now={now} />)}
+        {tab === "live" && live.map((match) => <MatchLink key={match.id} match={match}><LiveCard match={match} now={now} /></MatchLink>)}
         {!matchesQ.isLoading && tab === "results" && finished.length === 0 && (
           <EmptyState text="No finished matches yet." />
         )}
-        {tab === "results" && finished.map((match) => <ResultCard key={match.id} match={match} />)}
+        {tab === "results" && finished.map((match) => <MatchLink key={match.id} match={match}><ResultCard match={match} /></MatchLink>)}
       </section>
     </PageContainer>
+  );
+}
+
+function MatchLink({ match, children }: { match: WorldCupMatch; children: React.ReactNode }) {
+  if (!match.event_id) return <div className="block">{children}</div>;
+  return (
+    <Link to="/events/$id" params={{ id: match.event_id }} className="block transition hover:opacity-90 active:scale-[0.99]">
+      {children}
+    </Link>
   );
 }
 
