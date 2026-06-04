@@ -1,78 +1,48 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState, useMemo } from "react";
-import { Trophy, Radio, CalendarDays, MapPin, Settings } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { CalendarDays, MapPin, Radio, Settings, Trophy } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import {
+  WORLD_CUP_TOTAL_MATCHES,
+  WorldCupFlag,
+  WorldCupMatch,
+  formatCountdown,
+  flagMap,
+  getKickoff,
+  liveMinute,
+  stageLabel,
+  statusOf,
+} from "@/lib/world-cup";
 
 export const Route = createFileRoute("/worldcup")({
   head: () => ({
     meta: [
       { title: "FIFA World Cup 2026 — SAFC" },
-      { name: "description", content: "Every World Cup 2026 fixture, live match and result." },
+      {
+        name: "description",
+        content: "All 104 FIFA World Cup 2026 fixtures, live countdowns and results.",
+      },
     ],
   }),
   component: WorldCupPage,
 });
 
-type WcMatch = {
-  id: string;
-  home_team: string;
-  away_team: string;
-  home_flag: string;
-  away_flag: string;
-  kickoff: string;
-  venue: string | null;
-  city: string | null;
-  stage: string;
-  group_name: string | null;
-  home_score: number | null;
-  away_score: number | null;
-};
-
-type Status = "upcoming" | "live" | "finished";
-
-const MATCH_DURATION_MS = 120 * 60 * 1000;
-
-function statusOf(m: WcMatch, now: number): Status {
-  const ko = new Date(m.kickoff).getTime();
-  if (now < ko) return "upcoming";
-  if (now <= ko + MATCH_DURATION_MS) return "live";
-  return "finished";
-}
-
 function useNow(intervalMs = 1000) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), intervalMs);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setNow(Date.now()), intervalMs);
+    return () => clearInterval(timer);
   }, [intervalMs]);
   return now;
 }
 
-function formatCountdown(ms: number) {
-  if (ms <= 0) return "Kickoff!";
-  const s = Math.floor(ms / 1000);
-  const d = Math.floor(s / 86400);
-  const h = Math.floor((s % 86400) / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  if (d > 0) return `${d}d ${h}h ${m}m`;
-  if (h > 0) return `${h}h ${m}m ${sec}s`;
-  return `${m}m ${sec}s`;
-}
-
-function liveMinute(m: WcMatch, now: number) {
-  const ko = new Date(m.kickoff).getTime();
-  const mins = Math.floor((now - ko) / 60000);
-  return Math.max(1, Math.min(mins, 120));
-}
-
 function WorldCupPage() {
   const { user } = useAuth();
-  const now = useNow(1000);
+  const now = useNow();
   const [tab, setTab] = useState<"upcoming" | "live" | "results">("upcoming");
 
   const isAdminQ = useQuery({
@@ -93,29 +63,56 @@ function WorldCupPage() {
   const matchesQ = useQuery({
     queryKey: ["wc-matches"],
     queryFn: async () => {
-      const { data } = await db
+      const { data, error } = await db
         .from("world_cup_matches")
         .select("*")
-        .order("kickoff", { ascending: true });
-      return (data ?? []) as WcMatch[];
+        .order("match_number", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as WorldCupMatch[];
     },
     refetchInterval: 30_000,
   });
 
+  const flagsQ = useQuery({
+    queryKey: ["wc-flags"],
+    queryFn: async () => {
+      const { data, error } = await db
+        .from("world_cup_country_flags")
+        .select("country_name, flag, is_placeholder");
+      if (error) throw error;
+      return (data ?? []) as WorldCupFlag[];
+    },
+    refetchInterval: 60_000,
+  });
+
+  const flagsByCountry = useMemo(() => flagMap(flagsQ.data ?? []), [flagsQ.data]);
+
   const { upcoming, live, finished } = useMemo(() => {
-    const list = matchesQ.data ?? [];
-    const u: WcMatch[] = [];
-    const l: WcMatch[] = [];
-    const f: WcMatch[] = [];
-    for (const m of list) {
-      const s = statusOf(m, now);
-      if (s === "upcoming") u.push(m);
-      else if (s === "live") l.push(m);
-      else f.push(m);
+    const list = (matchesQ.data ?? []).map((match) => ({
+      ...match,
+      home_flag: flagsByCountry.get(match.home_team) ?? match.home_flag,
+      away_flag: flagsByCountry.get(match.away_team) ?? match.away_flag,
+    }));
+    const upcomingMatches: WorldCupMatch[] = [];
+    const liveMatches: WorldCupMatch[] = [];
+    const finishedMatches: WorldCupMatch[] = [];
+    for (const match of list) {
+      const status = statusOf(match, now);
+      if (status === "upcoming") upcomingMatches.push(match);
+      else if (status === "live") liveMatches.push(match);
+      else finishedMatches.push(match);
     }
-    f.reverse();
-    return { upcoming: u, live: l, finished: f };
-  }, [matchesQ.data, now]);
+    upcomingMatches.sort(
+      (a, b) => new Date(getKickoff(a)).getTime() - new Date(getKickoff(b)).getTime(),
+    );
+    liveMatches.sort((a, b) => a.match_number - b.match_number);
+    finishedMatches.sort(
+      (a, b) => new Date(getKickoff(b)).getTime() - new Date(getKickoff(a)).getTime(),
+    );
+    return { upcoming: upcomingMatches, live: liveMatches, finished: finishedMatches };
+  }, [flagsByCountry, matchesQ.data, now]);
+
+  const total = matchesQ.data?.length ?? 0;
 
   return (
     <PageContainer>
@@ -128,85 +125,121 @@ function WorldCupPage() {
               FIFA World Cup 2026
             </div>
             <h1 className="mt-1 font-display text-3xl font-black tracking-tight">
-              Every match. Every <span className="text-gradient-gold">supporter</span>.
+              {total || WORLD_CUP_TOTAL_MATCHES} match slots.{" "}
+              <span className="text-gradient-gold">Always live</span>.
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Fully internal fixture engine — countdowns, live windows, and results all update on
-              their own.
+              Database-driven fixtures with automatic countdowns, live windows, verified flags and
+              results.
             </p>
           </div>
           {isAdminQ.data && (
             <Link
               to="/admin/worldcup"
-              className="glass flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-black uppercase tracking-wider text-foreground hover:bg-white/5"
+              className="glass flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-black uppercase tracking-wider text-foreground hover:bg-surface-2"
             >
               <Settings className="h-3.5 w-3.5" /> Admin
             </Link>
           )}
         </div>
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Stat label="Total" value={`${total}/${WORLD_CUP_TOTAL_MATCHES}`} />
+          <Stat label="Upcoming" value={String(upcoming.length)} />
+          <Stat label="Live" value={String(live.length)} active={live.length > 0} />
+          <Stat label="Results" value={String(finished.length)} />
+        </div>
       </section>
 
       <section className="mt-5 px-4">
         <div className="glass grid grid-cols-3 rounded-xl p-1">
-          {([
-            { id: "upcoming", label: `Upcoming · ${upcoming.length}` },
-            { id: "live", label: live.length ? `Live · ${live.length}` : "Live" },
-            { id: "results", label: `Results · ${finished.length}` },
-          ] as const).map((f) => (
+          {(
+            [
+              { id: "upcoming", label: `Upcoming · ${upcoming.length}` },
+              { id: "live", label: live.length ? `Live · ${live.length}` : "Live" },
+              { id: "results", label: `Results · ${finished.length}` },
+            ] as const
+          ).map((filter) => (
             <button
-              key={f.id}
-              onClick={() => setTab(f.id)}
+              key={filter.id}
+              onClick={() => setTab(filter.id)}
               className={`rounded-lg py-2 text-[10px] font-black uppercase tracking-wider transition ${
-                tab === f.id ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+                tab === filter.id
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {f.id === "live" && live.length > 0 && (
-                <Radio className="mr-1 inline h-2.5 w-2.5 animate-pulse text-red-400" />
+              {filter.id === "live" && live.length > 0 && (
+                <Radio className="mr-1 inline h-2.5 w-2.5 animate-pulse text-destructive" />
               )}
-              {f.label}
+              {filter.label}
             </button>
           ))}
         </div>
       </section>
 
       <section className="mt-4 space-y-2 px-4 pb-32">
-        {matchesQ.isLoading && <div className="glass h-24 animate-pulse rounded-2xl" />}
-
+        {(matchesQ.isLoading || flagsQ.isLoading) && (
+          <div className="glass h-24 animate-pulse rounded-2xl" />
+        )}
+        {matchesQ.error && <EmptyState text="World Cup fixtures could not load." />}
         {!matchesQ.isLoading && tab === "upcoming" && upcoming.length === 0 && (
           <EmptyState text="No upcoming matches." />
         )}
         {tab === "upcoming" &&
-          upcoming.map((m) => <UpcomingCard key={m.id} m={m} now={now} />)}
-
+          upcoming.map((match) => <UpcomingCard key={match.id} match={match} now={now} />)}
         {!matchesQ.isLoading && tab === "live" && live.length === 0 && (
           <EmptyState text="No matches are live right now. Check back at kickoff." />
         )}
-        {tab === "live" && live.map((m) => <LiveCard key={m.id} m={m} now={now} />)}
-
+        {tab === "live" && live.map((match) => <LiveCard key={match.id} match={match} now={now} />)}
         {!matchesQ.isLoading && tab === "results" && finished.length === 0 && (
           <EmptyState text="No finished matches yet." />
         )}
-        {tab === "results" && finished.map((m) => <ResultCard key={m.id} m={m} />)}
+        {tab === "results" && finished.map((match) => <ResultCard key={match.id} match={match} />)}
       </section>
     </PageContainer>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  active = false,
+}: {
+  label: string;
+  value: string;
+  active?: boolean;
+}) {
+  return (
+    <div className={`glass rounded-xl p-2 text-center ${active ? "ring-1 ring-destructive" : ""}`}>
+      <div className="font-display text-base font-black tabular-nums sm:text-lg">{value}</div>
+      <div className="text-[8px] font-black uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+    </div>
   );
 }
 
 function EmptyState({ text }: { text: string }) {
   return (
     <div className="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">
-      <Trophy className="mx-auto mb-2 h-6 w-6 text-[var(--sa-gold)]" />
+      <Trophy className="mx-auto mb-2 h-6 w-6 text-accent" />
       {text}
     </div>
   );
 }
 
-function TeamRow({ flag, name, align = "left" }: { flag: string; name: string; align?: "left" | "right" }) {
+function TeamRow({
+  flag,
+  name,
+  align = "left",
+}: {
+  flag: string;
+  name: string;
+  align?: "left" | "right";
+}) {
   return (
     <div
-      className={`flex flex-1 items-center gap-2 min-w-0 ${
-        align === "right" ? "flex-row-reverse text-right" : ""
-      }`}
+      className={`flex min-w-0 flex-1 items-center gap-2 ${align === "right" ? "flex-row-reverse text-right" : ""}`}
     >
       <span className="text-2xl leading-none">{flag}</span>
       <div className="min-w-0 truncate text-xs font-black uppercase tracking-wider">{name}</div>
@@ -214,40 +247,33 @@ function TeamRow({ flag, name, align = "left" }: { flag: string; name: string; a
   );
 }
 
-function StageBadge({ m }: { m: WcMatch }) {
-  const label =
-    m.stage === "group"
-      ? `Group ${m.group_name ?? ""}`.trim()
-      : m.stage === "r32"
-      ? "Round of 32"
-      : m.stage === "r16"
-      ? "Round of 16"
-      : m.stage === "qf"
-      ? "Quarter Final"
-      : m.stage === "sf"
-      ? "Semi Final"
-      : m.stage === "third"
-      ? "Third Place"
-      : m.stage === "final"
-      ? "Final"
-      : m.stage;
+function StageBadge({ match }: { match: WorldCupMatch }) {
   return (
     <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-muted-foreground">
-      {label}
+      Match {match.match_number} · {stageLabel(match)}
     </span>
   );
 }
 
-function UpcomingCard({ m, now }: { m: WcMatch; now: number }) {
-  const ko = new Date(m.kickoff);
-  const ms = ko.getTime() - now;
+function VenueLine({ match }: { match: WorldCupMatch }) {
+  if (!match.venue && !match.city) return null;
+  return (
+    <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
+      <MapPin className="h-3 w-3" /> {[match.venue, match.city].filter(Boolean).join(" · ")}
+    </div>
+  );
+}
+
+function UpcomingCard({ match, now }: { match: WorldCupMatch; now: number }) {
+  const kickoff = new Date(getKickoff(match));
+  const ms = kickoff.getTime() - now;
   return (
     <div className="glass rounded-2xl p-3">
-      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-        <StageBadge m={m} />
-        <div className="flex items-center gap-1">
+      <div className="flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
+        <StageBadge match={match} />
+        <div className="flex shrink-0 items-center gap-1">
           <CalendarDays className="h-3 w-3" />
-          {ko.toLocaleString(undefined, {
+          {kickoff.toLocaleString(undefined, {
             day: "numeric",
             month: "short",
             hour: "2-digit",
@@ -256,8 +282,8 @@ function UpcomingCard({ m, now }: { m: WcMatch; now: number }) {
         </div>
       </div>
       <div className="mt-2 flex items-center gap-3">
-        <TeamRow flag={m.home_flag} name={m.home_team} />
-        <div className="min-w-[78px] text-center">
+        <TeamRow flag={match.home_flag} name={match.home_team} />
+        <div className="min-w-[86px] text-center">
           <div className="font-display text-base font-black tabular-nums text-primary">
             {formatCountdown(ms)}
           </div>
@@ -265,64 +291,60 @@ function UpcomingCard({ m, now }: { m: WcMatch; now: number }) {
             to kickoff
           </div>
         </div>
-        <TeamRow flag={m.away_flag} name={m.away_team} align="right" />
+        <TeamRow flag={match.away_flag} name={match.away_team} align="right" />
       </div>
-      {(m.venue || m.city) && (
-        <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
-          <MapPin className="h-3 w-3" /> {[m.venue, m.city].filter(Boolean).join(" · ")}
-        </div>
-      )}
+      <VenueLine match={match} />
     </div>
   );
 }
 
-function LiveCard({ m, now }: { m: WcMatch; now: number }) {
+function LiveCard({ match, now }: { match: WorldCupMatch; now: number }) {
   return (
-    <div className="glass rounded-2xl border border-red-500/30 p-3">
+    <div className="glass rounded-2xl border border-destructive p-3">
       <div className="flex items-center justify-between text-[10px]">
-        <StageBadge m={m} />
-        <span className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-red-400">
-          <Radio className="h-2 w-2 animate-pulse" /> Live · {liveMinute(m, now)}'
+        <StageBadge match={match} />
+        <span className="inline-flex items-center gap-1 rounded-full bg-destructive px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-destructive-foreground">
+          <Radio className="h-2 w-2 animate-pulse" /> Live · {liveMinute(match, now)}'
         </span>
       </div>
       <div className="mt-2 flex items-center gap-3">
-        <TeamRow flag={m.home_flag} name={m.home_team} />
-        <div className="min-w-[78px] text-center">
+        <TeamRow flag={match.home_flag} name={match.home_team} />
+        <div className="min-w-[86px] text-center">
           <div className="font-display text-2xl font-black tabular-nums">
-            {m.home_score ?? 0}<span className="px-1 text-muted-foreground">–</span>{m.away_score ?? 0}
+            {match.home_score ?? 0}
+            <span className="px-1 text-muted-foreground">–</span>
+            {match.away_score ?? 0}
           </div>
         </div>
-        <TeamRow flag={m.away_flag} name={m.away_team} align="right" />
+        <TeamRow flag={match.away_flag} name={match.away_team} align="right" />
       </div>
-      {(m.venue || m.city) && (
-        <div className="mt-2 flex items-center justify-center gap-1 text-[10px] text-muted-foreground">
-          <MapPin className="h-3 w-3" /> {[m.venue, m.city].filter(Boolean).join(" · ")}
-        </div>
-      )}
+      <VenueLine match={match} />
     </div>
   );
 }
 
-function ResultCard({ m }: { m: WcMatch }) {
-  const ko = new Date(m.kickoff);
+function ResultCard({ match }: { match: WorldCupMatch }) {
+  const kickoff = new Date(getKickoff(match));
   return (
     <div className="glass rounded-2xl p-3">
       <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-        <StageBadge m={m} />
+        <StageBadge match={match} />
         <span className="font-bold uppercase tracking-wider">Full time</span>
       </div>
       <div className="mt-2 flex items-center gap-3">
-        <TeamRow flag={m.home_flag} name={m.home_team} />
-        <div className="min-w-[78px] text-center">
+        <TeamRow flag={match.home_flag} name={match.home_team} />
+        <div className="min-w-[86px] text-center">
           <div className="font-display text-2xl font-black tabular-nums">
-            {m.home_score ?? 0}<span className="px-1 text-muted-foreground">–</span>{m.away_score ?? 0}
+            {match.home_score ?? 0}
+            <span className="px-1 text-muted-foreground">–</span>
+            {match.away_score ?? 0}
           </div>
         </div>
-        <TeamRow flag={m.away_flag} name={m.away_team} align="right" />
+        <TeamRow flag={match.away_flag} name={match.away_team} align="right" />
       </div>
       <div className="mt-2 text-center text-[10px] text-muted-foreground">
-        {ko.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
-        {m.venue ? ` · ${m.venue}` : ""}
+        {kickoff.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+        {match.venue ? ` · ${match.venue}` : ""}
       </div>
     </div>
   );
