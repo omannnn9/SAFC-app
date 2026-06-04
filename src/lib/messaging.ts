@@ -131,6 +131,7 @@ export async function listConversations(currentUserId: string): Promise<Conversa
       const otherId = otherUserByConv.get(c.id);
       return {
         id: c.id,
+        kind: "dm" as const,
         is_group: c.is_group,
         title: c.title,
         last_message_at: c.last_message_at,
