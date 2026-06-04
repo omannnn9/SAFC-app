@@ -13,13 +13,81 @@ export type Message = {
 
 export type ConversationSummary = {
   id: string;
+  kind: "dm" | "event";
   is_group: boolean;
   title: string | null;
   last_message_at: string;
   other: AuthorMini | null;
   last_message: string | null;
   unread: number;
+  event_id?: string | null;
+  cover_url?: string | null;
+  members_count?: number;
 };
+
+export async function listEventChats(currentUserId: string): Promise<ConversationSummary[]> {
+  const { data: mems } = await db
+    .from("event_chat_members")
+    .select("chat_id, last_read_at")
+    .eq("user_id", currentUserId);
+  const rows = (mems ?? []) as { chat_id: string; last_read_at: string | null }[];
+  if (!rows.length) return [];
+  const chatIds = rows.map((r) => r.chat_id);
+  const lastReadMap = new Map(rows.map((r) => [r.chat_id, r.last_read_at]));
+
+  const [{ data: chats }, { data: allMembers }, { data: lastMsgs }] = await Promise.all([
+    db.from("event_chats").select("id, event_id, last_message_at, created_at").in("id", chatIds),
+    db.from("event_chat_members").select("chat_id, user_id").in("chat_id", chatIds),
+    db.from("event_chat_messages").select("id, chat_id, sender_id, body, created_at").in("chat_id", chatIds).order("created_at", { ascending: false }),
+  ]);
+
+  const eventIds = Array.from(new Set(((chats ?? []) as { event_id: string }[]).map((c) => c.event_id)));
+  const { data: events } = eventIds.length
+    ? await db.from("events").select("id, title, home_team, away_team, home_team_flag, away_team_flag, cover_url, kickoff").in("id", eventIds)
+    : { data: [] };
+  const evtMap = new Map(
+    ((events ?? []) as Array<{ id: string; title: string; home_team: string | null; away_team: string | null; home_team_flag: string | null; away_team_flag: string | null; cover_url: string | null; kickoff: string }>).map((e) => [e.id, e]),
+  );
+
+  const memberCount = new Map<string, number>();
+  for (const m of (allMembers ?? []) as { chat_id: string; user_id: string }[]) {
+    memberCount.set(m.chat_id, (memberCount.get(m.chat_id) ?? 0) + 1);
+  }
+
+  const lastByChat = new Map<string, { body: string | null; created_at: string; sender_id: string }>();
+  const unreadByChat = new Map<string, number>();
+  for (const m of (lastMsgs ?? []) as { chat_id: string; body: string | null; created_at: string; sender_id: string }[]) {
+    if (!lastByChat.has(m.chat_id)) lastByChat.set(m.chat_id, m);
+    const lr = lastReadMap.get(m.chat_id);
+    if (m.sender_id !== currentUserId && (!lr || new Date(m.created_at) > new Date(lr))) {
+      unreadByChat.set(m.chat_id, (unreadByChat.get(m.chat_id) ?? 0) + 1);
+    }
+  }
+
+  return ((chats ?? []) as { id: string; event_id: string; last_message_at: string | null; created_at: string }[]).map((c) => {
+    const evt = evtMap.get(c.event_id);
+    const flagPair = evt?.home_team_flag && evt?.away_team_flag ? `${evt.home_team_flag} ${evt.away_team_flag} ` : "";
+    const title = evt
+      ? evt.home_team && evt.away_team
+        ? `${flagPair}${evt.home_team} vs ${evt.away_team}`
+        : evt.title
+      : "Event chat";
+    const lm = lastByChat.get(c.id);
+    return {
+      id: c.id,
+      kind: "event" as const,
+      is_group: true,
+      title,
+      last_message_at: c.last_message_at ?? c.created_at,
+      other: null,
+      last_message: lm?.body ?? null,
+      unread: unreadByChat.get(c.id) ?? 0,
+      event_id: c.event_id,
+      cover_url: evt?.cover_url ?? null,
+      members_count: memberCount.get(c.id) ?? 1,
+    };
+  });
+}
 
 export async function listConversations(currentUserId: string): Promise<ConversationSummary[]> {
   const { data: parts } = await db
