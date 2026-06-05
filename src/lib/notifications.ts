@@ -29,8 +29,8 @@ export async function createNotification(params: CreateParams) {
       _user_id: params.userId,
       _type: params.type,
       _title: params.title,
-      _body: params.body ?? null,
-      _link: params.link ?? null,
+      _body: params.body ?? undefined,
+      _link: params.link ?? undefined,
     });
   } catch (e) {
     // never let notification failure break the parent action
