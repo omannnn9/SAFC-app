@@ -1,9 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-async function assertAdmin(userId: string) {
+async function getBearerToken() {
+  const { getRequest } = await import("@tanstack/react-start/server");
+  const authHeader = getRequest()?.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) throw new Error("Unauthorized: please sign in again");
+  return authHeader.replace("Bearer ", "").trim();
+}
+
+async function requireAdminUserId() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(await getBearerToken());
+  const userId = userData.user?.id;
+  if (userError || !userId) throw new Error("Unauthorized: please sign in again");
   const { data } = await supabaseAdmin
     .from("user_roles")
     .select("role")
@@ -11,13 +20,13 @@ async function assertAdmin(userId: string) {
     .eq("role", "admin")
     .maybeSingle();
   if (!data) throw new Error("Forbidden: admin role required");
+  return userId;
 }
 
 export const adminDeleteEvent = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ eventId: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+  .handler(async ({ data }) => {
+    await requireAdminUserId();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Detach / remove linked World Cup match first so the sync trigger doesn't
@@ -30,9 +39,8 @@ export const adminDeleteEvent = createServerFn({ method: "POST" })
   });
 
 export const adminClearAllEvents = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    await assertAdmin(context.userId);
+  .handler(async () => {
+    await requireAdminUserId();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Wipe WC matches first (their trigger would otherwise re-create events on update),
     // then wipe all events.
@@ -44,11 +52,10 @@ export const adminClearAllEvents = createServerFn({ method: "POST" })
   });
 
 export const adminDeleteUser = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ userId: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    if (data.userId === context.userId) throw new Error("You cannot delete your own account");
+  .handler(async ({ data }) => {
+    const adminUserId = await requireAdminUserId();
+    if (data.userId === adminUserId) throw new Error("You cannot delete your own account");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
     if (error) throw new Error(error.message);
