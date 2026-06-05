@@ -93,8 +93,7 @@ export function MockCheckoutModal({
     }).then(() => {}, () => {});
 
     await db
-      .from("user_achievements")
-      .insert({ user_id: userId, achievement_id: `${plan.id}_supporter` })
+      .rpc("grant_supporter_achievement", { _plan: plan.id })
       .then(() => {}, () => {});
     setStage("success");
     toast.success(`Welcome to ${plan.name} ${plan.badge}`);

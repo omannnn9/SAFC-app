@@ -21,16 +21,16 @@ type CreateParams = {
   link?: string | null;
 };
 
-/** Insert an in-app notification. Silently no-ops if actor == recipient. */
+/** Insert an in-app notification via SECURITY DEFINER RPC. No-ops if actor == recipient. */
 export async function createNotification(params: CreateParams) {
   if (params.actorId && params.actorId === params.userId) return;
   try {
-    await db.from("notifications").insert({
-      user_id: params.userId,
-      type: params.type,
-      title: params.title,
-      body: params.body ?? null,
-      link: params.link ?? null,
+    await supabase.rpc("create_notification", {
+      _user_id: params.userId,
+      _type: params.type,
+      _title: params.title,
+      _body: params.body ?? undefined,
+      _link: params.link ?? undefined,
     });
   } catch (e) {
     // never let notification failure break the parent action
