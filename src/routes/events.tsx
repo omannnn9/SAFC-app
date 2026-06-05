@@ -26,7 +26,7 @@ function EventsIndex() {
   const eventsQ = useQuery({
     queryKey: ["events-all"],
     queryFn: async () => {
-      const { data } = await db.from("events").select("*").order("kickoff", { ascending: true });
+    const { data } = await db.from("world_cup_matches").select("*").order("kickoff", { ascending: true });
       return (data ?? []) as EventRow[];
     },
     refetchInterval: 30_000,
