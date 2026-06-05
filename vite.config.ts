@@ -34,6 +34,3 @@ export default defineConfig({
     viteReact(),
   ],
 });
-
-
-(window as any).supabase = db;
