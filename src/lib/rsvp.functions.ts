@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuthenticatedSupabase } from "@/lib/server-auth";
 
 const AttendanceSchema = z.object({
   eventId: z.string().uuid(),
@@ -8,11 +8,9 @@ const AttendanceSchema = z.object({
 });
 
 export const updateEventRsvp = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input) => AttendanceSchema.parse(input))
-  .handler(async ({ data, context }) => {
-    const uid = context.userId;
-    const { supabase } = context;
+  .handler(async ({ data }) => {
+    const { supabase, userId: uid } = await requireAuthenticatedSupabase();
 
     const { data: event, error: eventError } = await supabase
       .from("events")

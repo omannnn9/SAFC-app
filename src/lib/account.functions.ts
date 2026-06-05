@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuthenticatedSupabase } from "@/lib/server-auth";
 
 /**
  * Permanently delete the authenticated user.
@@ -14,11 +14,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  * before this function is invoked. requireSupabaseAuth confirms the caller is the user.
  */
 export const deleteMyAccount = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ confirm: z.literal("DELETE") }).parse(input))
-  .handler(async ({ context }) => {
+  .handler(async () => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const uid = context.userId;
+    const { userId: uid } = await requireAuthenticatedSupabase();
 
     // 1. Delete user's own posts (cascades likes/saves/shares/comments on those posts)
     await supabaseAdmin.from("posts").delete().eq("user_id", uid);

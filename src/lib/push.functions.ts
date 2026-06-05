@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuthenticatedSupabase } from "@/lib/server-auth";
 
 export const getVapidPublic = createServerFn({ method: "GET" }).handler(async () => {
   const { getVapidPublicKey } = await import("./vapid.server");
@@ -15,10 +15,9 @@ const SubSchema = z.object({
 });
 
 export const subscribePush = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d) => SubSchema.parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+  .handler(async ({ data }) => {
+    const { supabase, userId } = await requireAuthenticatedSupabase();
     const { error } = await supabase
       .from("push_subscriptions")
       .upsert(
@@ -37,19 +36,17 @@ export const subscribePush = createServerFn({ method: "POST" })
   });
 
 export const unsubscribePush = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ endpoint: z.string().url() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabase } = context;
+  .handler(async ({ data }) => {
+    const { supabase } = await requireAuthenticatedSupabase();
     const { error } = await supabase.from("push_subscriptions").delete().eq("endpoint", data.endpoint);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
 export const getMyPushPrefs = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabase } = context;
+  .handler(async () => {
+    const { supabase } = await requireAuthenticatedSupabase();
     const { data } = await supabase
       .from("push_subscriptions")
       .select("endpoint, prefs, user_agent, created_at")
@@ -58,7 +55,6 @@ export const getMyPushPrefs = createServerFn({ method: "GET" })
   });
 
 export const updatePushPrefs = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z
       .object({
@@ -72,8 +68,8 @@ export const updatePushPrefs = createServerFn({ method: "POST" })
       })
       .parse(d),
   )
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+  .handler(async ({ data }) => {
+    const { supabase, userId } = await requireAuthenticatedSupabase();
     const { error } = await supabase
       .from("push_subscriptions")
       .update({ prefs: data.prefs, updated_at: new Date().toISOString() })
@@ -83,9 +79,8 @@ export const updatePushPrefs = createServerFn({ method: "POST" })
   });
 
 export const sendTestPush = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabase, userId } = context;
+  .handler(async () => {
+    const { supabase, userId } = await requireAuthenticatedSupabase();
     const { data: subs } = await supabase
       .from("push_subscriptions")
       .select("endpoint, p256dh, auth")
@@ -110,12 +105,11 @@ export const sendTestPush = createServerFn({ method: "POST" })
 
 // Admin-only: announce squad
 export const broadcastSquadAnnounced = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
     z.object({ title: z.string().min(1).max(120), body: z.string().max(300).optional() }).parse(d),
   )
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+  .handler(async ({ data }) => {
+    const { supabase, userId } = await requireAuthenticatedSupabase();
     const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
     if (!isAdmin) throw new Error("Admin only");
     const { broadcast } = await import("./push.server");

@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireAdminSupabase } from "@/lib/server-auth";
 
 const RowSchema = z.object({
   home_team: z.string().min(1).max(120),
@@ -15,29 +16,10 @@ const RowSchema = z.object({
   external_id: z.string().min(3).max(200),
 });
 
-async function getBearerToken() {
-  const { getRequest } = await import("@tanstack/react-start/server");
-  const authHeader = getRequest()?.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) throw new Error("Unauthorized: please sign in again");
-  return authHeader.replace("Bearer ", "").trim();
-}
-
-async function requireAdminUserId() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(await getBearerToken());
-  const userId = userData.user?.id;
-  if (userError || !userId) throw new Error("Unauthorized: please sign in again");
-  const { data } = await supabaseAdmin
-    .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
-  if (!data) throw new Error("Forbidden: admin role required");
-  return userId;
-}
-
 export const adminImportWorldCupRows = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ rows: z.array(RowSchema).min(1).max(500) }).parse(input))
   .handler(async ({ data }) => {
-    const adminUserId = await requireAdminUserId();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabase, userId: adminUserId } = await requireAdminSupabase();
 
     const payload = data.rows.map((r) => ({
       title: `${r.home_team} vs ${r.away_team}`,
@@ -58,7 +40,7 @@ export const adminImportWorldCupRows = createServerFn({ method: "POST" })
       created_by: adminUserId,
     }));
 
-    const { data: result, error } = await supabaseAdmin
+    const { data: result, error } = await supabase
       .from("events")
       .upsert(payload, { onConflict: "external_id" })
       .select("id, external_id");

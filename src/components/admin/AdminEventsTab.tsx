@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { db } from "@/lib/db";
 import { useAuth } from "@/lib/auth";
 import type { EventRow } from "@/lib/social";
-import { adminDeleteEvent, adminClearAllEvents } from "@/lib/admin.functions";
+import { adminDeleteEvent, adminClearAllEvents, adminSaveEvent } from "@/lib/admin.functions";
 
 const EVENT_TYPES = ["wc_match", "match", "tournament", "fan_zone", "meetup", "festival", "travel"] as const;
 const STAGES = ["group", "r32", "r16", "qf", "sf", "third", "final", "friendly", "other"] as const;
@@ -130,6 +130,7 @@ function EventEditor({ event, onSaved }: { event: EventDraft; onSaved: () => voi
   const [busy, setBusy] = useState(false);
   const isNew = draft.id === "new";
   const deleteEvent = useServerFn(adminDeleteEvent);
+  const saveEvent = useServerFn(adminSaveEvent);
   const update = <K extends keyof EventDraft>(key: K, value: EventDraft[K]) => setDraft((prev) => ({ ...prev, [key]: value }));
 
   const payload = () => ({
@@ -159,14 +160,15 @@ function EventEditor({ event, onSaved }: { event: EventDraft; onSaved: () => voi
     if (!draft.title.trim()) return toast.error("Event title is required");
     if (!Number.isFinite(new Date(draft.kickoff).getTime())) return toast.error("Kickoff date is invalid");
     setBusy(true);
-    const request = isNew
-      ? db.from("events").insert(payload()).select("id").single()
-      : db.from("events").update(payload()).eq("id", draft.id);
-    const { error } = await request;
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success(isNew ? "Event created" : "Event saved");
-    onSaved();
+    try {
+      await saveEvent({ data: { eventId: isNew ? null : draft.id, event: payload() } });
+      toast.success(isNew ? "Event created" : "Event saved");
+      onSaved();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const remove = async () => {
