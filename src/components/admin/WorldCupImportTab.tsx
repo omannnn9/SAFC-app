@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Loader2, Upload, FileSpreadsheet, CheckCircle2, AlertTriangle } from "lucide-react";
 import { adminImportWorldCupRows } from "@/lib/wc-import.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 type ParsedRow = {
   home_team: string;
@@ -145,6 +146,14 @@ export function WorldCupImportTab() {
     if (rows.length === 0) return;
     setImporting(true);
     try {
+      // Ensure we have a fresh access token before calling protected serverFn
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) {
+        toast.error("You're signed out — please sign in again.");
+        setImporting(false);
+        return;
+      }
+      await supabase.auth.refreshSession();
       // batch in chunks of 100
       let total = 0;
       for (let i = 0; i < rows.length; i += 100) {
