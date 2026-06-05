@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 let refreshPromise: ReturnType<typeof supabase.auth.refreshSession> | null = null;
 let lastRefreshAt = 0;
 
-async function getFreshAccessToken() {
+async function refreshSupabaseSessionIfNeeded() {
   const { data } = await supabase.auth.getSession();
   let session = data.session;
-  if (!session) return null;
+  if (!session) return;
 
   const nowSeconds = Math.floor(Date.now() / 1000);
   const expiresSoon = !session.expires_at || session.expires_at - nowSeconds < 300;
@@ -24,12 +24,9 @@ async function getFreshAccessToken() {
     }
   }
 
-  return session.access_token;
 }
 
-export const attachFreshSupabaseAuth = createMiddleware({ type: "function" }).client(async ({ next }) => {
-  const token = await getFreshAccessToken();
-  return next({
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
+export const refreshSupabaseSession = createMiddleware({ type: "function" }).client(async ({ next }) => {
+  await refreshSupabaseSessionIfNeeded();
+  return next();
 });
