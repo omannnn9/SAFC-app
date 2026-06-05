@@ -299,18 +299,90 @@ function EventDetailPage() {
         </div>
       </section>
 
-      {friendsGoing.length > 0 && (
-        <section className="mt-4 px-4">
-          <div className="glass rounded-2xl p-3">
-            <div className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">People you follow are going</div>
-            <div className="flex -space-x-2">
-              {friendsGoing.slice(0, 8).map((a) => (
-                <Link key={a.user_id} to="/u/$id" params={{ id: a.user_id }}>
-                  <UserAvatar name={a.profile?.full_name} src={a.profile?.avatar_url} size={32} className="ring-2 ring-background" />
-                </Link>
-              ))}
-              {friendsGoing.length > 8 && <span className="ml-3 self-center text-xs text-muted-foreground">+{friendsGoing.length - 8} more</span>}
+      {/* Community Pulse — SAFC messaging + attendee avatars + chat + photo strip */}
+      <section className="mt-4 px-4">
+        <div className="relative overflow-hidden rounded-2xl p-4 ring-1 ring-white/10"
+             style={{ background: "linear-gradient(135deg, color-mix(in oklab, var(--safc-pink) 18%, transparent), color-mix(in oklab, var(--safc-cobalt) 16%, transparent) 60%, transparent)" }}>
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[var(--safc-yellow)]/10 blur-3xl" />
+          <div className="relative">
+            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--safc-yellow)]">SAFC · Community pulse</div>
+            <h3 className="mt-1 font-display text-xl font-black leading-tight">
+              {goingList.length === 0
+                ? "Be the first SAFC supporter going."
+                : friendsGoing.length > 0
+                ? "You're not attending alone."
+                : `${goingList.length} ${goingList.length === 1 ? "supporter is" : "supporters are"} going.`}
+            </h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {goingList.length === 0
+                ? "Tap RSVP to open the matchday chat and rally the community."
+                : "Meet supporters going to this match. Join the matchday conversation."}
+            </p>
+
+            {goingList.length > 0 && (
+              <div className="mt-3 flex items-center gap-3">
+                <div className="flex -space-x-2.5">
+                  {sortByPlan(friendsGoing.length > 0 ? friendsGoing : goingList).slice(0, 7).map((a) => (
+                    <Link key={a.user_id} to="/u/$id" params={{ id: a.user_id }}>
+                      <UserAvatar
+                        name={a.profile?.full_name}
+                        src={a.profile?.avatar_url}
+                        size={38}
+                        ring={a.profile?.plan === "gold" ? "gold" : null}
+                        className="ring-2 ring-background"
+                      />
+                    </Link>
+                  ))}
+                  {goingList.length > 7 && (
+                    <div className="grid h-[38px] w-[38px] place-items-center rounded-full bg-surface-2 text-[10px] font-black ring-2 ring-background">
+                      +{goingList.length - 7}
+                    </div>
+                  )}
+                </div>
+                <button onClick={() => setTab("attendees")} className="ml-auto text-[10px] font-black uppercase tracking-wider text-primary">
+                  View all →
+                </button>
+              </div>
+            )}
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button
+                onClick={openChat}
+                disabled={joiningChat || !(myAttendance === "going" || myAttendance === "interested")}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2.5 text-[11px] font-black uppercase tracking-wider text-primary-foreground shadow-[var(--shadow-glow-pink)] disabled:opacity-50"
+              >
+                {joiningChat ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Users className="h-3.5 w-3.5" />}
+                Matchday chat
+              </button>
+              <button
+                onClick={() => setTab("feed")}
+                className="glass-strong inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-[11px] font-black uppercase tracking-wider"
+              >
+                Supporter activity
+              </button>
             </div>
+            {!(myAttendance === "going" || myAttendance === "interested") && (
+              <p className="mt-2 text-[10px] text-muted-foreground">RSVP <span className="font-bold text-foreground">Going</span> or <span className="font-bold text-foreground">Interested</span> to unlock the chat.</p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Shared photos strip */}
+      {(photosQ.data?.length ?? 0) > 0 && (
+        <section className="mt-4 px-4">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+              <Camera className="mr-1 inline h-3 w-3 text-primary" /> Shared from the stands
+            </h3>
+            <button onClick={() => setTab("photos")} className="text-[10px] font-black uppercase tracking-wider text-primary">View all →</button>
+          </div>
+          <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 scrollbar-none">
+            {photosQ.data!.slice(0, 8).map((p) => (
+              <button key={p.id} onClick={() => setTab("photos")} className="h-20 w-20 flex-none overflow-hidden rounded-lg bg-surface-2">
+                <img src={p.image_url} alt={p.caption ?? "Event photo"} className="h-full w-full object-cover" />
+              </button>
+            ))}
           </div>
         </section>
       )}
@@ -328,7 +400,7 @@ function EventDetailPage() {
         <section className="mt-4 px-4 pb-32 space-y-3">
           <CreatePost eventId={id} onPosted={() => feedQ.refetch()} />
           {feedQ.data?.map((p) => <PostCard key={p.id} post={p} onChange={() => feedQ.refetch()} />)}
-          {feedQ.data?.length === 0 && <div className="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">No posts yet. Be the first to start the conversation.</div>}
+          {feedQ.data?.length === 0 && <div className="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">Join the matchday conversation — every great supporters' movement starts here.</div>}
         </section>
       )}
 
@@ -344,7 +416,7 @@ function EventDetailPage() {
         <section className="mt-4 px-4 pb-32 space-y-3">
           <PhotoUploader eventId={id} userId={user?.id} onUploaded={() => photosQ.refetch()} />
           {(photosQ.data?.length ?? 0) === 0 ? (
-            <div className="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">No photos yet. Be the first to share match-day memories.</div>
+            <div className="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">No photos yet. Share your view from the stands and build the SAFC story.</div>
           ) : (
             <div className="grid grid-cols-3 gap-1.5">
               {photosQ.data?.map((p) => (
