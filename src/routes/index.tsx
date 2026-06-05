@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
-import { Sparkles, Trophy, CalendarDays, Users, Flame, Search } from "lucide-react";
+import { Sparkles, Trophy, CalendarDays, Users, Flame, Search, ArrowRight } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { PostCard } from "@/components/PostCard";
@@ -12,6 +12,7 @@ import { useAuth } from "@/lib/auth";
 import { fetchFeed, fetchTrendingPosts } from "@/lib/social";
 import type { EventRow, FeedPost } from "@/lib/social";
 import { db } from "@/lib/db";
+import heroImg from "@/assets/safc-hero.jpg.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
