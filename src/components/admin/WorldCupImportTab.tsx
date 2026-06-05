@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Loader2, Upload, FileSpreadsheet, CheckCircle2, AlertTriangle } from "lucide-react";
 import { adminImportWorldCupRows } from "@/lib/wc-import.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 type ParsedRow = {
   home_team: string;
