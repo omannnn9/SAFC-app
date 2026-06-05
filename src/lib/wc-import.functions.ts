@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 const RowSchema = z.object({
@@ -16,7 +15,8 @@ const RowSchema = z.object({
   external_id: z.string().min(3).max(200),
 });
 
-function getBearerToken() {
+async function getBearerToken() {
+  const { getRequest } = await import("@tanstack/react-start/server");
   const authHeader = getRequest()?.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) throw new Error("Unauthorized: please sign in again");
   return authHeader.replace("Bearer ", "").trim();
@@ -24,7 +24,7 @@ function getBearerToken() {
 
 async function requireAdminUserId() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(getBearerToken());
+  const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(await getBearerToken());
   const userId = userData.user?.id;
   if (userError || !userId) throw new Error("Unauthorized: please sign in again");
   const { data } = await supabaseAdmin
