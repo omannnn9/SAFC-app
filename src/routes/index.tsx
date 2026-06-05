@@ -67,18 +67,56 @@ function HomePage() {
     <PageContainer>
       <AppHeader title="Connect" />
 
-      <section className="px-4 pt-5">
-        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">South African Football Community</div>
-        <h1 className="mt-1 font-display text-3xl font-extrabold tracking-tight">
-          {user ? `Welcome back, ${profile?.full_name?.split(" ")[0] ?? "supporter"}` : (
-            <>The pulse of <span className="text-gradient-safc">SA supporters</span></>
-          )}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">Share match-day moments. Meet supporters going to the same events.</p>
-        <Link to="/search" className="glass mt-4 flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground">
-          <Search className="h-4 w-4" /> Search supporters, events, posts…
-        </Link>
+      {/* WE ARE SAFC hero */}
+      <section className="relative mx-4 mt-4 overflow-hidden rounded-3xl">
+        <div className="absolute inset-0">
+          <img src={heroImg.url} alt="" className="h-full w-full object-cover slow-zoom" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/55 to-background" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--safc-pink)_28%,transparent),transparent_60%)]" />
+        </div>
+        <div className="relative px-5 pt-7 pb-6">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-white/90 backdrop-blur">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--safc-yellow)] live-dot" />
+            By the Fans · For the Fans
+          </div>
+          <h1 className="mt-3 font-display text-[44px] font-extrabold leading-[0.92] tracking-tight text-white">
+            WE ARE<br />
+            <span className="text-gradient-safc">SAFC</span>
+          </h1>
+          <div className="mt-2 font-display text-sm font-bold uppercase tracking-[0.18em] text-white/85">
+            South Africa Football Community
+          </div>
+          <p className="mt-3 max-w-md text-[13.5px] leading-relaxed text-white/80">
+            A home for South Africans who travel, celebrate, connect and support together. Meet fans going to the same matches and help build SA's football culture on the world stage.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link
+              to={user ? "/community" : "/signup"}
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2.5 text-xs font-black uppercase tracking-wider text-primary-foreground shadow-[var(--shadow-glow-pink)] hover-scale"
+            >
+              <Users className="h-3.5 w-3.5" /> Join the Community
+            </Link>
+            <Link
+              to="/events"
+              className="glass-strong inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-black uppercase tracking-wider text-white hover-scale"
+            >
+              Explore Events <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
       </section>
+
+      {user && (
+        <section className="px-4 pt-5">
+          <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Welcome back</div>
+          <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight">
+            {profile?.full_name?.split(" ")[0] ?? "Supporter"}, the movement continues.
+          </h2>
+          <Link to="/search" className="glass mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground">
+            <Search className="h-4 w-4" /> Search supporters, events, posts…
+          </Link>
+        </section>
+      )}
 
       {eventsQ.data && eventsQ.data.length > 0 && (
         <section className="mt-5 px-4">
