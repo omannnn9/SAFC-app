@@ -10,13 +10,14 @@ import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
 import { AdminEventsTab } from "@/components/admin/AdminEventsTab";
+import { WorldCupImportTab } from "@/components/admin/WorldCupImportTab";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { adminDeleteUser } from "@/lib/admin.functions";
 import { logAudit } from "@/lib/audit";
 import { toast } from "sonner";
 
-type Tab = "overview" | "users" | "events" | "posts" | "reports" | "plans" | "audit";
+type Tab = "overview" | "users" | "events" | "import" | "posts" | "reports" | "plans" | "audit";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Admin — SAFC" }] }),
@@ -34,6 +35,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "users", label: "Users" },
   { id: "events", label: "Events" },
+  { id: "import", label: "WC Import" },
   { id: "posts", label: "Posts" },
   { id: "reports", label: "Reports" },
   { id: "plans", label: "Plans" },
@@ -72,6 +74,7 @@ function AdminPage() {
         {tab === "overview" && <Overview />}
         {tab === "users" && <UsersTab />}
         {tab === "events" && <AdminEventsTab />}
+        {tab === "import" && <WorldCupImportTab />}
         {tab === "posts" && <PostsTab />}
         {tab === "reports" && <ReportsTab />}
         {tab === "plans" && <PlansTab />}
