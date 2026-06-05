@@ -161,8 +161,8 @@ function HomePage() {
         {!feed.isLoading && allPosts.length === 0 && (
           <div className="glass rounded-2xl p-8 text-center">
             <Trophy className="mx-auto h-7 w-7 text-primary" />
-            <div className="mt-2 font-display text-lg font-black">The feed is quiet</div>
-            <p className="mt-1 text-sm text-muted-foreground">Be the first to post. Share a match memory or a meetup plan.</p>
+            <div className="mt-2 font-display text-lg font-black">Start the conversation</div>
+            <p className="mt-1 text-sm text-muted-foreground">Every great supporters' movement starts with a conversation. Share a match memory or a meetup plan.</p>
             <Link to="/community" className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-black uppercase tracking-wider text-primary-foreground">
               <Users className="h-3.5 w-3.5" /> Find supporters
             </Link>
