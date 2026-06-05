@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,7 +14,7 @@ import { AdminEventsTab } from "@/components/admin/AdminEventsTab";
 import { WorldCupImportTab } from "@/components/admin/WorldCupImportTab";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
-import { adminDeleteUser } from "@/lib/admin.functions";
+import { adminDeleteUser, adminDeletePost, adminResolveReport, adminUpdatePlan } from "@/lib/admin.functions";
 import { logAudit } from "@/lib/audit";
 import { toast } from "sonner";
 
@@ -178,6 +179,7 @@ function UsersTab() {
 }
 
 function PostsTab() {
+  const deletePost = useServerFn(adminDeletePost);
   const q = useQuery({
     queryKey: ["admin-posts"],
     queryFn: async () => {
@@ -187,11 +189,14 @@ function PostsTab() {
   });
   const del = async (post: any) => {
     if (!confirm("Delete this post?")) return;
-    const { error } = await db.from("posts").delete().eq("id", post.id);
-    if (error) return toast.error(error.message);
-    await logAudit("DELETE", "post", post.id, post, null);
-    toast.success("Deleted");
-    q.refetch();
+    try {
+      await deletePost({ data: { postId: post.id } });
+      await logAudit("DELETE", "post", post.id, post, null);
+      toast.success("Deleted");
+      q.refetch();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   };
   return (
     <div className="space-y-2">
@@ -210,6 +215,7 @@ function PostsTab() {
 }
 
 function ReportsTab() {
+  const resolveReport = useServerFn(adminResolveReport);
   const q = useQuery({
     queryKey: ["admin-reports"],
     queryFn: async () => {
@@ -218,9 +224,13 @@ function ReportsTab() {
     },
   });
   const resolve = async (r: any) => {
-    await db.from("reports").update({ status: "resolved" }).eq("id", r.id);
-    await logAudit("UPDATE", "report", r.id, { status: r.status }, { status: "resolved" });
-    q.refetch();
+    try {
+      await resolveReport({ data: { reportId: r.id } });
+      await logAudit("UPDATE", "report", r.id, { status: r.status }, { status: "resolved" });
+      q.refetch();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   };
   return (
     <div className="space-y-2">
@@ -260,6 +270,7 @@ function PlansTab() {
 }
 
 function PlanRow({ plan, onSaved }: { plan: any; onSaved: () => void }) {
+  const updatePlan = useServerFn(adminUpdatePlan);
   const [name, setName] = useState(plan.name);
   const [tagline, setTagline] = useState(plan.tagline ?? "");
   const [priceRand, setPriceRand] = useState((plan.price_cents / 100).toFixed(2));
@@ -272,13 +283,15 @@ function PlanRow({ plan, onSaved }: { plan: any; onSaved: () => void }) {
     if (Number.isNaN(cents) || cents < 0) return toast.error("Invalid price");
     const perks = perksText.split("\n").map((s) => s.trim()).filter(Boolean);
     setBusy(true);
-    const { error } = await db.from("plans").update({
-      name, tagline: tagline || null, price_cents: cents, perks, visible,
-    }).eq("id", plan.id);
-    setBusy(false);
-    if (error) return toast.error(error.message);
-    toast.success(`${plan.id} saved · logged to audit`);
-    onSaved();
+    try {
+      await updatePlan({ data: { planId: plan.id, name, tagline: tagline || null, price_cents: cents, perks, visible } });
+      toast.success(`${plan.id} saved · logged to audit`);
+      onSaved();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (

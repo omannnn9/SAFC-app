@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuthenticatedSupabase } from "@/lib/server-auth";
 
 /**
  * Find-or-create the official community group for an event and add the
@@ -11,11 +11,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  * - Membership insert is idempotent (ignored on conflict).
  */
 export const joinEventCommunity = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ eventId: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const uid = context.userId;
+    const { userId: uid } = await requireAuthenticatedSupabase();
     const eventId = data.eventId;
 
     // 1. Look up the event (needed for title + owner fallback)

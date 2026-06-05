@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuthenticatedSupabase } from "@/lib/server-auth";
 
 /**
  * Find-or-create the event chat for an event and add the authenticated user
@@ -10,11 +10,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  * verifies the user has an RSVP of going / interested for the event).
  */
 export const joinEventChat = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ eventId: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const uid = context.userId;
+    const { userId: uid } = await requireAuthenticatedSupabase();
     const eventId = data.eventId;
 
     // Verify event exists

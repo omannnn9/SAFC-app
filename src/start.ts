@@ -1,8 +1,17 @@
 import { createStart, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
-import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
-import { refreshSupabaseSession } from "@/lib/fresh-auth-attacher";
+import { attachFreshSupabaseAuth } from "@/lib/fresh-auth-attacher";
+
+const env = typeof process !== "undefined" ? process.env : undefined;
+if (env) {
+  env.SUPABASE_URL ||= env.VITE_SUPABASE_URL;
+  env.SUPABASE_PUBLISHABLE_KEY ||=
+    env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_ANON_KEY;
+  env.VITE_SUPABASE_URL ||= env.SUPABASE_URL;
+  env.VITE_SUPABASE_PUBLISHABLE_KEY ||= env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY;
+  env.SUPABASE_PROJECT_ID ||= env.VITE_SUPABASE_PROJECT_ID;
+}
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -21,5 +30,5 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 
 export const startInstance = createStart(() => ({
   requestMiddleware: [errorMiddleware],
-  functionMiddleware: [refreshSupabaseSession, attachSupabaseAuth],
+  functionMiddleware: [attachFreshSupabaseAuth],
 }));

@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAuthenticatedSupabase } from "@/lib/server-auth";
 
 export type DmPermission = {
   allowed: boolean;
@@ -89,11 +89,10 @@ async function evaluatePermission(
  * Throws on policy violation with a friendly message.
  */
 export const startDirectConversation = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ recipientId: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const senderId = context.userId;
+    const { userId: senderId } = await requireAuthenticatedSupabase();
     const recipientId = data.recipientId;
 
     const verdict = await evaluatePermission(supabaseAdmin, senderId, recipientId);
@@ -145,9 +144,9 @@ export const startDirectConversation = createServerFn({ method: "POST" })
 
 /** Read-only check used to gate UI (button label / tooltip). */
 export const checkDmPermission = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ recipientId: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    return evaluatePermission(supabaseAdmin, context.userId, data.recipientId);
+    const { userId } = await requireAuthenticatedSupabase();
+    return evaluatePermission(supabaseAdmin, userId, data.recipientId);
   });
