@@ -400,7 +400,7 @@ function EventDetailPage() {
         <section className="mt-4 px-4 pb-32 space-y-3">
           <CreatePost eventId={id} onPosted={() => feedQ.refetch()} />
           {feedQ.data?.map((p) => <PostCard key={p.id} post={p} onChange={() => feedQ.refetch()} />)}
-          {feedQ.data?.length === 0 && <div className="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">No posts yet. Be the first to start the conversation.</div>}
+          {feedQ.data?.length === 0 && <div className="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">Join the matchday conversation — every great supporters' movement starts here.</div>}
         </section>
       )}
 
