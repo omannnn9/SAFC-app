@@ -416,7 +416,7 @@ function EventDetailPage() {
         <section className="mt-4 px-4 pb-32 space-y-3">
           <PhotoUploader eventId={id} userId={user?.id} onUploaded={() => photosQ.refetch()} />
           {(photosQ.data?.length ?? 0) === 0 ? (
-            <div className="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">No photos yet. Be the first to share match-day memories.</div>
+            <div className="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">No photos yet. Share your view from the stands and build the SAFC story.</div>
           ) : (
             <div className="grid grid-cols-3 gap-1.5">
               {photosQ.data?.map((p) => (
