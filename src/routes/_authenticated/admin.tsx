@@ -57,7 +57,7 @@ function AdminPage() {
       </section>
 
       <section className="mt-5 px-4">
-        <div className="glass grid grid-cols-3 gap-1 rounded-xl p-1 text-[10px] font-black uppercase tracking-wider sm:grid-cols-6">
+        <div className="glass grid grid-cols-3 gap-1 rounded-xl p-1 text-[10px] font-black uppercase tracking-wider sm:grid-cols-4 lg:grid-cols-8">
           {TABS.map((t) => (
             <button
               key={t.id}
