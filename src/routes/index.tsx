@@ -12,7 +12,7 @@ import { useAuth } from "@/lib/auth";
 import { fetchFeed, fetchTrendingPosts } from "@/lib/social";
 import type { EventRow, FeedPost } from "@/lib/social";
 import { db } from "@/lib/db";
-import heroImg from "@/assets/safc-hero.jpg.asset.json";
+import { HeroCarousel } from "@/components/HeroCarousel";
 
 export const Route = createFileRoute("/")({
   head: () => ({
