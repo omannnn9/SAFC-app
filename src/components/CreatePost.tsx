@@ -55,7 +55,7 @@ export function CreatePost({ eventId, onPosted }: { eventId?: string; onPosted?:
         <textarea
           value={body}
           onChange={(e) => setBody(e.target.value)}
-          placeholder={eventId ? "Share something with attendees…" : "What's on your mind, supporter?"}
+          placeholder={eventId ? "Share your matchday moment…" : "SAFC is listening… what’s on your mind?"}
           rows={2}
           className="flex-1 resize-none bg-transparent text-[15px] placeholder:text-muted-foreground/70 focus:outline-none"
         />
