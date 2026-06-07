@@ -69,24 +69,20 @@ function HomePage() {
 
       {/* WE ARE SAFC hero */}
       <section className="relative mx-4 mt-4 overflow-hidden rounded-3xl">
-        <div className="absolute inset-0">
-          <img src={heroImg.url} alt="" className="h-full w-full object-cover slow-zoom" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/55 to-background" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--safc-pink)_28%,transparent),transparent_60%)]" />
-        </div>
-        <div className="relative px-5 pt-7 pb-6">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-white/90 backdrop-blur">
+        <HeroCarousel />
+        <div className="relative px-5 pt-7 pb-6 [text-shadow:0_2px_18px_rgba(0,0,0,0.55)]">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/40 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-white backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--safc-yellow)] live-dot" />
             By the Fans · For the Fans
           </div>
           <h1 className="mt-3 font-display text-[44px] font-extrabold leading-[0.92] tracking-tight text-white">
             WE ARE<br />
-            <span className="text-gradient-safc">SAFC</span>
+            <span className="text-gradient-safc drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">SAFC</span>
           </h1>
-          <div className="mt-2 font-display text-sm font-bold uppercase tracking-[0.18em] text-white/85">
+          <div className="mt-2 font-display text-sm font-bold uppercase tracking-[0.18em] text-white">
             South Africa Football Community
           </div>
-          <p className="mt-3 max-w-md text-[13.5px] leading-relaxed text-white/80">
+          <p className="mt-3 max-w-md text-[13.5px] leading-relaxed text-white/95">
             A home for South Africans who travel, celebrate, connect and support together. Meet fans going to the same matches and help build SA's football culture on the world stage.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
@@ -105,6 +101,7 @@ function HomePage() {
           </div>
         </div>
       </section>
+
 
       {user && (
         <section className="px-4 pt-5">
