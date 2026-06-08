@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState, useMemo } from "react";
 import {
   Shield, Users, MessageSquare, Flag, CalendarDays, BarChart3, Loader2,
-  Trash2, ScrollText, Tag, Check, X, Save, Eye, EyeOff,
+  Trash2, ScrollText, Tag, Check, X, Save, Eye, EyeOff, Download, ChevronDown, ChevronRight, Mail, Phone, MapPin, Calendar,
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
