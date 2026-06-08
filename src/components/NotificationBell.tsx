@@ -141,13 +141,6 @@ export function NotificationBell() {
               </ul>
             )}
           </div>
-          <Link
-            to="/notifications"
-            onClick={() => setOpen(false)}
-            className="block border-t border-border/40 px-4 py-2.5 text-center text-xs font-bold text-primary hover:bg-white/5"
-          >
-            Notification settings
-          </Link>
         </div>
       )}
     </div>

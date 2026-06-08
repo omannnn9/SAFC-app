@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState, useMemo } from "react";
 import {
   Shield, Users, MessageSquare, Flag, CalendarDays, BarChart3, Loader2,
-  Trash2, ScrollText, Tag, Check, X, Save, Eye, EyeOff,
+  Trash2, ScrollText, Tag, Check, X, Save, Eye, EyeOff, Download, ChevronDown, ChevronRight, Mail, Phone, MapPin, Calendar,
 } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
@@ -14,7 +14,7 @@ import { AdminEventsTab } from "@/components/admin/AdminEventsTab";
 import { WorldCupImportTab } from "@/components/admin/WorldCupImportTab";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
-import { adminDeleteUser, adminDeletePost, adminResolveReport, adminUpdatePlan } from "@/lib/admin.functions";
+import { adminDeleteUser, adminDeletePost, adminResolveReport, adminUpdatePlan, adminListUsersDetailed, adminExportUsersCsv } from "@/lib/admin.functions";
 import { logAudit } from "@/lib/audit";
 import { toast } from "sonner";
 
@@ -126,18 +126,30 @@ function Stat({ label, value, icon }: { label: string; value: number; icon: Reac
 }
 
 function UsersTab() {
+  const listFn = useServerFn(adminListUsersDetailed);
+  const exportFn = useServerFn(adminExportUsersCsv);
   const q = useQuery({
-    queryKey: ["admin-users"],
-    queryFn: async () => {
-      const { data } = await db.from("profiles").select("id, full_name, username, avatar_url, plan, country, is_private, created_at").order("created_at", { ascending: false }).limit(200);
-      return data ?? [];
-    },
+    queryKey: ["admin-users-detailed"],
+    queryFn: () => listFn(),
   });
   const deleteUser = useServerFn(adminDeleteUser);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [exporting, setExporting] = useState(false);
+
+  const filtered = useMemo(() => {
+    const list = q.data ?? [];
+    if (!search) return list;
+    const s = search.toLowerCase();
+    return list.filter((p: any) =>
+      [p.full_name, p.username, p.email, p.phone, p.country, p.city, p.id]
+        .filter(Boolean).some((v: string) => String(v).toLowerCase().includes(s)),
+    );
+  }, [q.data, search]);
 
   const handleDelete = async (p: any) => {
-    if (!confirm(`Permanently delete ${p.full_name || p.username || p.id}? This wipes their account and all related data.`)) return;
+    if (!confirm(`Permanently delete ${p.full_name || p.username || p.email || p.id}?\n\nThis wipes their account and ALL related data. Cannot be undone.`)) return;
     setBusyId(p.id);
     try {
       await deleteUser({ data: { userId: p.id } });
@@ -151,31 +163,148 @@ function UsersTab() {
     }
   };
 
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const r = await exportFn();
+      const blob = new Blob([r.csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `safc-users-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      await logAudit("EXPORT", "users", null, null, { count: r.count });
+      toast.success(`Exported ${r.count} users`);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  if (!q.data) return <Loader2 className="mx-auto mt-10 h-6 w-6 animate-spin text-primary" />;
+
   return (
-    <div className="space-y-2">
-      {q.data?.map((p: any) => (
-        <div key={p.id} className="glass flex items-center gap-3 rounded-2xl p-3">
-          <UserAvatar name={p.full_name} src={p.avatar_url} size={40} ring={p.plan === "gold" ? "gold" : null} />
-          <div className="min-w-0 flex-1">
-            <Link to="/u/$id" params={{ id: p.id }} className="block truncate text-sm font-bold hover:text-primary">{p.full_name}</Link>
-            <div className="text-[10px] text-muted-foreground">
-              {p.username ? `@${p.username} · ` : ""}{p.country}
-              {p.is_private && <span className="ml-1 rounded-full bg-surface-2 px-1.5 py-0.5 text-[9px] font-bold uppercase">Private</span>}
+    <div className="space-y-3">
+      <div className="glass flex items-center gap-2 rounded-2xl p-2">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search name, email, phone, country…"
+          className="flex-1 rounded-lg bg-surface-2 px-3 py-2 text-xs"
+        />
+        <span className="text-[10px] font-bold uppercase text-muted-foreground">{filtered.length}/{q.data.length}</span>
+        <button
+          onClick={handleExport}
+          disabled={exporting}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-[10px] font-black uppercase tracking-wider text-primary-foreground disabled:opacity-50"
+        >
+          {exporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+          Export CSV
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {filtered.map((p: any) => {
+          const isOpen = expanded === p.id;
+          const isAdmin = p.roles?.includes("admin");
+          return (
+            <div key={p.id} className="glass rounded-2xl">
+              <div className="flex items-center gap-3 p-3">
+                <button
+                  onClick={() => setExpanded(isOpen ? null : p.id)}
+                  className="grid h-6 w-6 place-items-center rounded-md hover:bg-white/10"
+                  aria-label="Toggle details"
+                >
+                  {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </button>
+                <UserAvatar name={p.full_name} src={p.avatar_url} size={40} ring={p.plan === "gold" ? "gold" : null} />
+                <div className="min-w-0 flex-1">
+                  <Link to="/u/$id" params={{ id: p.id }} className="block truncate text-sm font-bold hover:text-primary">
+                    {p.full_name || p.username || p.email || "Unknown"}
+                  </Link>
+                  <div className="truncate text-[10px] text-muted-foreground">
+                    {p.email ?? "—"}{p.username ? ` · @${p.username}` : ""}
+                  </div>
+                </div>
+                {isAdmin && <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[9px] font-black uppercase text-primary">Admin</span>}
+                {p.is_private && <span className="rounded-full bg-surface-2 px-1.5 py-0.5 text-[9px] font-bold uppercase">Private</span>}
+                <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[9px] font-black uppercase">{p.plan}</span>
+                <button
+                  onClick={() => handleDelete(p)}
+                  disabled={busyId === p.id}
+                  className="inline-flex items-center gap-1 rounded-md bg-destructive/15 px-2 py-1 text-[10px] font-bold text-destructive disabled:opacity-50"
+                  title="Delete user"
+                >
+                  {busyId === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                </button>
+              </div>
+
+              {isOpen && (
+                <div className="border-t border-border/40 px-4 py-3 text-xs">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    <Field icon={<Mail className="h-3 w-3" />} label="Email" value={p.email} />
+                    <Field icon={<Phone className="h-3 w-3" />} label="Phone" value={p.phone} />
+                    <Field icon={<MapPin className="h-3 w-3" />} label="Location" value={[p.city, p.country].filter(Boolean).join(", ")} />
+                    <Field label="Username" value={p.username ? `@${p.username}` : null} />
+                    <Field label="Favourite team" value={p.favourite_team} />
+                    <Field label="Auth provider" value={p.auth_provider} />
+                    <Field label="Roles" value={(p.roles ?? []).join(", ") || "user"} />
+                    <Field label="Plan" value={`${p.plan}${p.is_premium ? " (active)" : ""}`} />
+                    <Field label="Premium until" value={fmtDate(p.premium_until)} />
+                    <Field icon={<Calendar className="h-3 w-3" />} label="Joined" value={fmtDate(p.created_at)} />
+                    <Field label="Last sign-in" value={fmtDate(p.last_sign_in_at)} />
+                    <Field label="Last seen" value={fmtDate(p.last_seen)} />
+                    <Field label="Email confirmed" value={fmtDate(p.confirmed_at)} />
+                    <Field label="Posts" value={p.posts_count} />
+                    <Field label="RSVPs" value={p.rsvps_count} />
+                    <Field label="Followers" value={p.followers_count} />
+                    <Field label="Following" value={p.following_count} />
+                    <Field label="Private account" value={p.is_private ? "Yes" : "No"} />
+                    <Field label="Deleted" value={p.is_deleted ? `Yes · ${fmtDate(p.deleted_at)}` : "No"} />
+                  </div>
+                  {p.bio && (
+                    <div className="mt-3">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Bio</div>
+                      <div className="mt-1 whitespace-pre-wrap">{p.bio}</div>
+                    </div>
+                  )}
+                  {Array.isArray(p.interests) && p.interests.length > 0 && (
+                    <div className="mt-3">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Interests</div>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {p.interests.map((i: string) => (
+                          <span key={i} className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px]">{i}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="mt-3 text-[10px] text-muted-foreground">ID: {p.id}</div>
+                </div>
+              )}
             </div>
-          </div>
-          <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[9px] font-black uppercase">{p.plan}</span>
-          <button
-            onClick={() => handleDelete(p)}
-            disabled={busyId === p.id}
-            className="inline-flex items-center gap-1 rounded-md bg-destructive/15 px-2 py-1 text-[10px] font-bold text-destructive disabled:opacity-50"
-            title="Delete user"
-          >
-            {busyId === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
-          </button>
-        </div>
-      ))}
+          );
+        })}
+      </div>
     </div>
   );
+}
+
+function Field({ icon, label, value }: { icon?: React.ReactNode; label: string; value: React.ReactNode }) {
+  return (
+    <div>
+      <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        {icon}<span>{label}</span>
+      </div>
+      <div className="mt-0.5 truncate">{value ?? <span className="text-muted-foreground">—</span>}</div>
+    </div>
+  );
+}
+
+function fmtDate(d: string | null | undefined) {
+  if (!d) return null;
+  try { return new Date(d).toLocaleString(); } catch { return d; }
 }
 
 function PostsTab() {
