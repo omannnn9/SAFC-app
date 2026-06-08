@@ -103,10 +103,6 @@ function AccountPage() {
           <PrivacyRow />
           <FollowRequestsInbox />
           <div className="glass overflow-hidden rounded-2xl">
-            <Link to="/notifications" className="flex items-center gap-3 border-b border-border/40 px-4 py-3 hover:bg-white/5">
-              <div className="grid h-8 w-8 place-items-center rounded-md bg-surface-2"><Bell className="h-4 w-4" /></div>
-              <div className="flex-1 text-sm font-semibold">Notifications</div>
-            </Link>
             <ChangePasswordRow />
             {isAdminQ.data && (
               <Link to="/admin" className="flex items-center gap-3 border-t border-border/40 px-4 py-3 hover:bg-white/5">
