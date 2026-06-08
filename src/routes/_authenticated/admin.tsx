@@ -14,7 +14,7 @@ import { AdminEventsTab } from "@/components/admin/AdminEventsTab";
 import { WorldCupImportTab } from "@/components/admin/WorldCupImportTab";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
-import { adminDeleteUser, adminDeletePost, adminResolveReport, adminUpdatePlan } from "@/lib/admin.functions";
+import { adminDeleteUser, adminDeletePost, adminResolveReport, adminUpdatePlan, adminListUsersDetailed, adminExportUsersCsv } from "@/lib/admin.functions";
 import { logAudit } from "@/lib/audit";
 import { toast } from "sonner";
 
