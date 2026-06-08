@@ -128,10 +128,10 @@ export const adminListUsersDetailed = createServerFn({ method: "GET" }).handler(
   }
 
   // Counts via individual head queries are expensive; do groupings
-  const countBy = async (table: string, col: string) => {
+  const countBy = async (table: "posts" | "event_attendees" | "follows", col: "user_id" | "following_id" | "follower_id") => {
     const { data } = await supabaseAdmin.from(table).select(col);
     const m = new Map<string, number>();
-    for (const row of (data ?? []) as Record<string, string>[]) {
+    for (const row of (data ?? []) as unknown as Record<string, string>[]) {
       const k = row[col];
       if (!k) continue;
       m.set(k, (m.get(k) ?? 0) + 1);
