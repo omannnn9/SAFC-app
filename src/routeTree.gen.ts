@@ -23,7 +23,6 @@ import { Route as NewsIndexRouteImport } from './routes/news.index'
 import { Route as UIdRouteImport } from './routes/u.$id'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as EventsIdRouteImport } from './routes/events.$id'
-import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedMyEventsRouteImport } from './routes/_authenticated/my-events'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -104,12 +103,6 @@ const EventsIdRoute = EventsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => EventsRoute,
 } as any)
-const AuthenticatedNotificationsRoute =
-  AuthenticatedNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedMyEventsRoute = AuthenticatedMyEventsRouteImport.update({
   id: '/my-events',
   path: '/my-events',
@@ -179,7 +172,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/my-events': typeof AuthenticatedMyEventsRoute
-  '/notifications': typeof AuthenticatedNotificationsRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
@@ -205,7 +197,6 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/my-events': typeof AuthenticatedMyEventsRoute
-  '/notifications': typeof AuthenticatedNotificationsRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
@@ -233,7 +224,6 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/_authenticated/my-events': typeof AuthenticatedMyEventsRoute
-  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
@@ -261,7 +251,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/messages'
     | '/my-events'
-    | '/notifications'
     | '/events/$id'
     | '/news/$slug'
     | '/u/$id'
@@ -287,7 +276,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/messages'
     | '/my-events'
-    | '/notifications'
     | '/events/$id'
     | '/news/$slug'
     | '/u/$id'
@@ -314,7 +302,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/messages'
     | '/_authenticated/my-events'
-    | '/_authenticated/notifications'
     | '/events/$id'
     | '/news/$slug'
     | '/u/$id'
@@ -446,13 +433,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsIdRouteImport
       parentRoute: typeof EventsRoute
     }
-    '/_authenticated/notifications': {
-      id: '/_authenticated/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/my-events': {
       id: '/_authenticated/my-events'
       path: '/my-events'
@@ -555,7 +535,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRouteWithChildren
   AuthenticatedMyEventsRoute: typeof AuthenticatedMyEventsRoute
-  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedEventChatIdRoute: typeof AuthenticatedEventChatIdRoute
 }
 
@@ -564,7 +543,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRouteWithChildren,
   AuthenticatedMyEventsRoute: AuthenticatedMyEventsRoute,
-  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedEventChatIdRoute: AuthenticatedEventChatIdRoute,
 }
 
