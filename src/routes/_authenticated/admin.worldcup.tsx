@@ -1,13 +1,15 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { AlertTriangle, ArrowLeft, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Loader2, Plus, RefreshCw, Save, Trash2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db";
 import { nameToFlag } from "@/lib/flags";
+import { adminSyncWorldCupNow, adminAutoMapWorldCupMatches } from "@/lib/wc-sync.functions";
 import {
   WORLD_CUP_STAGES,
   WORLD_CUP_TOTAL_MATCHES,
@@ -184,6 +186,8 @@ function WorldCupAdminPage() {
           )}
         </div>
       </section>
+
+      <FootballDataSyncPanel onSynced={reload} />
 
       <section className="mt-4 space-y-3 px-4">
         <div className="glass grid gap-2 rounded-2xl p-3 sm:grid-cols-[1fr_180px]">
@@ -535,5 +539,92 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="mb-1 block text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
       {children}
     </label>
+  );
+}
+
+function FootballDataSyncPanel({ onSynced }: { onSynced: () => void }) {
+  const syncNow = useServerFn(adminSyncWorldCupNow);
+  const autoMap = useServerFn(adminAutoMapWorldCupMatches);
+  const [busy, setBusy] = useState<"sync" | "map" | "remap" | null>(null);
+  const [last, setLast] = useState<string | null>(null);
+
+  const mappedQ = useQuery({
+    queryKey: ["wc-fd-mapped-count"],
+    queryFn: async () => {
+      const { count } = await db
+        .from("world_cup_matches")
+        .select("id", { count: "exact", head: true })
+        .not("football_data_match_id", "is", null);
+      return count ?? 0;
+    },
+  });
+
+  const handleSync = async () => {
+    setBusy("sync");
+    try {
+      const r = await syncNow();
+      setLast(`${new Date().toLocaleTimeString()} — ${r.scoreUpdates} scores, ${r.statusUpdates} statuses, ${r.placeholderResolutions} placeholders resolved (${r.mapped}/${r.scanned} mapped)`);
+      toast.success("Football-Data sync complete");
+      onSynced();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleMap = async (remap: boolean) => {
+    setBusy(remap ? "remap" : "map");
+    try {
+      const r = await autoMap({ data: { remap } });
+      toast.success(`Mapped ${r.mapped} / ${r.total} matches (skipped ${r.skipped})`);
+      onSynced();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <section className="mt-4 px-4">
+      <div className="glass rounded-2xl p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-black uppercase tracking-wider">Football-Data live sync</div>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              Auto-runs every 5 min. Updates scores, status and resolves knockout placeholders. Never deletes matches or touches RSVPs.
+            </p>
+          </div>
+          <div className="text-right text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+            {mappedQ.data ?? 0} mapped
+          </div>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            onClick={handleSync}
+            disabled={!!busy}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-[11px] font-black uppercase tracking-wider text-primary-foreground disabled:opacity-60"
+          >
+            {busy === "sync" ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />} Sync now
+          </button>
+          <button
+            onClick={() => handleMap(false)}
+            disabled={!!busy}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-[11px] font-black uppercase tracking-wider text-foreground disabled:opacity-60"
+          >
+            {busy === "map" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />} Auto-map unmapped
+          </button>
+          <button
+            onClick={() => handleMap(true)}
+            disabled={!!busy}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-[11px] font-black uppercase tracking-wider text-foreground disabled:opacity-60"
+          >
+            {busy === "remap" ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />} Re-map all
+          </button>
+        </div>
+        {last && <p className="mt-2 text-[10px] text-muted-foreground">{last}</p>}
+      </div>
+    </section>
   );
 }
