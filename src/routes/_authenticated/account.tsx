@@ -16,6 +16,7 @@ import { uploadUserFile, computeProfileCompletion } from "@/lib/social";
 import { type Plan } from "@/lib/plans";
 import { TIERS, tierTone, FOUNDER_CAP, type Tier } from "@/lib/tiers";
 import { getMyMembership, getFoundersCount } from "@/lib/membership.functions";
+import { MembershipComingSoon } from "@/components/MembershipComingSoon";
 import { deleteMyAccount } from "@/lib/account.functions";
 import { toast } from "sonner";
 
