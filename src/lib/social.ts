@@ -30,7 +30,8 @@ export type AuthorMini = {
   full_name: string;
   username: string | null;
   avatar_url: string | null;
-  plan: "bronze" | "silver" | "gold";
+  plan: "bronze" | "silver" | "gold" | null;
+  tier?: "free" | "basic" | "premium" | "founder" | null;
 };
 
 export type FeedPost = {
