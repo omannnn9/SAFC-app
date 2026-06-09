@@ -2,18 +2,20 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useRef, useState } from "react";
-import { Loader2, LogOut, Check, Camera, Bell, KeyRound, Shield, Sparkles, Star, Trash2, AlertTriangle, Lock, Globe, UserCheck, UserX } from "lucide-react";
+import { Loader2, LogOut, Check, Camera, Bell, KeyRound, Shield, Sparkles, Crown, Trash2, AlertTriangle, Lock, Globe, UserCheck, UserX } from "lucide-react";
 import { logAudit } from "@/lib/audit";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
 import { PlanBadge } from "@/components/PlanBadge";
-import { MockCheckoutModal } from "@/components/MockCheckoutModal";
+import { DigitalCard } from "@/components/DigitalCard";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadUserFile, computeProfileCompletion } from "@/lib/social";
-import { PLANS, planTone, type Plan } from "@/lib/plans";
+import { type Plan } from "@/lib/plans";
+import { TIERS, tierTone, FOUNDER_CAP, type Tier } from "@/lib/tiers";
+import { getMyMembership, getFoundersCount } from "@/lib/membership.functions";
 import { deleteMyAccount } from "@/lib/account.functions";
 import { toast } from "sonner";
 
@@ -99,16 +101,12 @@ function AccountPage() {
       {tab === "profile" && (<section className="mt-4 px-4 pb-32 space-y-4"><ProfileEditor /></section>)}
 
       {tab === "subscription" && (
-        <section className="mt-4 px-4 pb-32 space-y-4">
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Membership</div>
-            <h2 className="mt-1 font-display text-2xl font-black tracking-tight">Choose your supporter tier</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Three tiers. Real benefits. Cancel anytime.</p>
-          </div>
-          {PLANS.map((plan) => (<PlanCard key={plan.id} plan={plan} current={currentPlan} userId={user.id} onChanged={refreshProfile} />))}
-          <p className="px-1 pt-2 text-center text-[11px] text-muted-foreground">Billing in preview — plan changes apply instantly while we finalise payments.</p>
+        <section className="mt-4 px-4 pb-32 space-y-5">
+          <SubscriptionPanel userId={user.id} onChanged={refreshProfile} />
         </section>
       )}
+
+
 
       {tab === "settings" && (
         <section className="mt-4 px-4 pb-32 space-y-3">
@@ -334,51 +332,119 @@ function DeleteAccountRow() {
 }
 
 
-function PlanCard({ plan, current, userId, onChanged }: { plan: (typeof PLANS)[number]; current: Plan; userId: string; onChanged: () => void }) {
-  const Icon = plan.icon;
-  const tone = planTone(plan.id);
-  const isCurrent = plan.id === current;
-  const rank = { bronze: 0, silver: 1, gold: 2 } as const;
-  const isUpgrade = rank[plan.id] > rank[current];
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
+function rands(cents: number) {
+  if (!cents) return "FREE";
+  return `R${(cents / 100).toFixed(0)}`;
+}
+
+function SubscriptionPanel({ userId, onChanged }: { userId: string; onChanged: () => void }) {
+  const { profile, user } = useAuth();
+  const meFn = useServerFn(getMyMembership);
+  const countFn = useServerFn(getFoundersCount);
+  const meQ = useQuery({ queryKey: ["my-membership", userId], queryFn: () => meFn() });
+  const countQ = useQuery({ queryKey: ["founders-count"], queryFn: () => countFn() });
+  const [busy, setBusy] = useState<Tier | null>(null);
+
+  const me = meQ.data as
+    | { full_name: string | null; avatar_url: string | null; tier: Tier; member_no: number | null; is_founder: boolean; created_at: string }
+    | null
+    | undefined;
+  const currentTier: Tier = (me?.tier ?? (profile as any)?.tier ?? "free") as Tier;
+  const foundersLeft = countQ.data ? FOUNDER_CAP - (countQ.data as { count: number }).count : null;
+
+  const setTier = async (t: Tier) => {
+    if (t === currentTier) return;
+    setBusy(t);
+    const { error } = await db.from("profiles").update({ tier: t }).eq("id", userId);
+    setBusy(null);
+    if (error) return toast.error(error.message);
+    await logAudit("UPDATE", "profile_tier", userId, { tier: currentTier }, { tier: t });
+    toast.success(`Switched to ${TIERS.find((x) => x.id === t)?.name}`);
+    meQ.refetch();
+    onChanged();
+  };
+
   return (
-    <div className={`glass relative overflow-hidden rounded-2xl p-5 ring-1 ${plan.highlight ? "ring-2 ring-[var(--sa-gold)]/60 shadow-[0_0_40px_-12px_var(--sa-gold)]" : "ring-border/40"}`}>
-      {plan.highlight && (
-        <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-[var(--sa-gold)] px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-black">
-          <Star className="h-3 w-3" /> Most popular
-        </div>
-      )}
-      <div className="flex items-center gap-2">
-        <div className={`grid h-10 w-10 place-items-center rounded-xl ${tone.bg}`}><Icon className={`h-5 w-5 ${tone.text}`} /></div>
-        <div>
-          <div className="font-display text-xl font-black">{plan.name}</div>
-          <div className="text-[11px] font-semibold text-muted-foreground">{plan.tagline}</div>
-        </div>
+    <>
+      <div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">SAFC Membership</div>
+        <h2 className="mt-1 font-display text-2xl font-black tracking-tight">Choose your tier</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Free to join. Upgrade when you're ready to ride harder.</p>
       </div>
-      <div className="mt-3 flex items-baseline gap-2">
-        <div className="font-display text-3xl font-black">{plan.price.split(" / ")[0]}</div>
-        <div className="text-xs font-bold text-muted-foreground">/ month</div>
-      </div>
-      <ul className="mt-3 space-y-1.5 text-sm">
-        {plan.perks.map((perk) => (<li key={perk} className="flex items-start gap-2"><Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> {perk}</li>))}
-      </ul>
-      <button
-        disabled={isCurrent}
-        onClick={() => setCheckoutOpen(true)}
-        className={`mt-4 w-full rounded-xl py-3 text-xs font-black uppercase tracking-wider transition disabled:opacity-60 ${isCurrent ? "bg-surface-2 text-muted-foreground" : plan.highlight ? "bg-[var(--sa-gold)] text-black hover:opacity-90" : "bg-primary text-primary-foreground hover:opacity-90"}`}
-      >
-        {isCurrent ? "Current plan" : isUpgrade ? `Upgrade to ${plan.name}` : `Switch to ${plan.name}`}
-      </button>
-      <MockCheckoutModal
-        open={checkoutOpen}
-        onClose={() => setCheckoutOpen(false)}
-        plan={plan}
-        userId={userId}
-        onSuccess={onChanged}
+
+      {/* personal digital card preview */}
+      <DigitalCard
+        tier={currentTier}
+        fullName={me?.full_name ?? profile?.full_name ?? user?.email ?? "Supporter"}
+        avatarUrl={me?.avatar_url ?? profile?.avatar_url ?? null}
+        memberNo={me?.member_no ?? null}
+        isFounder={!!me?.is_founder}
+        joinedAt={me?.created_at ?? null}
       />
-    </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {TIERS.map((t) => {
+          const tone = tierTone(t.id);
+          const Icon = t.icon;
+          const isCurrent = t.id === currentTier;
+          const isFounder = t.id === "founder";
+          const founderFull = isFounder && foundersLeft !== null && foundersLeft <= 0;
+          return (
+            <div
+              key={t.id}
+              className={`relative flex flex-col rounded-2xl p-[2px] ${isFounder ? "safc-card-glow" : ""} ${isCurrent ? "ring-2 ring-primary" : ""}`}
+              style={{ background: tone.grad, backgroundSize: "200% 200%" }}
+            >
+              <div className="flex h-full flex-col rounded-[18px] bg-[#0b0b0b] p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <Icon className={`h-5 w-5 ${tone.text}`} />
+                  {isCurrent && <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider">Current</span>}
+                  {isFounder && !isCurrent && foundersLeft !== null && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[var(--safc-yellow)]/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[var(--safc-yellow)]">
+                      <Crown className="h-3 w-3" /> {foundersLeft}/{FOUNDER_CAP} left
+                    </span>
+                  )}
+                </div>
+                <h3 className="mt-2 font-display text-lg font-black">{t.name}</h3>
+                <p className="text-[11px] text-white/60">{t.tagline}</p>
+                <div className={`mt-2 font-display text-2xl font-black ${tone.text}`}>
+                  {rands(t.priceCents)}
+                  {t.priceCents > 0 && <span className="ml-1 text-[10px] font-bold text-white/50">/mo</span>}
+                </div>
+                <ul className="mt-3 flex-1 space-y-1 text-[11px] text-white/80">
+                  {t.perks.map((p) => (
+                    <li key={p} className="flex gap-1.5"><Check className={`mt-0.5 h-3 w-3 shrink-0 ${tone.text}`} /> {p}</li>
+                  ))}
+                </ul>
+                {isCurrent ? (
+                  <div className="mt-3 rounded-lg bg-white/5 px-3 py-2 text-center text-[10px] font-black uppercase tracking-wider text-white/60">Active</div>
+                ) : isFounder ? (
+                  <div className="mt-3 rounded-lg bg-[var(--safc-yellow)]/10 px-3 py-2 text-center text-[10px] font-black uppercase tracking-wider text-[var(--safc-yellow)]">
+                    {founderFull ? "Starting XI full" : "By invitation only"}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setTier(t.id)}
+                    disabled={busy !== null}
+                    className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-[10px] font-black uppercase tracking-wider text-primary-foreground disabled:opacity-60"
+                  >
+                    {busy === t.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t.priceCents === 0 ? "Switch to Free" : `Upgrade to ${t.badge}`}
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="px-1 pt-1 text-center text-[11px] text-muted-foreground">
+        Billing in preview — tier changes apply instantly while we finalise payments. Founding Member status is assigned by SAFC admins.
+      </p>
+    </>
   );
 }
+
+
 
 function PrivacyRow() {
   const { user, profile, refreshProfile } = useAuth();
