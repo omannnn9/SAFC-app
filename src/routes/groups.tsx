@@ -8,7 +8,8 @@ import { UpgradeModal } from "@/components/UpgradeModal";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fetchGroups, createGroup, joinGroup, leaveGroup, type GroupRow } from "@/lib/social";
-import { canUseFeature, planMeets, type Plan, type Feature } from "@/lib/plans";
+import { canUseFeature, planMeets, type Plan, type Feature, FEATURE_MIN_PLAN } from "@/lib/plans";
+import { planToTier, effectiveTier } from "@/lib/tiers";
 import { toast } from "sonner";
 
 type Search = { event?: string; id?: string; type?: GroupRow["type"] };
@@ -49,7 +50,7 @@ function GroupsPage() {
   return (
     <PageContainer>
       <AppHeader title="Groups" />
-      <UpgradeModal open={upgrade.open} onClose={() => setUpgrade({ open: false })} currentPlan={plan} feature={upgrade.feature} reason={upgrade.reason} />
+      <UpgradeModal open={upgrade.open} onClose={() => setUpgrade({ open: false })} currentTier={effectiveTier(profile)} targetTier={upgrade.feature ? planToTier(FEATURE_MIN_PLAN[upgrade.feature]) : "premium"} reason={upgrade.reason} />
 
       <section className="px-4 pt-5">
         <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Groups</div>

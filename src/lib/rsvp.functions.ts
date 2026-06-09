@@ -36,13 +36,15 @@ export const updateEventRsvp = createServerFn({ method: "POST" })
       return { status: null, chatId: null };
     }
 
-    const { data: profile } = await supabase.from("profiles").select("plan").eq("id", uid).maybeSingle();
-    const plan = (profile as { plan?: string } | null)?.plan ?? "bronze";
+    const { data: profile } = await supabase.from("profiles").select("plan, tier").eq("id", uid).maybeSingle();
+    const { planToTier } = await import("@/lib/tiers");
+    const p = profile as { plan?: string; tier?: string } | null;
+    const tier = (p?.tier as "free" | "basic" | "premium" | "founder" | undefined) ?? planToTier(p?.plan);
     const wasCounted = current?.status === "going" || current?.status === "interested";
-    if (plan === "bronze" && !wasCounted && (data.status === "going" || data.status === "interested")) {
+    if (tier === "free" && !wasCounted && (data.status === "going" || data.status === "interested")) {
       const { data: count } = await supabase.rpc("monthly_event_joins", { _user: uid });
       if ((typeof count === "number" ? count : 0) >= 5) {
-        throw new Error("Bronze members can join up to 5 events per month. Upgrade to Silver for unlimited access.");
+        throw new Error("Free supporters can RSVP to up to 5 events per month. Upgrade to Basic for unlimited access.");
       }
     }
 

@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
 import { db } from "@/lib/db";
+import { effectiveTier } from "@/lib/tiers";
 
 export const Route = createFileRoute("/search")({
   head: () => ({ meta: [{ title: "Search — SAFC" }] }),
@@ -22,7 +23,7 @@ function SearchPage() {
       if (term.length < 2) return { people: [], events: [], posts: [] };
       const like = `%${term}%`;
       const [{ data: people }, { data: events }, { data: posts }] = await Promise.all([
-        db.from("profiles").select("id, full_name, username, avatar_url, plan, city").or(`full_name.ilike.${like},username.ilike.${like},favourite_team.ilike.${like},city.ilike.${like}`).limit(15),
+        db.from("profiles").select("id, full_name, username, avatar_url, plan, tier, city").or(`full_name.ilike.${like},username.ilike.${like},favourite_team.ilike.${like},city.ilike.${like}`).limit(15),
         db.from("events").select("id, title, kickoff, venue").or(`title.ilike.${like},competition.ilike.${like},venue.ilike.${like},city.ilike.${like}`).limit(15),
         db.from("posts").select("id, body, user_id, created_at").ilike("body", like).limit(15),
       ]);
@@ -53,7 +54,7 @@ function SearchPage() {
             <Group icon={<Users className="h-3 w-3 text-primary" />} label={`People · ${sQ.data.people.length}`}>
               {sQ.data.people.map((p: any) => (
                 <Link key={p.id} to="/u/$id" params={{ id: p.id }} className="glass flex items-center gap-3 rounded-xl p-2.5">
-                  <UserAvatar name={p.full_name} src={p.avatar_url} size={40} ring={p.plan === "gold" ? "gold" : null} />
+                  <UserAvatar name={p.full_name} src={p.avatar_url} size={40} ring={effectiveTier(p) === "founder" ? "gold" : null} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-bold">{p.full_name}</div>
                     {p.username && <div className="text-[10px] text-muted-foreground">@{p.username}{p.city ? ` · ${p.city}` : ""}</div>}

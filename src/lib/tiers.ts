@@ -129,6 +129,38 @@ export function canUse(t: Tier | null | undefined, f: TierFeature): boolean {
   return tierMeets(t, TIER_FEATURE_MIN[f]);
 }
 
+/** Map a legacy plan string ("bronze"|"silver"|"gold") onto the new tier. */
+export function planToTier(plan?: string | null): Tier {
+  switch (plan) {
+    case "founder":
+      return "founder";
+    case "premium":
+    case "gold": // legacy gold → premium (founder is admin-assigned only)
+      return "premium";
+    case "basic":
+    case "silver":
+    case "bronze":
+      return "basic";
+    default:
+      return "free";
+  }
+}
+
+/** Read the tier from a profile-shaped record, preferring `tier` and falling back to legacy `plan`. */
+export function effectiveTier(
+  p: { tier?: string | null; plan?: string | null } | null | undefined,
+): Tier {
+  if (!p) return "free";
+  if (p.tier && (["free", "basic", "premium", "founder"] as const).includes(p.tier as Tier)) {
+    return p.tier as Tier;
+  }
+  return planToTier(p.plan);
+}
+
+export function tierLabel(t: Tier): string {
+  return TIERS.find((x) => x.id === t)?.name ?? "Supporter";
+}
+
 export function formatMemberNo(n: number | null | undefined): string {
   if (!n || n < 1) return "SAFC-—";
   return `SAFC-${String(n).padStart(3, "0")}`;

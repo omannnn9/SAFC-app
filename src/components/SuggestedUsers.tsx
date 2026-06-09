@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { fetchSuggestedUsers } from "@/lib/social";
 import { UserAvatar } from "@/components/UserAvatar";
 import { FollowButton } from "@/components/FollowButton";
+import { effectiveTier } from "@/lib/tiers";
 
 export function SuggestedUsers() {
   const { user } = useAuth();
@@ -25,7 +26,7 @@ export function SuggestedUsers() {
         {q.data.map((p) => (
           <div key={p.id} className="glass min-w-[170px] max-w-[170px] shrink-0 rounded-2xl p-3 text-center">
             <Link to="/u/$id" params={{ id: p.id }} className="block">
-              <UserAvatar name={p.full_name} src={p.avatar_url} size={64} ring={p.plan === "gold" ? "gold" : null} className="mx-auto" />
+              <UserAvatar name={p.full_name} src={p.avatar_url} size={64} ring={effectiveTier(p) === "founder" ? "gold" : null} className="mx-auto" />
               <div className="mt-2 truncate font-display text-sm font-black">{p.full_name}</div>
               <div className="truncate text-[10px] text-muted-foreground">{p.reason}</div>
             </Link>

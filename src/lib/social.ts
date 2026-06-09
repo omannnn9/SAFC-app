@@ -30,7 +30,8 @@ export type AuthorMini = {
   full_name: string;
   username: string | null;
   avatar_url: string | null;
-  plan: "bronze" | "silver" | "gold";
+  plan: "bronze" | "silver" | "gold" | null;
+  tier?: "free" | "basic" | "premium" | "founder" | null;
 };
 
 export type FeedPost = {
@@ -78,7 +79,7 @@ export async function enrichPosts(
   const postIds = list.map((p) => p.id);
 
   const [authorsRes, eventsRes, likeCountsRes, commentCountsRes, shareCountsRes, myLikesRes, mySavesRes] = await Promise.all([
-    db.from("profiles").select("id, full_name, username, avatar_url, plan").in("id", userIds),
+    db.from("profiles").select("id, full_name, username, avatar_url, plan, tier").in("id", userIds),
     eventIds.length ? db.from("events").select("id, title").in("id", eventIds) : Promise.resolve({ data: [] }),
     db.from("post_likes").select("post_id").in("post_id", postIds),
     db.from("post_comments").select("post_id").in("post_id", postIds),
@@ -177,20 +178,20 @@ export async function setAttendance(
   eventId: string,
   userId: string,
   status: AttendanceStatus | null,
-  opts: { plan?: "bronze" | "silver" | "gold"; currentStatus?: AttendanceStatus | null } = {},
+  opts: { tier?: "free" | "basic" | "premium" | "founder"; currentStatus?: AttendanceStatus | null } = {},
 ) {
   if (status === null) {
     const { error } = await db.from("event_attendees").delete().eq("event_id", eventId).eq("user_id", userId);
     if (error) throw error;
     return;
   }
-  // Bronze monthly cap: 5 going/interested per calendar month
-  if (opts.plan === "bronze" && (status === "going" || status === "interested")) {
+  // Free tier monthly cap: 5 going/interested per calendar month
+  if (opts.tier === "free" && (status === "going" || status === "interested")) {
     const wasCounted = opts.currentStatus === "going" || opts.currentStatus === "interested";
     if (!wasCounted) {
       const { data } = await db.rpc("monthly_event_joins", { _user: userId });
       const count = typeof data === "number" ? data : 0;
-      if (count >= 5) throw new PlanLimitError("Bronze members can join up to 5 events per month. Upgrade to Silver for unlimited access.");
+      if (count >= 5) throw new PlanLimitError("Free supporters can RSVP to up to 5 events per month. Upgrade to Basic for unlimited access.");
     }
   }
   const { error } = await db
@@ -287,7 +288,7 @@ export async function fetchSuggestedUsers(currentUserId: string | null, limit = 
   }
   const { data } = await db
     .from("profiles")
-    .select("id, full_name, username, avatar_url, plan, city, country, favourite_team")
+    .select("id, full_name, username, avatar_url, plan, tier, city, country, favourite_team")
     .order("created_at", { ascending: false })
     .limit(40);
   const all = ((data ?? []) as SuggestedUser[]).filter((p) => p.id !== currentUserId && !myFollowing.has(p.id));
@@ -296,7 +297,8 @@ export async function fetchSuggestedUsers(currentUserId: string | null, limit = 
     let reason = "Supporter";
     if (p.city && myCity && p.city === myCity) { score += 3; reason = `Same city — ${p.city}`; }
     else if (p.country && myCountry && p.country === myCountry) { score += 1; reason = `From ${p.country}`; }
-    if (p.plan === "gold") score += 0.5;
+    if (p.tier === "founder") score += 1.0;
+    else if (p.tier === "premium" || p.plan === "gold") score += 0.5;
     return { ...p, reason, _s: score };
   });
   scored.sort((a, b) => b._s - a._s);

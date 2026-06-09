@@ -16,6 +16,7 @@ import { fetchFeed, fetchEventPhotos, uploadEventPhoto, fetchGroups, type Attend
 import { updateEventRsvp } from "@/lib/rsvp.functions";
 import type { EventRow, AuthorMini, EventPhoto, GroupRow } from "@/lib/social";
 import type { Plan } from "@/lib/plans";
+import { effectiveTier } from "@/lib/tiers";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/events/$id")({
@@ -85,7 +86,7 @@ function EventDetailPage() {
       const rows = (data ?? []) as { user_id: string; status: AttendanceStatus }[];
       if (!rows.length) return [];
       const ids = rows.map((r) => r.user_id);
-      const { data: profiles } = await db.from("profiles").select("id, full_name, username, avatar_url, plan").in("id", ids);
+      const { data: profiles } = await db.from("profiles").select("id, full_name, username, avatar_url, plan, tier").in("id", ids);
       const map = new Map<string, AuthorMini>(((profiles ?? []) as AuthorMini[]).map((p) => [p.id, p]));
       return rows.map((r) => ({ ...r, profile: map.get(r.user_id) ?? null }));
     },
@@ -113,10 +114,10 @@ function EventDetailPage() {
   const goingList = (attendeesQ.data ?? []).filter((a) => a.status === "going");
   const interestedList = (attendeesQ.data ?? []).filter((a) => a.status === "interested");
   const maybeList = (attendeesQ.data ?? []).filter((a) => a.status === "maybe");
-  // Priority placement: Gold first, Silver next, then Bronze
+  // Priority placement: Founder first, Premium next, then Basic, then Free
   const sortByPlan = (list: Attendee[]) => [...list].sort((a, b) => {
-    const r: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
-    return (r[a.profile?.plan ?? "bronze"] ?? 9) - (r[b.profile?.plan ?? "bronze"] ?? 9);
+    const r: Record<string, number> = { founder: 0, premium: 1, basic: 2, free: 3 };
+    return (r[effectiveTier(a.profile)] ?? 9) - (r[effectiveTier(b.profile)] ?? 9);
   });
   const followingSet = followingQ.data ?? new Set<string>();
   const friendsGoing = goingList.filter((a) => followingSet.has(a.user_id));
@@ -136,7 +137,8 @@ function EventDetailPage() {
           full_name: profile?.full_name ?? user.email ?? "Supporter",
           username: profile?.username ?? null,
           avatar_url: profile?.avatar_url ?? null,
-          plan: (profile?.plan as Plan | undefined) ?? "bronze",
+          plan: (profile?.plan as Plan | undefined) ?? null,
+          tier: (profile?.tier as "free" | "basic" | "premium" | "founder" | undefined) ?? "free",
         };
         return [...withoutMe, { user_id: user.id, status: next, profile: me }];
       });
@@ -160,7 +162,7 @@ function EventDetailPage() {
       );
     } catch (e) {
       const message = e instanceof Error ? e.message : "Could not update RSVP";
-      if (message.includes("Bronze members")) {
+      if (message.includes("Free supporters") || message.includes("Bronze members")) {
         setUpgradeReason(message);
         setUpgradeOpen(true);
         return;
@@ -207,7 +209,7 @@ function EventDetailPage() {
   return (
     <PageContainer>
       <AppHeader title="Event" />
-      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} currentPlan={(profile?.plan as Plan | undefined) ?? "bronze"} feature="join_event" title="Bronze monthly limit reached" reason={upgradeReason} />
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} currentTier={effectiveTier(profile)} feature="priority_rsvp" title="Free monthly limit reached" reason={upgradeReason} />
 
       <div className="px-4 pt-3">
         <Link to="/events" className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground">
@@ -328,7 +330,7 @@ function EventDetailPage() {
                         name={a.profile?.full_name}
                         src={a.profile?.avatar_url}
                         size={38}
-                        ring={a.profile?.plan === "gold" ? "gold" : null}
+                        ring={effectiveTier(a.profile) === "founder" ? "gold" : null}
                         className="ring-2 ring-background"
                       />
                     </Link>
@@ -478,7 +480,7 @@ function AttendeesGroup({ title, list }: { title: string; list: Attendee[] }) {
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {list.map((a) => (
           <Link key={a.user_id} to="/u/$id" params={{ id: a.user_id }} className="glass flex items-center gap-2 rounded-xl p-2.5 transition hover:ring-glow-gold">
-            <UserAvatar name={a.profile?.full_name} src={a.profile?.avatar_url} size={36} ring={a.profile?.plan === "gold" ? "gold" : null} />
+            <UserAvatar name={a.profile?.full_name} src={a.profile?.avatar_url} size={36} ring={effectiveTier(a.profile) === "founder" ? "gold" : null} />
             <div className="min-w-0 flex-1">
               <div className="truncate text-xs font-bold">{a.profile?.full_name ?? "Supporter"}</div>
               {a.profile?.username && <div className="truncate text-[10px] text-muted-foreground">@{a.profile.username}</div>}
