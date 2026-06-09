@@ -101,16 +101,12 @@ function AccountPage() {
       {tab === "profile" && (<section className="mt-4 px-4 pb-32 space-y-4"><ProfileEditor /></section>)}
 
       {tab === "subscription" && (
-        <section className="mt-4 px-4 pb-32 space-y-4">
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Membership</div>
-            <h2 className="mt-1 font-display text-2xl font-black tracking-tight">Choose your supporter tier</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Three tiers. Real benefits. Cancel anytime.</p>
-          </div>
-          {PLANS.map((plan) => (<PlanCard key={plan.id} plan={plan} current={currentPlan} userId={user.id} onChanged={refreshProfile} />))}
-          <p className="px-1 pt-2 text-center text-[11px] text-muted-foreground">Billing in preview — plan changes apply instantly while we finalise payments.</p>
+        <section className="mt-4 px-4 pb-32 space-y-5">
+          <SubscriptionPanel userId={user.id} onChanged={refreshProfile} />
         </section>
       )}
+
+
 
       {tab === "settings" && (
         <section className="mt-4 px-4 pb-32 space-y-3">
