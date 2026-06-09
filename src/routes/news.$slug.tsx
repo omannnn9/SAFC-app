@@ -55,8 +55,8 @@ function ArticlePage() {
   });
 
   const { data: fullContent, isLoading: fullLoading } = useQuery({
-    queryKey: ["article-content", article?.url],
-    enabled: !!article?.url,
+    queryKey: ["article-content", article?.url, user?.id],
+    enabled: !!article?.url && !!user,
     staleTime: 1000 * 60 * 60,
     queryFn: () => getArticleContent({ data: { url: article!.url! } }),
   });
