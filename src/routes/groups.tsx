@@ -8,7 +8,8 @@ import { UpgradeModal } from "@/components/UpgradeModal";
 import { useAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fetchGroups, createGroup, joinGroup, leaveGroup, type GroupRow } from "@/lib/social";
-import { canUseFeature, planMeets, type Plan, type Feature } from "@/lib/plans";
+import { canUseFeature, planMeets, type Plan, type Feature, FEATURE_MIN_PLAN } from "@/lib/plans";
+import { planToTier, effectiveTier } from "@/lib/tiers";
 import { toast } from "sonner";
 
 type Search = { event?: string; id?: string; type?: GroupRow["type"] };
