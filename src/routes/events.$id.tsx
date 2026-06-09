@@ -329,7 +329,7 @@ function EventDetailPage() {
                         name={a.profile?.full_name}
                         src={a.profile?.avatar_url}
                         size={38}
-                        ring={a.profile?.plan === "gold" ? "gold" : null}
+                        ring={effectiveTier(a.profile) === "founder" ? "gold" : null}
                         className="ring-2 ring-background"
                       />
                     </Link>
