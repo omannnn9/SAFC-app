@@ -1,13 +1,15 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { AlertTriangle, ArrowLeft, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Loader2, Plus, RefreshCw, Save, Trash2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db";
 import { nameToFlag } from "@/lib/flags";
+import { adminSyncWorldCupNow, adminAutoMapWorldCupMatches } from "@/lib/wc-sync.functions";
 import {
   WORLD_CUP_STAGES,
   WORLD_CUP_TOTAL_MATCHES,
