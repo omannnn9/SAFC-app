@@ -1,4 +1,4 @@
-name: Mirror to SAFC-app9
+name: Mirror to SAFC-app
 
 on:
   push:
