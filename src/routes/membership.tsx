@@ -31,6 +31,8 @@ function rands(cents: number) {
 
 function MembershipPage() {
   const { user, profile } = useAuth();
+  const [comingSoon, setComingSoon] = useState(false);
+
 
   const listFn = useServerFn(listTierConfig);
   const meFn = useServerFn(getMyMembership);
