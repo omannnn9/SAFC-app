@@ -174,7 +174,7 @@ export function AdminFoundersTab() {
         />
         {searchQ.data && searchQ.data.length > 0 && (
           <ul className="mt-2 divide-y divide-white/5">
-            {searchQ.data.map((u) => {
+            {(searchQ.data as Array<{ id: string; full_name: string | null; username: string | null; member_no: number | null; tier: Tier; is_founder: boolean }>).map((u) => {
               const user = u as { id: string; full_name: string | null; username: string | null; member_no: number | null; tier: Tier; is_founder: boolean };
               return (
                 <li key={user.id} className="flex flex-wrap items-center gap-2 py-2">
