@@ -85,7 +85,7 @@ function EventDetailPage() {
       const rows = (data ?? []) as { user_id: string; status: AttendanceStatus }[];
       if (!rows.length) return [];
       const ids = rows.map((r) => r.user_id);
-      const { data: profiles } = await db.from("profiles").select("id, full_name, username, avatar_url, plan").in("id", ids);
+      const { data: profiles } = await db.from("profiles").select("id, full_name, username, avatar_url, plan, tier").in("id", ids);
       const map = new Map<string, AuthorMini>(((profiles ?? []) as AuthorMini[]).map((p) => [p.id, p]));
       return rows.map((r) => ({ ...r, profile: map.get(r.user_id) ?? null }));
     },
