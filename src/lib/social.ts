@@ -178,20 +178,20 @@ export async function setAttendance(
   eventId: string,
   userId: string,
   status: AttendanceStatus | null,
-  opts: { plan?: "bronze" | "silver" | "gold"; currentStatus?: AttendanceStatus | null } = {},
+  opts: { tier?: "free" | "basic" | "premium" | "founder"; currentStatus?: AttendanceStatus | null } = {},
 ) {
   if (status === null) {
     const { error } = await db.from("event_attendees").delete().eq("event_id", eventId).eq("user_id", userId);
     if (error) throw error;
     return;
   }
-  // Bronze monthly cap: 5 going/interested per calendar month
-  if (opts.plan === "bronze" && (status === "going" || status === "interested")) {
+  // Free tier monthly cap: 5 going/interested per calendar month
+  if (opts.tier === "free" && (status === "going" || status === "interested")) {
     const wasCounted = opts.currentStatus === "going" || opts.currentStatus === "interested";
     if (!wasCounted) {
       const { data } = await db.rpc("monthly_event_joins", { _user: userId });
       const count = typeof data === "number" ? data : 0;
-      if (count >= 5) throw new PlanLimitError("Bronze members can join up to 5 events per month. Upgrade to Silver for unlimited access.");
+      if (count >= 5) throw new PlanLimitError("Free supporters can RSVP to up to 5 events per month. Upgrade to Basic for unlimited access.");
     }
   }
   const { error } = await db
