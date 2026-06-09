@@ -13,6 +13,8 @@ import { Route as WorldcupRouteImport } from './routes/worldcup'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as MovementRouteImport } from './routes/movement'
+import { Route as MembershipRouteImport } from './routes/membership'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as GroupsRouteImport } from './routes/groups'
 import { Route as EventsRouteImport } from './routes/events'
@@ -53,6 +55,16 @@ const SearchRoute = SearchRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MovementRoute = MovementRouteImport.update({
+  id: '/movement',
+  path: '/movement',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembershipRoute = MembershipRouteImport.update({
+  id: '/membership',
+  path: '/membership',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -170,6 +182,8 @@ export interface FileRoutesByFullPath {
   '/events': typeof EventsRouteWithChildren
   '/groups': typeof GroupsRoute
   '/login': typeof LoginRoute
+  '/membership': typeof MembershipRoute
+  '/movement': typeof MovementRoute
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
@@ -196,6 +210,8 @@ export interface FileRoutesByTo {
   '/events': typeof EventsRouteWithChildren
   '/groups': typeof GroupsRoute
   '/login': typeof LoginRoute
+  '/membership': typeof MembershipRoute
+  '/movement': typeof MovementRoute
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
@@ -224,6 +240,8 @@ export interface FileRoutesById {
   '/events': typeof EventsRouteWithChildren
   '/groups': typeof GroupsRoute
   '/login': typeof LoginRoute
+  '/membership': typeof MembershipRoute
+  '/movement': typeof MovementRoute
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
@@ -252,6 +270,8 @@ export interface FileRouteTypes {
     | '/events'
     | '/groups'
     | '/login'
+    | '/membership'
+    | '/movement'
     | '/register'
     | '/search'
     | '/signup'
@@ -278,6 +298,8 @@ export interface FileRouteTypes {
     | '/events'
     | '/groups'
     | '/login'
+    | '/membership'
+    | '/movement'
     | '/register'
     | '/search'
     | '/signup'
@@ -305,6 +327,8 @@ export interface FileRouteTypes {
     | '/events'
     | '/groups'
     | '/login'
+    | '/membership'
+    | '/movement'
     | '/register'
     | '/search'
     | '/signup'
@@ -333,6 +357,8 @@ export interface RootRouteChildren {
   EventsRoute: typeof EventsRouteWithChildren
   GroupsRoute: typeof GroupsRoute
   LoginRoute: typeof LoginRoute
+  MembershipRoute: typeof MembershipRoute
+  MovementRoute: typeof MovementRoute
   RegisterRoute: typeof RegisterRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
@@ -374,6 +400,20 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/movement': {
+      id: '/movement'
+      path: '/movement'
+      fullPath: '/movement'
+      preLoaderRoute: typeof MovementRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/membership': {
+      id: '/membership'
+      path: '/membership'
+      fullPath: '/membership'
+      preLoaderRoute: typeof MembershipRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -588,6 +628,8 @@ const rootRouteChildren: RootRouteChildren = {
   EventsRoute: EventsRouteWithChildren,
   GroupsRoute: GroupsRoute,
   LoginRoute: LoginRoute,
+  MembershipRoute: MembershipRoute,
+  MovementRoute: MovementRoute,
   RegisterRoute: RegisterRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
