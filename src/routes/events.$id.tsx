@@ -137,7 +137,8 @@ function EventDetailPage() {
           full_name: profile?.full_name ?? user.email ?? "Supporter",
           username: profile?.username ?? null,
           avatar_url: profile?.avatar_url ?? null,
-          plan: (profile?.plan as Plan | undefined) ?? "bronze",
+          plan: (profile?.plan as Plan | undefined) ?? null,
+          tier: (profile?.tier as "free" | "basic" | "premium" | "founder" | undefined) ?? "free",
         };
         return [...withoutMe, { user_id: user.id, status: next, profile: me }];
       });
