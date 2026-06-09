@@ -156,7 +156,7 @@ async function runSync(): Promise<SyncResult> {
 
   // Apply updates serially so each fires the events-sync trigger correctly.
   for (const u of updates) {
-    const { error } = await supabaseAdmin.from("world_cup_matches").update(u.patch).eq("id", u.id);
+    const { error } = await supabaseAdmin.from("world_cup_matches").update(u.patch as never).eq("id", u.id);
     if (error) result.errors.push(`update ${u.id}: ${error.message}`);
   }
 
@@ -253,7 +253,7 @@ export const adminSetFootballDataMatch = createServerFn({ method: "POST" })
       patch.football_data_home_team_id = null;
       patch.football_data_away_team_id = null;
     }
-    const { error } = await supabaseAdmin.from("world_cup_matches").update(patch).eq("id", data.wc_match_id);
+    const { error } = await supabaseAdmin.from("world_cup_matches").update(patch as never).eq("id", data.wc_match_id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
