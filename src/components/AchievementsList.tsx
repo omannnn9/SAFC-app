@@ -7,9 +7,14 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   "user-plus": UserPlus, flame: Flame, plane: Plane, crown: Crown,
 };
 const TIER_COLOR: Record<string, string> = {
-  bronze: "from-amber-700/50 to-amber-900/30 ring-amber-600/30",
-  silver: "from-zinc-400/50 to-zinc-700/30 ring-zinc-300/30",
-  gold:   "from-yellow-400/50 to-amber-700/40 ring-yellow-300/40",
+  free:    "from-white/10 to-white/5 ring-white/20",
+  basic:   "from-[var(--safc-green)]/40 to-[var(--safc-green)]/10 ring-[var(--safc-green)]/40",
+  premium: "from-[var(--safc-pink)]/40 to-[var(--safc-cobalt)]/20 ring-[var(--safc-pink)]/40",
+  founder: "from-[var(--safc-yellow)]/50 to-[var(--safc-red)]/30 ring-[var(--safc-yellow)]/50",
+  // legacy fallbacks
+  bronze:  "from-[var(--safc-green)]/40 to-[var(--safc-green)]/10 ring-[var(--safc-green)]/40",
+  silver:  "from-[var(--safc-pink)]/40 to-[var(--safc-cobalt)]/20 ring-[var(--safc-pink)]/40",
+  gold:    "from-[var(--safc-yellow)]/50 to-[var(--safc-red)]/30 ring-[var(--safc-yellow)]/50",
 };
 
 type Row = { id: string; name: string; description: string; icon: string; tier: string; earned: boolean };
