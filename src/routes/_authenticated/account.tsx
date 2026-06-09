@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useRef, useState } from "react";
-import { Loader2, LogOut, Check, Camera, Bell, KeyRound, Shield, Sparkles, Crown, Trash2, AlertTriangle, Lock, Globe, UserCheck, UserX } from "lucide-react";
+import { Loader2, LogOut, Check, Camera, Bell, KeyRound, Shield, Sparkles, Trash2, AlertTriangle, Lock, Globe, UserCheck, UserX } from "lucide-react";
 import { logAudit } from "@/lib/audit";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
