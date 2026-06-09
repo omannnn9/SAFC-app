@@ -61,9 +61,10 @@ export const adminSetUserTier = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { supabase } = await requireAdminSupabase();
-    const patch: Record<string, unknown> = { tier: data.tier };
-    if (data.tier !== "founder") patch.is_founder = false;
-    const { error } = await supabase.from("profiles").update(patch).eq("id", data.userId);
+    const { error } =
+      data.tier === "founder"
+        ? await supabase.from("profiles").update({ tier: "founder", is_founder: true }).eq("id", data.userId)
+        : await supabase.from("profiles").update({ tier: data.tier, is_founder: false, founder_at: null }).eq("id", data.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
