@@ -109,10 +109,23 @@ async function writeCache(key: string, payload: ArticleContent, ttl: number) {
 }
 
 export const getArticleContent = createServerFn({ method: "GET" })
-  .inputValidator((d: { url: string }) => d)
+  .inputValidator((d) => z.object({ url: z.string().url().max(2000) }).parse(d))
   .handler(async ({ data }) => {
-    const url = (data as { url: string }).url;
-    if (!/^https?:\/\//i.test(url)) throw new Error("Invalid url");
+    // Require sign-in to prevent unauthenticated SSRF abuse.
+    await requireAuthenticatedSupabase();
+    const url = data.url;
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      throw new Error("Invalid url");
+    }
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      throw new Error("Invalid url");
+    }
+    if (isBlockedHost(parsed.hostname)) {
+      throw new Error("Blocked host");
+    }
     const key = `article:${url}`;
     const cached = await readCache(key);
     if (cached && !cached.stale) return cached.payload;
