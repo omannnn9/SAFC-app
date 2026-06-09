@@ -10,7 +10,7 @@
 - A **Vercel account**
 - Your **API-Football** key (from [dashboard.api-football.com](https://dashboard.api-football.com))
 - Your **NewsAPI** key (from [newsapi.org](https://newsapi.org))
-
+123
 ---
 
 ## 2. Export Code to GitHub
