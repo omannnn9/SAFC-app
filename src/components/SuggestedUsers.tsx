@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { fetchSuggestedUsers } from "@/lib/social";
 import { UserAvatar } from "@/components/UserAvatar";
 import { FollowButton } from "@/components/FollowButton";
+import { effectiveTier } from "@/lib/tiers";
 
 export function SuggestedUsers() {
   const { user } = useAuth();
