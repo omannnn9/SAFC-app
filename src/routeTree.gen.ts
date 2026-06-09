@@ -25,7 +25,6 @@ import { Route as NewsIndexRouteImport } from './routes/news.index'
 import { Route as UIdRouteImport } from './routes/u.$id'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as EventsIdRouteImport } from './routes/events.$id'
-import { Route as ApiWcSyncRouteImport } from './routes/api/wc-sync'
 import { Route as AuthenticatedMyEventsRouteImport } from './routes/_authenticated/my-events'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -33,9 +32,6 @@ import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedMessagesIdRouteImport } from './routes/_authenticated/messages.$id'
 import { Route as AuthenticatedEventChatIdRouteImport } from './routes/_authenticated/event-chat.$id'
 import { Route as AuthenticatedAdminWorldcupRouteImport } from './routes/_authenticated/admin.worldcup'
-import { Route as ApiPublicHooksMatchPollRouteImport } from './routes/api/public/hooks/match-poll'
-import { Route as ApiPublicHooksKickoffReminderRouteImport } from './routes/api/public/hooks/kickoff-reminder'
-import { Route as ApiPublicHooksArticlePollRouteImport } from './routes/api/public/hooks/article-poll'
 
 const WorldcupRoute = WorldcupRouteImport.update({
   id: '/worldcup',
@@ -116,11 +112,6 @@ const EventsIdRoute = EventsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => EventsRoute,
 } as any)
-const ApiWcSyncRoute = ApiWcSyncRouteImport.update({
-  id: '/api/wc-sync',
-  path: '/api/wc-sync',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedMyEventsRoute = AuthenticatedMyEventsRouteImport.update({
   id: '/my-events',
   path: '/my-events',
@@ -158,23 +149,6 @@ const AuthenticatedAdminWorldcupRoute =
     path: '/worldcup',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const ApiPublicHooksMatchPollRoute = ApiPublicHooksMatchPollRouteImport.update({
-  id: '/api/public/hooks/match-poll',
-  path: '/api/public/hooks/match-poll',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicHooksKickoffReminderRoute =
-  ApiPublicHooksKickoffReminderRouteImport.update({
-    id: '/api/public/hooks/kickoff-reminder',
-    path: '/api/public/hooks/kickoff-reminder',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksArticlePollRoute =
-  ApiPublicHooksArticlePollRouteImport.update({
-    id: '/api/public/hooks/article-poll',
-    path: '/api/public/hooks/article-poll',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -192,7 +166,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/my-events': typeof AuthenticatedMyEventsRoute
-  '/api/wc-sync': typeof ApiWcSyncRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
@@ -200,9 +173,6 @@ export interface FileRoutesByFullPath {
   '/admin/worldcup': typeof AuthenticatedAdminWorldcupRoute
   '/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/messages/$id': typeof AuthenticatedMessagesIdRoute
-  '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
-  '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
-  '/api/public/hooks/match-poll': typeof ApiPublicHooksMatchPollRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -220,7 +190,6 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/my-events': typeof AuthenticatedMyEventsRoute
-  '/api/wc-sync': typeof ApiWcSyncRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
@@ -228,9 +197,6 @@ export interface FileRoutesByTo {
   '/admin/worldcup': typeof AuthenticatedAdminWorldcupRoute
   '/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/messages/$id': typeof AuthenticatedMessagesIdRoute
-  '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
-  '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
-  '/api/public/hooks/match-poll': typeof ApiPublicHooksMatchPollRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -250,7 +216,6 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/_authenticated/my-events': typeof AuthenticatedMyEventsRoute
-  '/api/wc-sync': typeof ApiWcSyncRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
@@ -258,9 +223,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/worldcup': typeof AuthenticatedAdminWorldcupRoute
   '/_authenticated/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/_authenticated/messages/$id': typeof AuthenticatedMessagesIdRoute
-  '/api/public/hooks/article-poll': typeof ApiPublicHooksArticlePollRoute
-  '/api/public/hooks/kickoff-reminder': typeof ApiPublicHooksKickoffReminderRoute
-  '/api/public/hooks/match-poll': typeof ApiPublicHooksMatchPollRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -280,7 +242,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/messages'
     | '/my-events'
-    | '/api/wc-sync'
     | '/events/$id'
     | '/news/$slug'
     | '/u/$id'
@@ -288,9 +249,6 @@ export interface FileRouteTypes {
     | '/admin/worldcup'
     | '/event-chat/$id'
     | '/messages/$id'
-    | '/api/public/hooks/article-poll'
-    | '/api/public/hooks/kickoff-reminder'
-    | '/api/public/hooks/match-poll'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -308,7 +266,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/messages'
     | '/my-events'
-    | '/api/wc-sync'
     | '/events/$id'
     | '/news/$slug'
     | '/u/$id'
@@ -316,9 +273,6 @@ export interface FileRouteTypes {
     | '/admin/worldcup'
     | '/event-chat/$id'
     | '/messages/$id'
-    | '/api/public/hooks/article-poll'
-    | '/api/public/hooks/kickoff-reminder'
-    | '/api/public/hooks/match-poll'
   id:
     | '__root__'
     | '/'
@@ -337,7 +291,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/messages'
     | '/_authenticated/my-events'
-    | '/api/wc-sync'
     | '/events/$id'
     | '/news/$slug'
     | '/u/$id'
@@ -345,9 +298,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/worldcup'
     | '/_authenticated/event-chat/$id'
     | '/_authenticated/messages/$id'
-    | '/api/public/hooks/article-poll'
-    | '/api/public/hooks/kickoff-reminder'
-    | '/api/public/hooks/match-poll'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -363,13 +313,9 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
   WorldcupRoute: typeof WorldcupRoute
-  ApiWcSyncRoute: typeof ApiWcSyncRoute
   NewsSlugRoute: typeof NewsSlugRoute
   UIdRoute: typeof UIdRoute
   NewsIndexRoute: typeof NewsIndexRoute
-  ApiPublicHooksArticlePollRoute: typeof ApiPublicHooksArticlePollRoute
-  ApiPublicHooksKickoffReminderRoute: typeof ApiPublicHooksKickoffReminderRoute
-  ApiPublicHooksMatchPollRoute: typeof ApiPublicHooksMatchPollRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -486,13 +432,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsIdRouteImport
       parentRoute: typeof EventsRoute
     }
-    '/api/wc-sync': {
-      id: '/api/wc-sync'
-      path: '/api/wc-sync'
-      fullPath: '/api/wc-sync'
-      preLoaderRoute: typeof ApiWcSyncRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/my-events': {
       id: '/_authenticated/my-events'
       path: '/my-events'
@@ -541,27 +480,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/worldcup'
       preLoaderRoute: typeof AuthenticatedAdminWorldcupRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/api/public/hooks/match-poll': {
-      id: '/api/public/hooks/match-poll'
-      path: '/api/public/hooks/match-poll'
-      fullPath: '/api/public/hooks/match-poll'
-      preLoaderRoute: typeof ApiPublicHooksMatchPollRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/kickoff-reminder': {
-      id: '/api/public/hooks/kickoff-reminder'
-      path: '/api/public/hooks/kickoff-reminder'
-      fullPath: '/api/public/hooks/kickoff-reminder'
-      preLoaderRoute: typeof ApiPublicHooksKickoffReminderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/article-poll': {
-      id: '/api/public/hooks/article-poll'
-      path: '/api/public/hooks/article-poll'
-      fullPath: '/api/public/hooks/article-poll'
-      preLoaderRoute: typeof ApiPublicHooksArticlePollRouteImport
-      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -634,13 +552,9 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
   WorldcupRoute: WorldcupRoute,
-  ApiWcSyncRoute: ApiWcSyncRoute,
   NewsSlugRoute: NewsSlugRoute,
   UIdRoute: UIdRoute,
   NewsIndexRoute: NewsIndexRoute,
-  ApiPublicHooksArticlePollRoute: ApiPublicHooksArticlePollRoute,
-  ApiPublicHooksKickoffReminderRoute: ApiPublicHooksKickoffReminderRoute,
-  ApiPublicHooksMatchPollRoute: ApiPublicHooksMatchPollRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

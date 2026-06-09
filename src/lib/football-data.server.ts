@@ -1,6 +1,6 @@
 // Server-only Football-Data.org client. NEVER import from client code.
 // Caches every competition fetch in api_cache to stay well under the
-// 10 req/min ceiling on the paid tier (we poll once per 5 min).
+// 10 req/min ceiling on the paid tier.
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
