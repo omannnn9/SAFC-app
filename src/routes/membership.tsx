@@ -1,13 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { Check, Crown, Sparkles, ArrowRight, LogIn } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { DigitalCard } from "@/components/DigitalCard";
+import { MembershipComingSoon, MembershipComingSoonModal } from "@/components/MembershipComingSoon";
 import { TIERS, tierTone, FOUNDER_CAP, type Tier } from "@/lib/tiers";
 import { useAuth } from "@/lib/auth";
 import { listTierConfig, getMyMembership, getFoundersCount } from "@/lib/membership.functions";
+
 
 export const Route = createFileRoute("/membership")({
   head: () => ({
@@ -28,6 +31,8 @@ function rands(cents: number) {
 
 function MembershipPage() {
   const { user, profile } = useAuth();
+  const [comingSoon, setComingSoon] = useState(false);
+
 
   const listFn = useServerFn(listTierConfig);
   const meFn = useServerFn(getMyMembership);
@@ -143,20 +148,25 @@ function MembershipPage() {
                   ) : isMine ? (
                     <div className="mt-5 rounded-xl bg-white/5 px-4 py-2 text-center text-[11px] font-black uppercase tracking-wider text-white/60">Active</div>
                   ) : (
-                    <Link
-                      to="/account"
-                      search={{ tab: "subscription" } as never}
+                    <button
+                      onClick={() => setComingSoon(true)}
                       className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-[11px] font-black uppercase tracking-wider text-primary-foreground"
                     >
                       {t.price_cents === 0 ? "Switch to free" : `Upgrade to ${def.badge}`}
-                    </Link>
+                    </button>
                   )}
                 </div>
               </div>
             );
           })}
         </div>
+
+        <div className="mt-8">
+          <MembershipComingSoon />
+        </div>
       </section>
+      <MembershipComingSoonModal open={comingSoon} onClose={() => setComingSoon(false)} title="Memberships" />
+
     </PageContainer>
   );
 }

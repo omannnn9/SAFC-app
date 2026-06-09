@@ -112,3 +112,26 @@ export const getFoundersCount = createServerFn({ method: "GET" }).handler(async 
     .eq("is_founder", true);
   return { count: count ?? 0, cap: 111 };
 });
+
+export const joinMembershipWaitlist = createServerFn({ method: "POST" }).handler(async () => {
+  const { supabase, userId } = await requireAuthenticatedSupabase();
+  const { data: u } = await supabase.auth.getUser();
+  const email = u.user?.email ?? "";
+  if (!email) throw new Error("No email on account");
+  const { error } = await supabase
+    .from("membership_waitlist")
+    .insert({ user_id: userId, email });
+  if (error && !/duplicate|unique/i.test(error.message)) throw new Error(error.message);
+  return { ok: true };
+});
+
+export const isOnMembershipWaitlist = createServerFn({ method: "GET" }).handler(async () => {
+  const { supabase, userId } = await requireAuthenticatedSupabase();
+  const { data } = await supabase
+    .from("membership_waitlist")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return { joined: !!data };
+});
+

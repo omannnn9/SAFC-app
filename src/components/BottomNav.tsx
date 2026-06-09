@@ -12,7 +12,7 @@ const items = [
 export function BottomNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[max(env(safe-area-inset-bottom),12px)]">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[max(env(safe-area-inset-bottom),12px)] md:hidden">
       <nav className="glass-strong pointer-events-auto w-full max-w-md rounded-2xl px-2 py-2 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
         <ul className="flex items-stretch justify-between">
           {items.map(({ to, label, icon: Icon, match }) => {

@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/lib/auth";
 import { BottomNav } from "@/components/BottomNav";
+import { DesktopSidebar } from "@/components/DesktopSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -151,7 +152,10 @@ function Shell() {
 
   return (
     <>
-      <Outlet />
+      {!hideNav && <DesktopSidebar />}
+      <div className={!hideNav ? "md:pl-60 lg:pl-64" : ""}>
+        <Outlet />
+      </div>
       {!hideNav && <BottomNav />}
       <Toaster theme="dark" />
     </>
