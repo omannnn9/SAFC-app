@@ -89,13 +89,11 @@ function CommunityPage() {
             key={p.id}
             className="glass flex items-center gap-3 rounded-2xl p-3 transition hover:ring-glow-gold"
           >
-            <UserAvatar name={p.full_name} src={p.avatar_url} size={52} ring={p.plan === "gold" ? "gold" : null} />
+            <UserAvatar name={p.full_name} src={p.avatar_url} size={52} ring={effectiveTier(p) === "founder" ? "gold" : null} />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <div className="truncate font-display text-sm font-black">{p.full_name || "Supporter"}</div>
-                {p.plan === "gold" && (
-                  <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-primary">VIP</span>
-                )}
+                {effectiveTier(p) !== "free" && <TierBadge tier={effectiveTier(p)} />}
               </div>
               {p.username && <div className="text-[11px] text-muted-foreground">@{p.username}</div>}
               <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
