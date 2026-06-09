@@ -79,7 +79,7 @@ export async function enrichPosts(
   const postIds = list.map((p) => p.id);
 
   const [authorsRes, eventsRes, likeCountsRes, commentCountsRes, shareCountsRes, myLikesRes, mySavesRes] = await Promise.all([
-    db.from("profiles").select("id, full_name, username, avatar_url, plan").in("id", userIds),
+    db.from("profiles").select("id, full_name, username, avatar_url, plan, tier").in("id", userIds),
     eventIds.length ? db.from("events").select("id, title").in("id", eventIds) : Promise.resolve({ data: [] }),
     db.from("post_likes").select("post_id").in("post_id", postIds),
     db.from("post_comments").select("post_id").in("post_id", postIds),
