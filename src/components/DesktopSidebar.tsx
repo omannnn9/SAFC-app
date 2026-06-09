@@ -3,14 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Home,
   Users,
-  Trophy,
   MessageCircle,
   User,
   Crown,
   CalendarDays,
-  Bell,
   Shield,
-  ListChecks,
   Globe2,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
