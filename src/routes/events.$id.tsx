@@ -161,7 +161,7 @@ function EventDetailPage() {
       );
     } catch (e) {
       const message = e instanceof Error ? e.message : "Could not update RSVP";
-      if (message.includes("Bronze members")) {
+      if (message.includes("Free supporters") || message.includes("Bronze members")) {
         setUpgradeReason(message);
         setUpgradeOpen(true);
         return;
