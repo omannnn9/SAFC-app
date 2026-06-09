@@ -1,16 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, Trophy, ArrowLeft, Crown, MessageCircle, Tag } from "lucide-react";
+import { MapPin, Trophy, ArrowLeft, MessageCircle, Tag } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
 import { PostCard } from "@/components/PostCard";
 import { FollowButton } from "@/components/FollowButton";
 import { AchievementsList } from "@/components/AchievementsList";
+import { TierBadge } from "@/components/TierBadge";
 import { db } from "@/lib/db";
 import { fetchFeed } from "@/lib/social";
 import { startDirectConversation } from "@/lib/dm.functions";
 import { useAuth } from "@/lib/auth";
+import { effectiveTier } from "@/lib/tiers";
 import { toast } from "sonner";
 
 type FullProfile = {
@@ -23,7 +25,10 @@ type FullProfile = {
   favourite_team: string | null;
   avatar_url: string | null;
   cover_url: string | null;
-  plan: "bronze" | "silver" | "gold";
+  plan: "bronze" | "silver" | "gold" | null;
+  tier: "free" | "basic" | "premium" | "founder" | null;
+  member_no: number | null;
+  is_founder: boolean | null;
   interests: string[] | null;
   created_at: string;
 };
