@@ -50,7 +50,7 @@ function GroupsPage() {
   return (
     <PageContainer>
       <AppHeader title="Groups" />
-      <UpgradeModal open={upgrade.open} onClose={() => setUpgrade({ open: false })} currentPlan={plan} feature={upgrade.feature} reason={upgrade.reason} />
+      <UpgradeModal open={upgrade.open} onClose={() => setUpgrade({ open: false })} currentTier={effectiveTier(profile)} targetTier={upgrade.feature ? planToTier(FEATURE_MIN_PLAN[upgrade.feature]) : "premium"} reason={upgrade.reason} />
 
       <section className="px-4 pt-5">
         <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">Groups</div>
