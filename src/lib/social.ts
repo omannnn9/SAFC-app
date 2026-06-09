@@ -288,7 +288,7 @@ export async function fetchSuggestedUsers(currentUserId: string | null, limit = 
   }
   const { data } = await db
     .from("profiles")
-    .select("id, full_name, username, avatar_url, plan, city, country, favourite_team")
+    .select("id, full_name, username, avatar_url, plan, tier, city, country, favourite_team")
     .order("created_at", { ascending: false })
     .limit(40);
   const all = ((data ?? []) as SuggestedUser[]).filter((p) => p.id !== currentUserId && !myFollowing.has(p.id));
@@ -297,7 +297,8 @@ export async function fetchSuggestedUsers(currentUserId: string | null, limit = 
     let reason = "Supporter";
     if (p.city && myCity && p.city === myCity) { score += 3; reason = `Same city — ${p.city}`; }
     else if (p.country && myCountry && p.country === myCountry) { score += 1; reason = `From ${p.country}`; }
-    if (p.plan === "gold") score += 0.5;
+    if (p.tier === "founder") score += 1.0;
+    else if (p.tier === "premium" || p.plan === "gold") score += 0.5;
     return { ...p, reason, _s: score };
   });
   scored.sort((a, b) => b._s - a._s);
