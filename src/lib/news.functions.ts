@@ -1,5 +1,28 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireAuthenticatedSupabase } from "@/lib/server-auth";
+
+// Block SSRF: reject loopback, link-local, private, and cloud-metadata IPs.
+function isBlockedHost(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") || h.endsWith(".internal")) return true;
+  // IPv6 loopback / link-local / unique-local
+  if (h === "::1" || h.startsWith("[::1") || h.startsWith("fe80") || h.startsWith("fc") || h.startsWith("fd")) return true;
+  // IPv4 dotted-quad checks
+  const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (!m) return false;
+  const [a, b] = [parseInt(m[1], 10), parseInt(m[2], 10)];
+  if (a === 10) return true;
+  if (a === 127) return true; // loopback
+  if (a === 0) return true;
+  if (a === 169 && b === 254) return true; // link-local / cloud IMDS
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  if (a === 192 && b === 168) return true;
+  if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
+  if (a >= 224) return true; // multicast / reserved
+  return false;
+}
 
 export type ArticleContent = {
   url: string;
@@ -86,10 +109,23 @@ async function writeCache(key: string, payload: ArticleContent, ttl: number) {
 }
 
 export const getArticleContent = createServerFn({ method: "GET" })
-  .inputValidator((d: { url: string }) => d)
+  .inputValidator((d) => z.object({ url: z.string().url().max(2000) }).parse(d))
   .handler(async ({ data }) => {
-    const url = (data as { url: string }).url;
-    if (!/^https?:\/\//i.test(url)) throw new Error("Invalid url");
+    // Require sign-in to prevent unauthenticated SSRF abuse.
+    await requireAuthenticatedSupabase();
+    const url = data.url;
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      throw new Error("Invalid url");
+    }
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      throw new Error("Invalid url");
+    }
+    if (isBlockedHost(parsed.hostname)) {
+      throw new Error("Blocked host");
+    }
     const key = `article:${url}`;
     const cached = await readCache(key);
     if (cached && !cached.stale) return cached.payload;
