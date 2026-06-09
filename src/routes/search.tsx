@@ -54,7 +54,7 @@ function SearchPage() {
             <Group icon={<Users className="h-3 w-3 text-primary" />} label={`People · ${sQ.data.people.length}`}>
               {sQ.data.people.map((p: any) => (
                 <Link key={p.id} to="/u/$id" params={{ id: p.id }} className="glass flex items-center gap-3 rounded-xl p-2.5">
-                  <UserAvatar name={p.full_name} src={p.avatar_url} size={40} ring={p.plan === "gold" ? "gold" : null} />
+                  <UserAvatar name={p.full_name} src={p.avatar_url} size={40} ring={effectiveTier(p) === "founder" ? "gold" : null} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-bold">{p.full_name}</div>
                     {p.username && <div className="text-[10px] text-muted-foreground">@{p.username}{p.city ? ` · ${p.city}` : ""}</div>}
