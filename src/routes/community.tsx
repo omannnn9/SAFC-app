@@ -7,6 +7,8 @@ import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { db } from "@/lib/db";
+import { effectiveTier } from "@/lib/tiers";
+import { TierBadge } from "@/components/TierBadge";
 
 type DiscoverProfile = {
   id: string;
@@ -17,7 +19,8 @@ type DiscoverProfile = {
   country: string | null;
   favourite_team: string | null;
   avatar_url: string | null;
-  plan: "bronze" | "silver" | "gold";
+  plan: "bronze" | "silver" | "gold" | null;
+  tier: "free" | "basic" | "premium" | "founder" | null;
 };
 
 export const Route = createFileRoute("/community")({
