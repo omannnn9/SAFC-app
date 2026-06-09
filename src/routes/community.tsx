@@ -36,7 +36,7 @@ function CommunityPage() {
     queryFn: async () => {
       const { data } = await db
         .from("profiles")
-        .select("id, full_name, username, bio, city, country, favourite_team, avatar_url, plan")
+        .select("id, full_name, username, bio, city, country, favourite_team, avatar_url, plan, tier")
         .order("created_at", { ascending: false })
         .limit(60);
       return (data ?? []) as DiscoverProfile[];
