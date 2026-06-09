@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
 import { db } from "@/lib/db";
+import { effectiveTier } from "@/lib/tiers";
 
 export const Route = createFileRoute("/search")({
   head: () => ({ meta: [{ title: "Search — SAFC" }] }),
