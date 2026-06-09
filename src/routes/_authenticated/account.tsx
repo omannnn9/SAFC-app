@@ -332,47 +332,25 @@ function DeleteAccountRow() {
 }
 
 
-function rands(cents: number) {
-  if (!cents) return "FREE";
-  return `R${(cents / 100).toFixed(0)}`;
-}
-
-function SubscriptionPanel({ userId, onChanged }: { userId: string; onChanged: () => void }) {
+function SubscriptionPanel({ userId }: { userId: string; onChanged: () => void }) {
   const { profile, user } = useAuth();
   const meFn = useServerFn(getMyMembership);
-  const countFn = useServerFn(getFoundersCount);
   const meQ = useQuery({ queryKey: ["my-membership", userId], queryFn: () => meFn() });
-  const countQ = useQuery({ queryKey: ["founders-count"], queryFn: () => countFn() });
-  const [busy, setBusy] = useState<Tier | null>(null);
 
   const me = meQ.data as
     | { full_name: string | null; avatar_url: string | null; tier: Tier; member_no: number | null; is_founder: boolean; created_at: string }
     | null
     | undefined;
   const currentTier: Tier = (me?.tier ?? (profile as any)?.tier ?? "free") as Tier;
-  const foundersLeft = countQ.data ? FOUNDER_CAP - (countQ.data as { count: number }).count : null;
-
-  const setTier = async (t: Tier) => {
-    if (t === currentTier) return;
-    setBusy(t);
-    const { error } = await db.from("profiles").update({ tier: t }).eq("id", userId);
-    setBusy(null);
-    if (error) return toast.error(error.message);
-    await logAudit("UPDATE", "profile_tier", userId, { tier: currentTier }, { tier: t });
-    toast.success(`Switched to ${TIERS.find((x) => x.id === t)?.name}`);
-    meQ.refetch();
-    onChanged();
-  };
 
   return (
     <>
       <div>
         <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">SAFC Membership</div>
-        <h2 className="mt-1 font-display text-2xl font-black tracking-tight">Choose your tier</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Free to join. Upgrade when you're ready to ride harder.</p>
+        <h2 className="mt-1 font-display text-2xl font-black tracking-tight">Your supporter card</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Every member gets a SAFC digital card. Premium tiers are coming soon.</p>
       </div>
 
-      {/* personal digital card preview */}
       <DigitalCard
         tier={currentTier}
         fullName={me?.full_name ?? profile?.full_name ?? user?.email ?? "Supporter"}
@@ -382,67 +360,11 @@ function SubscriptionPanel({ userId, onChanged }: { userId: string; onChanged: (
         joinedAt={me?.created_at ?? null}
       />
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {TIERS.map((t) => {
-          const tone = tierTone(t.id);
-          const Icon = t.icon;
-          const isCurrent = t.id === currentTier;
-          const isFounder = t.id === "founder";
-          const founderFull = isFounder && foundersLeft !== null && foundersLeft <= 0;
-          return (
-            <div
-              key={t.id}
-              className={`relative flex flex-col rounded-2xl p-[2px] ${isFounder ? "safc-card-glow" : ""} ${isCurrent ? "ring-2 ring-primary" : ""}`}
-              style={{ background: tone.grad, backgroundSize: "200% 200%" }}
-            >
-              <div className="flex h-full flex-col rounded-[18px] bg-[#0b0b0b] p-4 text-white">
-                <div className="flex items-center justify-between">
-                  <Icon className={`h-5 w-5 ${tone.text}`} />
-                  {isCurrent && <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider">Current</span>}
-                  {isFounder && !isCurrent && foundersLeft !== null && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[var(--safc-yellow)]/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[var(--safc-yellow)]">
-                      <Crown className="h-3 w-3" /> {foundersLeft}/{FOUNDER_CAP} left
-                    </span>
-                  )}
-                </div>
-                <h3 className="mt-2 font-display text-lg font-black">{t.name}</h3>
-                <p className="text-[11px] text-white/60">{t.tagline}</p>
-                <div className={`mt-2 font-display text-2xl font-black ${tone.text}`}>
-                  {rands(t.priceCents)}
-                  {t.priceCents > 0 && <span className="ml-1 text-[10px] font-bold text-white/50">/mo</span>}
-                </div>
-                <ul className="mt-3 flex-1 space-y-1 text-[11px] text-white/80">
-                  {t.perks.map((p) => (
-                    <li key={p} className="flex gap-1.5"><Check className={`mt-0.5 h-3 w-3 shrink-0 ${tone.text}`} /> {p}</li>
-                  ))}
-                </ul>
-                {isCurrent ? (
-                  <div className="mt-3 rounded-lg bg-white/5 px-3 py-2 text-center text-[10px] font-black uppercase tracking-wider text-white/60">Active</div>
-                ) : isFounder ? (
-                  <div className="mt-3 rounded-lg bg-[var(--safc-yellow)]/10 px-3 py-2 text-center text-[10px] font-black uppercase tracking-wider text-[var(--safc-yellow)]">
-                    {founderFull ? "Starting XI full" : "By invitation only"}
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setTier(t.id)}
-                    disabled={busy !== null}
-                    className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-[10px] font-black uppercase tracking-wider text-primary-foreground disabled:opacity-60"
-                  >
-                    {busy === t.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t.priceCents === 0 ? "Switch to Free" : `Upgrade to ${t.badge}`}
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <p className="px-1 pt-1 text-center text-[11px] text-muted-foreground">
-        Billing in preview — tier changes apply instantly while we finalise payments. Founding Member status is assigned by SAFC admins.
-      </p>
+      <MembershipComingSoon />
     </>
   );
 }
+
 
 
 
