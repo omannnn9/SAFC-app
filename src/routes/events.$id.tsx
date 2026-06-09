@@ -208,7 +208,7 @@ function EventDetailPage() {
   return (
     <PageContainer>
       <AppHeader title="Event" />
-      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} currentPlan={(profile?.plan as Plan | undefined) ?? "bronze"} feature="join_event" title="Bronze monthly limit reached" reason={upgradeReason} />
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} currentTier={effectiveTier(profile)} feature="priority_rsvp" title="Free monthly limit reached" reason={upgradeReason} />
 
       <div className="px-4 pt-3">
         <Link to="/events" className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground">
