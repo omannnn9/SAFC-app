@@ -23,7 +23,7 @@ function SearchPage() {
       if (term.length < 2) return { people: [], events: [], posts: [] };
       const like = `%${term}%`;
       const [{ data: people }, { data: events }, { data: posts }] = await Promise.all([
-        db.from("profiles").select("id, full_name, username, avatar_url, plan, city").or(`full_name.ilike.${like},username.ilike.${like},favourite_team.ilike.${like},city.ilike.${like}`).limit(15),
+        db.from("profiles").select("id, full_name, username, avatar_url, plan, tier, city").or(`full_name.ilike.${like},username.ilike.${like},favourite_team.ilike.${like},city.ilike.${like}`).limit(15),
         db.from("events").select("id, title, kickoff, venue").or(`title.ilike.${like},competition.ilike.${like},venue.ilike.${like},city.ilike.${like}`).limit(15),
         db.from("posts").select("id, body, user_id, created_at").ilike("body", like).limit(15),
       ]);
