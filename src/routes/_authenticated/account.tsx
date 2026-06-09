@@ -62,6 +62,18 @@ function AccountPage() {
         <h1 className="mt-2 font-display text-2xl font-black">{profile?.full_name || "Supporter"}</h1>
         <div className="text-xs text-muted-foreground">{user.email}</div>
 
+        <Link
+          to="/membership"
+          className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-[var(--safc-yellow)]/30 bg-gradient-to-r from-[var(--safc-green)]/30 to-[var(--safc-cobalt)]/30 px-4 py-3"
+        >
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[var(--safc-yellow)]">SAFC Membership</div>
+            <div className="font-display text-sm font-black">View your digital member card →</div>
+          </div>
+          <Sparkles className="h-5 w-5 text-[var(--safc-yellow)]" />
+        </Link>
+
+
         {completion.score < 100 && (
           <div className="glass mt-4 rounded-2xl p-3">
             <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider">
