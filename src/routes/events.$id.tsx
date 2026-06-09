@@ -113,10 +113,10 @@ function EventDetailPage() {
   const goingList = (attendeesQ.data ?? []).filter((a) => a.status === "going");
   const interestedList = (attendeesQ.data ?? []).filter((a) => a.status === "interested");
   const maybeList = (attendeesQ.data ?? []).filter((a) => a.status === "maybe");
-  // Priority placement: Gold first, Silver next, then Bronze
+  // Priority placement: Founder first, Premium next, then Basic, then Free
   const sortByPlan = (list: Attendee[]) => [...list].sort((a, b) => {
-    const r: Record<string, number> = { gold: 0, silver: 1, bronze: 2 };
-    return (r[a.profile?.plan ?? "bronze"] ?? 9) - (r[b.profile?.plan ?? "bronze"] ?? 9);
+    const r: Record<string, number> = { founder: 0, premium: 1, basic: 2, free: 3 };
+    return (r[effectiveTier(a.profile)] ?? 9) - (r[effectiveTier(b.profile)] ?? 9);
   });
   const followingSet = followingQ.data ?? new Set<string>();
   const friendsGoing = goingList.filter((a) => followingSet.has(a.user_id));
