@@ -463,6 +463,36 @@ export type Database = {
         }
         Relationships: []
       }
+      football_data_team_map: {
+        Row: {
+          country_name: string
+          crest_url: string | null
+          flag: string | null
+          short_name: string | null
+          team_id: number
+          tla: string | null
+          updated_at: string
+        }
+        Insert: {
+          country_name: string
+          crest_url?: string | null
+          flag?: string | null
+          short_name?: string | null
+          team_id: number
+          tla?: string | null
+          updated_at?: string
+        }
+        Update: {
+          country_name?: string
+          crest_url?: string | null
+          flag?: string | null
+          short_name?: string | null
+          team_id?: number
+          tla?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       group_members: {
         Row: {
           group_id: string
@@ -1302,6 +1332,9 @@ export type Database = {
           city: string | null
           created_at: string
           event_id: string | null
+          football_data_away_team_id: number | null
+          football_data_home_team_id: number | null
+          football_data_match_id: number | null
           group_name: string | null
           home_flag: string
           home_score: number | null
@@ -1309,6 +1342,7 @@ export type Database = {
           id: string
           kickoff: string
           kickoff_datetime_utc: string
+          last_synced_at: string | null
           match_number: number
           notes: string | null
           stage: string
@@ -1325,6 +1359,9 @@ export type Database = {
           city?: string | null
           created_at?: string
           event_id?: string | null
+          football_data_away_team_id?: number | null
+          football_data_home_team_id?: number | null
+          football_data_match_id?: number | null
           group_name?: string | null
           home_flag?: string
           home_score?: number | null
@@ -1332,6 +1369,7 @@ export type Database = {
           id?: string
           kickoff: string
           kickoff_datetime_utc: string
+          last_synced_at?: string | null
           match_number: number
           notes?: string | null
           stage?: string
@@ -1348,6 +1386,9 @@ export type Database = {
           city?: string | null
           created_at?: string
           event_id?: string | null
+          football_data_away_team_id?: number | null
+          football_data_home_team_id?: number | null
+          football_data_match_id?: number | null
           group_name?: string | null
           home_flag?: string
           home_score?: number | null
@@ -1355,6 +1396,7 @@ export type Database = {
           id?: string
           kickoff?: string
           kickoff_datetime_utc?: string
+          last_synced_at?: string | null
           match_number?: number
           notes?: string | null
           stage?: string
