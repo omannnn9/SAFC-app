@@ -54,7 +54,8 @@ async function writeCache(key: string, payload: unknown, ttlSeconds: number) {
   const expires = new Date(Date.now() + ttlSeconds * 1000).toISOString();
   await supabaseAdmin
     .from("api_cache")
-    .upsert({ cache_key: key, payload: payload as object, expires_at: expires, updated_at: new Date().toISOString() });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .upsert({ cache_key: key, payload: payload as any, expires_at: expires, updated_at: new Date().toISOString() });
 }
 
 /**
