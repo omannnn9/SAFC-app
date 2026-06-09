@@ -40,7 +40,7 @@ export function AchievementsList({ userId }: { userId: string }) {
           <div
             key={a.id}
             title={`${a.name} — ${a.description}`}
-            className={`relative aspect-square rounded-xl bg-gradient-to-br p-3 text-center ring-1 ${TIER_COLOR[a.tier] ?? TIER_COLOR.bronze} ${a.earned ? "" : "opacity-30 grayscale"}`}
+            className={`relative aspect-square rounded-xl bg-gradient-to-br p-3 text-center ring-1 ${TIER_COLOR[a.tier] ?? TIER_COLOR.free} ${a.earned ? "" : "opacity-30 grayscale"}`}
           >
             <Icon className="mx-auto h-6 w-6 text-foreground" />
             <div className="mt-1 text-[10px] font-bold leading-tight">{a.name}</div>
