@@ -187,6 +187,8 @@ function WorldCupAdminPage() {
         </div>
       </section>
 
+      <FootballDataSyncPanel onSynced={reload} />
+
       <section className="mt-4 space-y-3 px-4">
         <div className="glass grid gap-2 rounded-2xl p-3 sm:grid-cols-[1fr_180px]">
           <input
