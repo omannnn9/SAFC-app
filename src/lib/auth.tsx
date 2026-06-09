@@ -17,6 +17,9 @@ export type Profile = {
   is_premium: boolean;
   premium_until: string | null;
   plan: "bronze" | "silver" | "gold";
+  tier: "free" | "basic" | "premium" | "founder";
+  member_no: number | null;
+  is_founder: boolean;
   interests: string[] | null;
 };
 

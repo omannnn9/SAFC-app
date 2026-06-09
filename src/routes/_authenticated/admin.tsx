@@ -12,13 +12,14 @@ import { PageContainer } from "@/components/PageContainer";
 import { UserAvatar } from "@/components/UserAvatar";
 import { AdminEventsTab } from "@/components/admin/AdminEventsTab";
 import { WorldCupImportTab } from "@/components/admin/WorldCupImportTab";
+import { AdminTiersTab, AdminFoundersTab } from "@/components/admin/AdminTiersTab";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { adminDeleteUser, adminDeletePost, adminResolveReport, adminUpdatePlan, adminListUsersDetailed, adminExportUsersCsv } from "@/lib/admin.functions";
 import { logAudit } from "@/lib/audit";
 import { toast } from "sonner";
 
-type Tab = "overview" | "users" | "events" | "import" | "posts" | "reports" | "plans" | "audit";
+type Tab = "overview" | "users" | "events" | "import" | "posts" | "reports" | "plans" | "tiers" | "founders" | "audit";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Admin — SAFC" }] }),
@@ -40,6 +41,8 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "posts", label: "Posts" },
   { id: "reports", label: "Reports" },
   { id: "plans", label: "Plans" },
+  { id: "tiers", label: "Tiers" },
+  { id: "founders", label: "Founders" },
   { id: "audit", label: "Audit" },
 ];
 
@@ -79,6 +82,8 @@ function AdminPage() {
         {tab === "posts" && <PostsTab />}
         {tab === "reports" && <ReportsTab />}
         {tab === "plans" && <PlansTab />}
+        {tab === "tiers" && <AdminTiersTab />}
+        {tab === "founders" && <AdminFoundersTab />}
         {tab === "audit" && <AuditTab />}
       </section>
     </PageContainer>
