@@ -107,7 +107,7 @@ function UserPage() {
 
       <section className="px-4 -mt-8">
         <div className="flex items-end gap-3">
-          <UserAvatar name={p.full_name} src={p.avatar_url} size={88} ring={p.plan === "gold" ? "gold" : null} className="ring-4 ring-background" />
+          <UserAvatar name={p.full_name} src={p.avatar_url} size={88} ring={effectiveTier(p) === "founder" ? "gold" : null} className="ring-4 ring-background" />
           <div className="ml-auto flex items-center gap-2 pb-2">
             {user && user.id !== p.id && (
               <button onClick={onMessage} className="glass inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-black uppercase tracking-wider hover:ring-glow-gold">
@@ -117,11 +117,14 @@ function UserPage() {
             <FollowButton targetId={p.id} />
           </div>
         </div>
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-2 flex flex-wrap items-center gap-2">
           <h1 className="font-display text-2xl font-black">{p.full_name || "Supporter"}</h1>
-          {p.plan === "gold" && <span className="inline-flex items-center gap-1 rounded-full bg-[var(--sa-gold)]/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[var(--sa-gold)]"><Crown className="h-3 w-3" /> Gold</span>}
-          {p.plan === "silver" && <span className="rounded-full bg-zinc-300/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-zinc-200">Silver</span>}
-          {p.plan === "bronze" && <span className="rounded-full bg-amber-700/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-500">Bronze</span>}
+          <TierBadge tier={effectiveTier(p)} />
+          {p.is_founder && p.member_no != null && (
+            <span className="rounded-full bg-[var(--safc-yellow)]/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-[var(--safc-yellow)]">
+              SAFC-{String(p.member_no).padStart(3, "0")}
+            </span>
+          )}
         </div>
         {p.username && <div className="text-xs text-muted-foreground">@{p.username}</div>}
         {p.bio && <p className="mt-2 text-sm text-foreground/90">{p.bio}</p>}
