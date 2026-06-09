@@ -1074,16 +1074,20 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           favourite_team: string | null
+          founder_at: string | null
           full_name: string
           id: string
           interests: string[]
           is_deleted: boolean
+          is_founder: boolean
           is_premium: boolean
           is_private: boolean
           last_seen: string | null
+          member_no: number | null
           phone: string | null
           plan: Database["public"]["Enums"]["membership_plan"]
           premium_until: string | null
+          tier: Database["public"]["Enums"]["app_tier"]
           updated_at: string
           username: string | null
         }
@@ -1096,16 +1100,20 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           favourite_team?: string | null
+          founder_at?: string | null
           full_name?: string
           id: string
           interests?: string[]
           is_deleted?: boolean
+          is_founder?: boolean
           is_premium?: boolean
           is_private?: boolean
           last_seen?: string | null
+          member_no?: number | null
           phone?: string | null
           plan?: Database["public"]["Enums"]["membership_plan"]
           premium_until?: string | null
+          tier?: Database["public"]["Enums"]["app_tier"]
           updated_at?: string
           username?: string | null
         }
@@ -1118,16 +1126,20 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           favourite_team?: string | null
+          founder_at?: string | null
           full_name?: string
           id?: string
           interests?: string[]
           is_deleted?: boolean
+          is_founder?: boolean
           is_premium?: boolean
           is_private?: boolean
           last_seen?: string | null
+          member_no?: number | null
           phone?: string | null
           plan?: Database["public"]["Enums"]["membership_plan"]
           premium_until?: string | null
+          tier?: Database["public"]["Enums"]["app_tier"]
           updated_at?: string
           username?: string | null
         }
@@ -1250,6 +1262,39 @@ export type Database = {
           status?: Database["public"]["Enums"]["subscription_status"]
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      tier_config: {
+        Row: {
+          id: Database["public"]["Enums"]["app_tier"]
+          name: string
+          perks: string[]
+          price_cents: number
+          sort_order: number
+          tagline: string | null
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          id: Database["public"]["Enums"]["app_tier"]
+          name: string
+          perks?: string[]
+          price_cents?: number
+          sort_order?: number
+          tagline?: string | null
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          id?: Database["public"]["Enums"]["app_tier"]
+          name?: string
+          perks?: string[]
+          price_cents?: number
+          sort_order?: number
+          tagline?: string | null
+          updated_at?: string
+          visible?: boolean
         }
         Relationships: []
       }
@@ -1466,6 +1511,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      app_tier: "free" | "basic" | "premium" | "founder"
       attendance_status: "going" | "interested" | "maybe" | "not_going"
       event_stage:
         | "group"
@@ -1619,6 +1665,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      app_tier: ["free", "basic", "premium", "founder"],
       attendance_status: ["going", "interested", "maybe", "not_going"],
       event_stage: [
         "group",
