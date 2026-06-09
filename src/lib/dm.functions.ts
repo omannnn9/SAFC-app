@@ -1,21 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuthenticatedSupabase } from "@/lib/server-auth";
+import { planToTier, type Tier } from "@/lib/tiers";
 
 export type DmPermission = {
   allowed: boolean;
   reason: string;
-  requiredPlan?: "silver" | "gold";
+  requiredTier?: Tier;
 };
 
 /**
- * Tier-based DM rule:
- *  - Sender is Gold      → always allowed (premium networking)
- *  - Recipient is Gold   → always allowed (Gold accepts all)
- *  - Sender is Silver    → mutual follow OR co-attendee of any event
- *  - Sender is Bronze    → mutual follow only
- *  - Same user           → never (no self-DM)
- *  - Recipient deleted   → never
+ * Tier-based DM rule (SAFC membership):
+ *  - Sender is Founder/Premium → always allowed (VIP networking)
+ *  - Recipient is Founder/Premium → always allowed (they accept all)
+ *  - Sender is Basic → mutual follow OR co-attendee of any event
+ *  - Sender is Free  → mutual follow only
+ *  - Same user / deleted recipient → never
  */
 async function evaluatePermission(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,16 +26,17 @@ async function evaluatePermission(
   if (senderId === recipientId) return { allowed: false, reason: "You can't message yourself." };
 
   const [{ data: sender }, { data: recipient }] = await Promise.all([
-    admin.from("profiles").select("plan").eq("id", senderId).maybeSingle(),
-    admin.from("profiles").select("plan, is_deleted, full_name").eq("id", recipientId).maybeSingle(),
+    admin.from("profiles").select("plan, tier").eq("id", senderId).maybeSingle(),
+    admin.from("profiles").select("plan, tier, is_deleted, full_name").eq("id", recipientId).maybeSingle(),
   ]);
   if (!recipient || recipient.is_deleted) return { allowed: false, reason: "This account is no longer available." };
 
-  const senderPlan = (sender?.plan ?? "bronze") as "bronze" | "silver" | "gold";
-  const recipientPlan = (recipient.plan ?? "bronze") as "bronze" | "silver" | "gold";
+  const senderTier: Tier = (sender?.tier as Tier | undefined) ?? planToTier(sender?.plan);
+  const recipientTier: Tier = (recipient.tier as Tier | undefined) ?? planToTier(recipient.plan);
 
-  if (senderPlan === "gold" || recipientPlan === "gold") {
-    return { allowed: true, reason: "Gold supporter networking" };
+  const isPaid = (t: Tier) => t === "premium" || t === "founder";
+  if (isPaid(senderTier) || isPaid(recipientTier)) {
+    return { allowed: true, reason: "Premium / Founder networking" };
   }
 
   // Mutual follow check
@@ -52,7 +53,7 @@ async function evaluatePermission(
 
   if (mutual) return { allowed: true, reason: "Mutual followers" };
 
-  if (senderPlan === "silver") {
+  if (senderTier === "basic") {
     // Co-attendee check
     const { data: mine } = await admin
       .from("event_attendees")
@@ -71,16 +72,16 @@ async function evaluatePermission(
     }
     return {
       allowed: false,
-      reason: "Silver supporters can only message mutual followers or supporters attending the same event. Upgrade to Gold to message anyone.",
-      requiredPlan: "gold",
+      reason: "Basic members can only message mutual followers or supporters attending the same event. Upgrade to Premium to message anyone.",
+      requiredTier: "premium",
     };
   }
 
-  // Bronze
+  // Free
   return {
     allowed: false,
-    reason: "Bronze supporters can only message mutual followers. Follow each other or upgrade to Silver/Gold to expand your network.",
-    requiredPlan: "silver",
+    reason: "Free members can only message mutual followers. Follow each other or upgrade to Basic / Premium to expand your network.",
+    requiredTier: "basic",
   };
 }
 
@@ -97,9 +98,9 @@ export const startDirectConversation = createServerFn({ method: "POST" })
 
     const verdict = await evaluatePermission(supabaseAdmin, senderId, recipientId);
     if (!verdict.allowed) {
-      const err = new Error(verdict.reason) as Error & { code: string; requiredPlan?: string };
+      const err = new Error(verdict.reason) as Error & { code: string; requiredTier?: string };
       err.code = "dm_not_allowed";
-      err.requiredPlan = verdict.requiredPlan;
+      err.requiredTier = verdict.requiredTier;
       throw err;
     }
 
