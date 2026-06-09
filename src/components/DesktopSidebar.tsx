@@ -78,33 +78,16 @@ export function DesktopSidebar() {
         {user && (
           <NavSection label="You">
             <NavItem to="/account" label="Profile" icon={User} active={isActive("/account")} />
-            <NavItem
-              to="/messages"
-              label="Notifications"
-              icon={Bell}
-              active={path.startsWith("/notifications")}
-            />
           </NavSection>
         )}
 
         {isAdminQ.data && (
           <NavSection label="Admin">
             <NavItem to="/admin" label="Admin dashboard" icon={Shield} active={path === "/admin"} />
-            <NavItem
-              to="/admin"
-              label="Audit log"
-              icon={ListChecks}
-              active={path.startsWith("/admin") && path.includes("audit")}
-            />
-            <NavItem
-              to="/admin/worldcup"
-              label="World Cup admin"
-              icon={Trophy}
-              active={path.startsWith("/admin/worldcup")}
-            />
           </NavSection>
         )}
       </nav>
+
 
       <Link
         to={user ? "/account" : "/login"}
