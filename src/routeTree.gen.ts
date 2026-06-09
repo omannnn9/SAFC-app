@@ -23,6 +23,7 @@ import { Route as NewsIndexRouteImport } from './routes/news.index'
 import { Route as UIdRouteImport } from './routes/u.$id'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as EventsIdRouteImport } from './routes/events.$id'
+import { Route as ApiWcSyncRouteImport } from './routes/api/wc-sync'
 import { Route as AuthenticatedMyEventsRouteImport } from './routes/_authenticated/my-events'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -104,6 +105,11 @@ const EventsIdRoute = EventsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => EventsRoute,
 } as any)
+const ApiWcSyncRoute = ApiWcSyncRouteImport.update({
+  id: '/api/wc-sync',
+  path: '/api/wc-sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedMyEventsRoute = AuthenticatedMyEventsRouteImport.update({
   id: '/my-events',
   path: '/my-events',
@@ -178,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/my-events': typeof AuthenticatedMyEventsRoute
+  '/api/wc-sync': typeof ApiWcSyncRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
@@ -204,6 +211,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/my-events': typeof AuthenticatedMyEventsRoute
+  '/api/wc-sync': typeof ApiWcSyncRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
@@ -232,6 +240,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/_authenticated/my-events': typeof AuthenticatedMyEventsRoute
+  '/api/wc-sync': typeof ApiWcSyncRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
   '/u/$id': typeof UIdRoute
@@ -260,6 +269,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/messages'
     | '/my-events'
+    | '/api/wc-sync'
     | '/events/$id'
     | '/news/$slug'
     | '/u/$id'
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/messages'
     | '/my-events'
+    | '/api/wc-sync'
     | '/events/$id'
     | '/news/$slug'
     | '/u/$id'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/messages'
     | '/_authenticated/my-events'
+    | '/api/wc-sync'
     | '/events/$id'
     | '/news/$slug'
     | '/u/$id'
@@ -337,6 +349,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
   WorldcupRoute: typeof WorldcupRoute
+  ApiWcSyncRoute: typeof ApiWcSyncRoute
   NewsSlugRoute: typeof NewsSlugRoute
   UIdRoute: typeof UIdRoute
   NewsIndexRoute: typeof NewsIndexRoute
@@ -445,6 +458,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/events/$id'
       preLoaderRoute: typeof EventsIdRouteImport
       parentRoute: typeof EventsRoute
+    }
+    '/api/wc-sync': {
+      id: '/api/wc-sync'
+      path: '/api/wc-sync'
+      fullPath: '/api/wc-sync'
+      preLoaderRoute: typeof ApiWcSyncRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/my-events': {
       id: '/_authenticated/my-events'
@@ -592,6 +612,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
   WorldcupRoute: WorldcupRoute,
+  ApiWcSyncRoute: ApiWcSyncRoute,
   NewsSlugRoute: NewsSlugRoute,
   UIdRoute: UIdRoute,
   NewsIndexRoute: NewsIndexRoute,
