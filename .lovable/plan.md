@@ -1,4 +1,4 @@
-## Web Push Notifications
+## Web Push Notifications1
 
 Browser/PWA push notifications with five trigger types. Delivered via the standard Web Push protocol (works on desktop Chrome/Firefox/Edge, Android, and iOS 16.4+ when installed to Home Screen).
 
