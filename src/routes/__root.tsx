@@ -152,7 +152,10 @@ function Shell() {
 
   return (
     <>
-      <Outlet />
+      {!hideNav && <DesktopSidebar />}
+      <div className={!hideNav ? "md:pl-60 lg:pl-64" : ""}>
+        <Outlet />
+      </div>
       {!hideNav && <BottomNav />}
       <Toaster theme="dark" />
     </>
