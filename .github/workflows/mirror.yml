@@ -1,0 +1,30 @@
+name: Mirror to SAFC-app
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout BAFANA
+        uses: actions/checkout@v4
+        with:
+          repository: omannnn9/BAFANA
+          fetch-depth: 0
+          token: ${{ secrets.MIRROR_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+
+      - name: Push to SAFC-app
+        run: |
+          git remote add mirror https://x-access-token:${{ secrets.MIRROR_TOKEN }}@github.com/omannnn9/SAFC-app.git
+          git push mirror main --force
+          git push mirror --all --force
+          git push mirror --tags --force
