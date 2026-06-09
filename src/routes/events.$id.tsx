@@ -16,6 +16,7 @@ import { fetchFeed, fetchEventPhotos, uploadEventPhoto, fetchGroups, type Attend
 import { updateEventRsvp } from "@/lib/rsvp.functions";
 import type { EventRow, AuthorMini, EventPhoto, GroupRow } from "@/lib/social";
 import type { Plan } from "@/lib/plans";
+import { effectiveTier } from "@/lib/tiers";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/events/$id")({
