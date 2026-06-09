@@ -1,13 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { Check, Crown, Sparkles, ArrowRight, LogIn } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { DigitalCard } from "@/components/DigitalCard";
+import { MembershipComingSoon, MembershipComingSoonModal } from "@/components/MembershipComingSoon";
 import { TIERS, tierTone, FOUNDER_CAP, type Tier } from "@/lib/tiers";
 import { useAuth } from "@/lib/auth";
 import { listTierConfig, getMyMembership, getFoundersCount } from "@/lib/membership.functions";
+
 
 export const Route = createFileRoute("/membership")({
   head: () => ({
