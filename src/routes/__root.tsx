@@ -130,7 +130,7 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-const HIDE_NAV = ["/login", "/signup", "/auth/callback"];
+const HIDE_NAV = ["/login", "/signup", "/auth/callback", "/privacy", "/terms"];
 
 function Shell() {
   const router = useRouter();

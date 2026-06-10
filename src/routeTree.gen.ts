@@ -10,9 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorldcupRouteImport } from './routes/worldcup'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as MovementRouteImport } from './routes/movement'
 import { Route as MembershipRouteImport } from './routes/membership'
 import { Route as LoginRouteImport } from './routes/login'
@@ -40,6 +42,11 @@ const WorldcupRoute = WorldcupRouteImport.update({
   path: '/worldcup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -53,6 +60,11 @@ const SearchRoute = SearchRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MovementRoute = MovementRouteImport.update({
@@ -170,9 +182,11 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/membership': typeof MembershipRoute
   '/movement': typeof MovementRoute
+  '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
   '/worldcup': typeof WorldcupRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -196,9 +210,11 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/membership': typeof MembershipRoute
   '/movement': typeof MovementRoute
+  '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
   '/worldcup': typeof WorldcupRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -224,9 +240,11 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/membership': typeof MembershipRoute
   '/movement': typeof MovementRoute
+  '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/terms': typeof TermsRoute
   '/worldcup': typeof WorldcupRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -252,9 +270,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/membership'
     | '/movement'
+    | '/privacy'
     | '/register'
     | '/search'
     | '/signup'
+    | '/terms'
     | '/worldcup'
     | '/account'
     | '/admin'
@@ -278,9 +298,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/membership'
     | '/movement'
+    | '/privacy'
     | '/register'
     | '/search'
     | '/signup'
+    | '/terms'
     | '/worldcup'
     | '/account'
     | '/admin'
@@ -305,9 +327,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/membership'
     | '/movement'
+    | '/privacy'
     | '/register'
     | '/search'
     | '/signup'
+    | '/terms'
     | '/worldcup'
     | '/_authenticated/account'
     | '/_authenticated/admin'
@@ -333,9 +357,11 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MembershipRoute: typeof MembershipRoute
   MovementRoute: typeof MovementRoute
+  PrivacyRoute: typeof PrivacyRoute
   RegisterRoute: typeof RegisterRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
+  TermsRoute: typeof TermsRoute
   WorldcupRoute: typeof WorldcupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   NewsSlugRoute: typeof NewsSlugRoute
@@ -351,6 +377,13 @@ declare module '@tanstack/react-router' {
       path: '/worldcup'
       fullPath: '/worldcup'
       preLoaderRoute: typeof WorldcupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -372,6 +405,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/movement': {
@@ -588,9 +628,11 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MembershipRoute: MembershipRoute,
   MovementRoute: MovementRoute,
+  PrivacyRoute: PrivacyRoute,
   RegisterRoute: RegisterRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
+  TermsRoute: TermsRoute,
   WorldcupRoute: WorldcupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   NewsSlugRoute: NewsSlugRoute,

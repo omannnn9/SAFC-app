@@ -16,7 +16,7 @@ env:
   IMAGE: africa-south1-docker.pkg.dev/safc-prod/safc/safc-web
   WIF_PROVIDER: projects/18075007426/locations/global/workloadIdentityPools/github/providers/github-oidc
   DEPLOYER_SA: github-deployer@safc-prod.iam.gserviceaccount.com
-  VITE_SUPABASE_URL: https://34.35.110.246.sslip.io
+  VITE_SUPABASE_URL: https://auth.southafricafc.com
   VITE_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogImFub24iLCAiaXNzIjogInN1cGFiYXNlIiwgImlhdCI6IDE3ODEwMzI1ODIsICJleHAiOiAyMDk2MzkyNTgyfQ.bYrmeFdSCALXOvNe6X68exUw0r7tN-X89TMa-8yTNu0
   VITE_SUPABASE_PROJECT_ID: safc-selfhosted
 
