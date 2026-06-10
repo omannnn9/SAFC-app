@@ -14,7 +14,13 @@ dist-ssr
 .vinxi
 .tanstack/**
 .nitro
+.vercel
 *.local
+
+# Environment files (secrets) — configure real values in Vercel
+.env
+.env.*
+!.env.example
 
 # Wrangler / Cloudflare
 .wrangler/

@@ -29,6 +29,7 @@ import { Route as AuthenticatedMyEventsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 import { Route as AuthenticatedMessagesIdRouteImport } from './routes/_authenticated/messages.$id'
 import { Route as AuthenticatedEventChatIdRouteImport } from './routes/_authenticated/event-chat.$id'
 import { Route as AuthenticatedAdminWorldcupRouteImport } from './routes/_authenticated/admin.worldcup'
@@ -132,6 +133,11 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe/webhook',
+  path: '/api/stripe/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedMessagesIdRoute = AuthenticatedMessagesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -173,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/admin/worldcup': typeof AuthenticatedAdminWorldcupRoute
   '/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/messages/$id': typeof AuthenticatedMessagesIdRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -197,6 +204,7 @@ export interface FileRoutesByTo {
   '/admin/worldcup': typeof AuthenticatedAdminWorldcupRoute
   '/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/messages/$id': typeof AuthenticatedMessagesIdRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -223,6 +231,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/worldcup': typeof AuthenticatedAdminWorldcupRoute
   '/_authenticated/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/_authenticated/messages/$id': typeof AuthenticatedMessagesIdRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -249,6 +258,7 @@ export interface FileRouteTypes {
     | '/admin/worldcup'
     | '/event-chat/$id'
     | '/messages/$id'
+    | '/api/stripe/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -273,6 +283,7 @@ export interface FileRouteTypes {
     | '/admin/worldcup'
     | '/event-chat/$id'
     | '/messages/$id'
+    | '/api/stripe/webhook'
   id:
     | '__root__'
     | '/'
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/worldcup'
     | '/_authenticated/event-chat/$id'
     | '/_authenticated/messages/$id'
+    | '/api/stripe/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -316,6 +328,7 @@ export interface RootRouteChildren {
   NewsSlugRoute: typeof NewsSlugRoute
   UIdRoute: typeof UIdRoute
   NewsIndexRoute: typeof NewsIndexRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -460,6 +473,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/stripe/webhook': {
+      id: '/api/stripe/webhook'
+      path: '/api/stripe/webhook'
+      fullPath: '/api/stripe/webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/messages/$id': {
       id: '/_authenticated/messages/$id'
       path: '/$id'
@@ -555,6 +575,7 @@ const rootRouteChildren: RootRouteChildren = {
   NewsSlugRoute: NewsSlugRoute,
   UIdRoute: UIdRoute,
   NewsIndexRoute: NewsIndexRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

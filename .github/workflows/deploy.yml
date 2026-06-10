@@ -1,0 +1,84 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Auth is keyless via Workload Identity Federation — no GitHub secrets needed.
+# The VITE_* values below are public client-side config (anon key + URL),
+# baked into the browser bundle by design. Server secrets live on the
+# Cloud Run service itself and are preserved across deploys.
+env:
+  PROJECT: safc-prod
+  REGION: africa-south1
+  SERVICE: safc-web
+  IMAGE: africa-south1-docker.pkg.dev/safc-prod/safc/safc-web
+  WIF_PROVIDER: projects/18075007426/locations/global/workloadIdentityPools/github/providers/github-oidc
+  DEPLOYER_SA: github-deployer@safc-prod.iam.gserviceaccount.com
+  VITE_SUPABASE_URL: https://34.35.110.246.sslip.io
+  VITE_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogImFub24iLCAiaXNzIjogInN1cGFiYXNlIiwgImlhdCI6IDE3ODEwMzI1ODIsICJleHAiOiAyMDk2MzkyNTgyfQ.bYrmeFdSCALXOvNe6X68exUw0r7tN-X89TMa-8yTNu0
+  VITE_SUPABASE_PROJECT_ID: safc-selfhosted
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+  deploy:
+    needs: typecheck
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.DEPLOYER_SA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker africa-south1-docker.pkg.dev --quiet
+
+      - name: Build image
+        run: |
+          docker build -f deploy/Dockerfile \
+            --build-arg VITE_SUPABASE_URL="$VITE_SUPABASE_URL" \
+            --build-arg VITE_SUPABASE_PUBLISHABLE_KEY="$VITE_SUPABASE_PUBLISHABLE_KEY" \
+            --build-arg VITE_SUPABASE_PROJECT_ID="$VITE_SUPABASE_PROJECT_ID" \
+            -t "$IMAGE:${{ github.sha }}" -t "$IMAGE:latest" .
+
+      - name: Push image
+        run: |
+          docker push "$IMAGE:${{ github.sha }}"
+          docker push "$IMAGE:latest"
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --image "$IMAGE:${{ github.sha }}" \
+            --project "$PROJECT" --region "$REGION" \
+            --allow-unauthenticated --port 8080 \
+            --memory 512Mi --cpu 1 --min-instances 0 --max-instances 3
+
+      - name: Smoke test
+        run: |
+          sleep 10
+          for path in / /membership /login; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" "https://southafricafc.com$path")
+            echo "$path -> $code"
+            [ "$code" = "200" ] || exit 1
+          done

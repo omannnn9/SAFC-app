@@ -91,6 +91,16 @@ Add these in **Vercel → Project Settings → Environment Variables**.
 | `SUPABASE_SERVICE_ROLE_KEY` | **Lovable Cloud → Settings → API → Service Role Key** (treat as a secret) |
 | `API_FOOTBALL_KEY` | Your API-Football dashboard key |
 | `NEWS_API_KEY` | Your NewsAPI dashboard key |
+| `STRIPE_SECRET_KEY` | **Stripe Dashboard → Developers → API keys** (use the live key in production, test key locally) |
+| `STRIPE_WEBHOOK_SECRET` | Signing secret of the webhook endpoint pointing at `/api/stripe/webhook` (Stripe Dashboard → Developers → Webhooks). Locally, use the secret printed by `stripe listen` |
+| `STRIPE_PRICE_BASIC_MONTHLY` | Stripe Price ID for SAFC Basic, monthly (R49/mo, ZAR) |
+| `STRIPE_PRICE_BASIC_ANNUAL` | Stripe Price ID for SAFC Basic, annual (R490/yr) |
+| `STRIPE_PRICE_PREMIUM_MONTHLY` | Stripe Price ID for SAFC Premium, monthly (R99/mo) |
+| `STRIPE_PRICE_PREMIUM_ANNUAL` | Stripe Price ID for SAFC Premium, annual (R990/yr) |
+| `STRIPE_PRICE_FOUNDER_MONTHLY` | Stripe Price ID for SAFC Founding Member, monthly (R299/mo) |
+| `STRIPE_PRICE_FOUNDER_ANNUAL` | Stripe Price ID for SAFC Founding Member, annual (R2,990/yr) |
+
+> **Stripe webhook:** after deploying, create a webhook endpoint in the Stripe Dashboard pointing to `https://<your-domain>/api/stripe/webhook`, subscribed to `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, and `invoice.payment_failed`. Use its signing secret as `STRIPE_WEBHOOK_SECRET`. Test/live modes need their own keys, price IDs, and webhook secrets.
 
 ### Client-visible (prefixed with `VITE_`)
 

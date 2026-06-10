@@ -32,7 +32,7 @@ function SignupPage() {
     if (password.length < 8) return toast.error("Password must be at least 8 characters.");
     if (password !== confirm) return toast.error("Passwords do not match.");
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -41,7 +41,14 @@ function SignupPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Account created! You can now sign in.");
+    if (data.session) {
+      // Auto-confirm is enabled: the user is already signed in.
+      toast.success("Welcome to SAFC! Your account is ready.");
+      navigate({ to: "/" });
+      return;
+    }
+    // Email confirmation required: no session yet.
+    toast.success("Account created! Check your email to confirm, then sign in.");
     navigate({ to: "/login" });
   };
 

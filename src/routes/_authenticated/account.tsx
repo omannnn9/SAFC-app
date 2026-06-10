@@ -16,7 +16,6 @@ import { uploadUserFile, computeProfileCompletion } from "@/lib/social";
 import { type Plan } from "@/lib/plans";
 import { type Tier } from "@/lib/tiers";
 import { getMyMembership } from "@/lib/membership.functions";
-import { MembershipComingSoon } from "@/components/MembershipComingSoon";
 import { deleteMyAccount } from "@/lib/account.functions";
 import { toast } from "sonner";
 
@@ -349,7 +348,7 @@ function SubscriptionPanel({ userId }: { userId: string; onChanged: () => void }
       <div>
         <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">SAFC Membership</div>
         <h2 className="mt-1 font-display text-2xl font-black tracking-tight">Your supporter card</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Every member gets a SAFC digital card. Premium tiers are coming soon.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Every member gets a SAFC digital card. Upgrade or manage your plan on the membership page.</p>
       </div>
 
       <DigitalCard
@@ -361,7 +360,12 @@ function SubscriptionPanel({ userId }: { userId: string; onChanged: () => void }
         joinedAt={me?.created_at ?? null}
       />
 
-      <MembershipComingSoon />
+      <Link
+        to="/membership"
+        className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-[11px] font-black uppercase tracking-wider text-primary-foreground"
+      >
+        Upgrade or manage membership
+      </Link>
     </>
   );
 }
