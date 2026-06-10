@@ -11,10 +11,11 @@ process.env.VITE_SUPABASE_PUBLISHABLE_KEY ||=
   process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 process.env.VITE_SUPABASE_PROJECT_ID ||= process.env.SUPABASE_PROJECT_ID;
 
-// Standard TanStack Start + Vercel config.
+// TanStack Start config for the GCP Cloud Run deployment.
 // - tanstackStart: file-based routing, SSR, server functions
-// - nitro preset "vercel": emits .vercel/output for Vercel serverless deploy
-// - default start entry: src/start.ts
+// - nitro preset "node-server": emits a Node server (.output/server/index.mjs)
+//   that Cloud Run runs and that honors the injected PORT. The Dockerfile sets
+//   NITRO_PRESET=node-server explicitly; this default keeps local builds aligned.
 export default defineConfig({
   plugins: [
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
@@ -29,7 +30,7 @@ export default defineConfig({
       },
     }),
     nitro({
-      preset: process.env.NITRO_PRESET ?? "vercel",
+      preset: process.env.NITRO_PRESET ?? "node-server",
     }),
     viteReact(),
   ],
