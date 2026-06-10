@@ -9,7 +9,7 @@ import { db } from "@/lib/db";
 import { effectiveTier } from "@/lib/tiers";
 
 export const Route = createFileRoute("/search")({
-  head: () => ({ meta: [{ title: "Search — SAFC" }] }),
+  head: () => ({ meta: [{ title: "Search — SA FC" }] }),
   component: SearchPage,
 });
 

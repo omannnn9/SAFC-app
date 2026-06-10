@@ -33,7 +33,7 @@ export function AdminTiersTab() {
 
   return (
     <div className="space-y-3">
-      <div className="text-xs text-muted-foreground">Edit pricing, perks and visibility for each SAFC membership tier. Changes apply instantly.</div>
+      <div className="text-xs text-muted-foreground">Edit pricing, perks and visibility for each SA FC membership tier. Changes apply instantly.</div>
       {tiersQ.isLoading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
       {tiers.map((t) => (
         <TierEditor

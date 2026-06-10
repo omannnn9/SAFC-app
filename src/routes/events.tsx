@@ -10,7 +10,7 @@ import { db } from "@/lib/db";
 import type { EventRow } from "@/lib/social";
 
 export const Route = createFileRoute("/events")({
-  head: () => ({ meta: [{ title: "Events — SAFC" }] }),
+  head: () => ({ meta: [{ title: "Events — SA FC" }] }),
   component: EventsPage,
 });
 

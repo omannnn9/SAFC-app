@@ -20,7 +20,7 @@ import { effectiveTier } from "@/lib/tiers";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/events/$id")({
-  head: () => ({ meta: [{ title: "Event — SAFC" }] }),
+  head: () => ({ meta: [{ title: "Event — SA FC" }] }),
   component: EventDetailPage,
 });
 
@@ -307,10 +307,10 @@ function EventDetailPage() {
              style={{ background: "linear-gradient(135deg, color-mix(in oklab, var(--safc-pink) 18%, transparent), color-mix(in oklab, var(--safc-cobalt) 16%, transparent) 60%, transparent)" }}>
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[var(--safc-yellow)]/10 blur-3xl" />
           <div className="relative">
-            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--safc-yellow)]">SAFC · Community pulse</div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--safc-yellow)]">SA FC · Community pulse</div>
             <h3 className="mt-1 font-display text-xl font-black leading-tight">
               {goingList.length === 0
-                ? "Be the first SAFC supporter going."
+                ? "Be the first SA FC supporter going."
                 : friendsGoing.length > 0
                 ? "You're not attending alone."
                 : `${goingList.length} ${goingList.length === 1 ? "supporter is" : "supporters are"} going.`}
@@ -418,7 +418,7 @@ function EventDetailPage() {
         <section className="mt-4 px-4 pb-32 space-y-3">
           <PhotoUploader eventId={id} userId={user?.id} onUploaded={() => photosQ.refetch()} />
           {(photosQ.data?.length ?? 0) === 0 ? (
-            <div className="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">No photos yet. Share your view from the stands and build the SAFC story.</div>
+            <div className="glass rounded-2xl p-6 text-center text-sm text-muted-foreground">No photos yet. Share your view from the stands and build the SA FC story.</div>
           ) : (
             <div className="grid grid-cols-3 gap-1.5">
               {photosQ.data?.map((p) => (

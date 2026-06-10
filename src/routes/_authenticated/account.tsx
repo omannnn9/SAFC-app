@@ -20,7 +20,7 @@ import { deleteMyAccount } from "@/lib/account.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/account")({
-  head: () => ({ meta: [{ title: "Account — SAFC" }] }),
+  head: () => ({ meta: [{ title: "Account — SA FC" }] }),
   component: AccountPage,
 });
 
@@ -69,7 +69,7 @@ function AccountPage() {
           className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-[var(--safc-yellow)]/30 bg-gradient-to-r from-[var(--safc-green)]/30 to-[var(--safc-cobalt)]/30 px-4 py-3"
         >
           <div>
-            <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[var(--safc-yellow)]">SAFC Membership</div>
+            <div className="text-[10px] font-black uppercase tracking-[0.22em] text-[var(--safc-yellow)]">SA FC Membership</div>
             <div className="font-display text-sm font-black">View your digital member card →</div>
           </div>
           <Sparkles className="h-5 w-5 text-[var(--safc-yellow)]" />
@@ -346,9 +346,9 @@ function SubscriptionPanel({ userId }: { userId: string; onChanged: () => void }
   return (
     <>
       <div>
-        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">SAFC Membership</div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">SA FC Membership</div>
         <h2 className="mt-1 font-display text-2xl font-black tracking-tight">Your supporter card</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Every member gets a SAFC digital card. Upgrade or manage your plan on the membership page.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Every member gets a SA FC digital card. Upgrade or manage your plan on the membership page.</p>
       </div>
 
       <DigitalCard

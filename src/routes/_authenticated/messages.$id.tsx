@@ -12,7 +12,7 @@ import type { AuthorMini } from "@/lib/social";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/messages/$id")({
-  head: () => ({ meta: [{ title: "Chat — SAFC" }] }),
+  head: () => ({ meta: [{ title: "Chat — SA FC" }] }),
   component: ThreadPage,
 });
 

@@ -38,7 +38,7 @@ export function DigitalCard({ tier, fullName, avatarUrl, memberNo, isFounder, jo
               <SafcLogo className="h-9 w-9" />
               <div>
                 <div className="text-[10px] font-black uppercase tracking-[0.28em] text-white/70">South African Football Community</div>
-                <div className="font-display text-base font-black tracking-tight">We are SAFC</div>
+                <div className="font-display text-base font-black tracking-tight">We are SA FC</div>
               </div>
             </div>
             <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${tone.bg} ${tone.text} ring-1 ${tone.ring}/50`}>

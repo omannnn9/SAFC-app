@@ -35,13 +35,13 @@ export function UpgradeModal({
         </button>
 
         <div className="inline-flex items-center gap-1.5 rounded-full bg-[var(--safc-yellow)]/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-[var(--safc-yellow)]">
-          <Crown className="h-3 w-3" /> SAFC Memberships
+          <Crown className="h-3 w-3" /> SA FC Memberships
         </div>
         <h2 className="mt-3 font-display text-2xl font-black tracking-tight text-white">
-          {title ?? "Unlock SAFC"}
+          {title ?? "Unlock SA FC"}
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-white/85">
-          {reason ?? `This feature is part of ${target?.name ?? "a paid SAFC membership"}. Upgrade to unlock it — monthly or annual, cancel anytime.`}
+          {reason ?? `This feature is part of ${target?.name ?? "a paid SA FC membership"}. Upgrade to unlock it — monthly or annual, cancel anytime.`}
         </p>
 
         <Link

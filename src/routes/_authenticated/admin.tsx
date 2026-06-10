@@ -22,7 +22,7 @@ import { toast } from "sonner";
 type Tab = "overview" | "users" | "events" | "import" | "posts" | "reports" | "plans" | "tiers" | "founders" | "audit";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Admin — SAFC" }] }),
+  head: () => ({ meta: [{ title: "Admin — SA FC" }] }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getUser();
     const uid = data.user?.id;

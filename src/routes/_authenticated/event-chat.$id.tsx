@@ -10,7 +10,7 @@ import type { AuthorMini, EventRow } from "@/lib/social";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/event-chat/$id")({
-  head: () => ({ meta: [{ title: "Event chat — SAFC" }] }),
+  head: () => ({ meta: [{ title: "Event chat — SA FC" }] }),
   component: EventChatPage,
 });
 

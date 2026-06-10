@@ -34,7 +34,7 @@ type FullProfile = {
 };
 
 export const Route = createFileRoute("/u/$id")({
-  head: () => ({ meta: [{ title: "Supporter — SAFC" }] }),
+  head: () => ({ meta: [{ title: "Supporter — SA FC" }] }),
   component: UserPage,
 });
 

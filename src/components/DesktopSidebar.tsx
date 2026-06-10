@@ -52,9 +52,9 @@ export function DesktopSidebar() {
       <Link to="/" className="flex items-center gap-2.5 px-5 py-4">
         <SafcLogo size={36} />
         <div className="leading-tight">
-          <div className="font-display text-base font-extrabold tracking-tight">SAFC</div>
+          <div className="font-display text-base font-extrabold tracking-tight">SA FC</div>
           <div className="text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-            We are SAFC
+            We are SA FC
           </div>
         </div>
       </Link>
@@ -101,7 +101,7 @@ export function DesktopSidebar() {
             {user ? profile?.full_name?.split(" ")[0] ?? "Profile" : "Sign in"}
           </div>
           <div className="truncate text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
-            {user ? `${tier} tier` : "Join SAFC"}
+            {user ? `${tier} tier` : "Join SA FC"}
           </div>
         </div>
         {tier === "founder" && <Crown className="h-4 w-4 text-[var(--safc-yellow)]" />}

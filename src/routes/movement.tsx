@@ -11,10 +11,10 @@ import { FOUNDER_CAP, formatMemberNo } from "@/lib/tiers";
 export const Route = createFileRoute("/movement")({
   head: () => ({
     meta: [
-      { title: "We Are SAFC — The Movement" },
-      { name: "description", content: "SAFC is a movement, not a club. Built by South African supporters, for the diaspora and the home crowd." },
-      { property: "og:title", content: "We Are SAFC — The Movement" },
-      { property: "og:description", content: "A community of supporters. Chapters, founders, culture — SAFC." },
+      { title: "We Are SA FC — The Movement" },
+      { name: "description", content: "SA FC is a movement, not a club. Built by South African supporters, for the diaspora and the home crowd." },
+      { property: "og:title", content: "We Are SA FC — The Movement" },
+      { property: "og:description", content: "A community of supporters. Chapters, founders, culture — SA FC." },
     ],
   }),
   component: MovementPage,
@@ -32,7 +32,7 @@ function MovementPage() {
 
   return (
     <PageContainer>
-      <AppHeader title="SAFC Movement" />
+      <AppHeader title="SA FC Movement" />
 
       {/* HERO */}
       <section className="relative overflow-hidden">
@@ -43,7 +43,7 @@ function MovementPage() {
             <Sparkles className="h-3 w-3" /> The movement
           </div>
           <h1 className="mx-auto mt-4 max-w-3xl font-display text-5xl font-black tracking-tight sm:text-7xl">
-            WE ARE <span className="text-[var(--safc-yellow)]">SAFC</span>
+            WE ARE <span className="text-[var(--safc-yellow)]">SA FC</span>
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm text-white/85 sm:text-base">
             Not a club. Not a brand. A movement of South African football supporters — at home and across the diaspora.
@@ -83,8 +83,8 @@ function MovementPage() {
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { name: "General Member", price: "Free", color: "bg-white/10" },
-            { name: "SAFC Basic", price: "Paid", color: "bg-[var(--safc-green)]/30" },
-            { name: "SAFC Premium", price: "Paid", color: "bg-[var(--safc-pink)]/30" },
+            { name: "SA FC Basic", price: "Paid", color: "bg-[var(--safc-green)]/30" },
+            { name: "SA FC Premium", price: "Paid", color: "bg-[var(--safc-pink)]/30" },
             { name: "Founding Member", price: "Starting XI · 111", color: "bg-[var(--safc-yellow)]/30" },
           ].map((t) => (
             <div key={t.name} className={`rounded-2xl ${t.color} p-4 ring-1 ring-white/10`}>
@@ -111,7 +111,7 @@ function MovementPage() {
         </div>
         {founders.length === 0 ? (
           <div className="mt-4 rounded-2xl border border-dashed border-white/15 p-6 text-center text-sm text-muted-foreground">
-            The Starting XI list opens soon. Become a SAFC member to lock in your spot.
+            The Starting XI list opens soon. Become a SA FC member to lock in your spot.
           </div>
         ) : (
           <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

@@ -28,11 +28,11 @@ function blankEvent(userId?: string): EventDraft {
   const kickoff = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
   return {
     id: "new",
-    title: "New SAFC event",
+    title: "New SA FC event",
     description: null,
     event_type: "match",
     stage: "other",
-    competition: "SAFC",
+    competition: "SA FC",
     home_team: null,
     away_team: null,
     home_team_flag: null,

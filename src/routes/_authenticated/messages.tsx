@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { listConversations, listEventChats, type ConversationSummary } from "@/lib/messaging";
 
 export const Route = createFileRoute("/_authenticated/messages")({
-  head: () => ({ meta: [{ title: "Messages — SAFC" }] }),
+  head: () => ({ meta: [{ title: "Messages — SA FC" }] }),
   component: MessagesInbox,
 });
 

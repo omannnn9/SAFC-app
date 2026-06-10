@@ -23,7 +23,7 @@ import {
 } from "@/lib/world-cup";
 
 export const Route = createFileRoute("/_authenticated/admin/worldcup")({
-  head: () => ({ meta: [{ title: "World Cup Admin — SAFC" }] }),
+  head: () => ({ meta: [{ title: "World Cup Admin — SA FC" }] }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getUser();
     const uid = data.user?.id;

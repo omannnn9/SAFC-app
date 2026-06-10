@@ -15,7 +15,7 @@ import { toast } from "sonner";
 type Search = { event?: string; id?: string; type?: GroupRow["type"] };
 
 export const Route = createFileRoute("/groups")({
-  head: () => ({ meta: [{ title: "Groups — SAFC" }] }),
+  head: () => ({ meta: [{ title: "Groups — SA FC" }] }),
   validateSearch: (s: Record<string, unknown>): Search => ({
     event: typeof s.event === "string" ? s.event : undefined,
     id: typeof s.id === "string" ? s.id : undefined,

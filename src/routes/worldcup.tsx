@@ -23,7 +23,7 @@ import {
 export const Route = createFileRoute("/worldcup")({
   head: () => ({
     meta: [
-      { title: "FIFA World Cup 2026 — SAFC" },
+      { title: "FIFA World Cup 2026 — SA FC" },
       {
         name: "description",
         content: "All 104 FIFA World Cup 2026 fixtures, live countdowns and results.",

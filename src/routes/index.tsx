@@ -17,9 +17,9 @@ import { HeroCarousel } from "@/components/HeroCarousel";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SAFC — South African Football Community" },
-      { name: "description", content: "SAFC — connect with South African football supporters attending the same matches, tournaments and fan zones." },
-      { property: "og:title", content: "SAFC" },
+      { title: "SA FC — South Africa Football Community" },
+      { name: "description", content: "SA FC — connect with South African football supporters attending the same matches, tournaments and fan zones." },
+      { property: "og:title", content: "SA FC" },
       { property: "og:description", content: "The supporter platform for South African football culture." },
     ],
   }),
@@ -77,7 +77,7 @@ function HomePage() {
           </div>
           <h1 className="mt-3 font-display text-[44px] font-extrabold leading-[0.92] tracking-tight text-white">
             WE ARE<br />
-            <span className="text-gradient-safc drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">SAFC</span>
+            <span className="text-gradient-safc drop-shadow-[0_2px_10px_rgba(0,0,0,0.6)]">SA FC</span>
           </h1>
           <div className="mt-2 font-display text-sm font-bold uppercase tracking-[0.18em] text-white">
             South Africa Football Community

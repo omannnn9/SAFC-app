@@ -102,7 +102,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       success_url: `${origin}/membership?checkout=success`,
       cancel_url: `${origin}/membership?checkout=cancel`,
       allow_promotion_codes: true,
-      branding_settings: { display_name: "South Africa FC" },
+      branding_settings: { display_name: "SA FC" },
       metadata: { user_id: userId, tier: data.tier, interval: data.interval },
       subscription_data: {
         metadata: { user_id: userId, tier: data.tier, interval: data.interval },

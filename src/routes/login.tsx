@@ -8,7 +8,7 @@ import { SafcLogo } from "@/components/SafcLogo";
 
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — SAFC" }] }),
+  head: () => ({ meta: [{ title: "Sign in — SA FC" }] }),
   validateSearch: (s: Record<string, unknown>): { redirect?: string } => ({
     redirect: typeof s.redirect === "string" ? s.redirect : undefined,
   }),
@@ -56,7 +56,7 @@ function LoginPage() {
         <div className="mt-10 flex items-center gap-3">
           <SafcLogo size={44} />
           <div>
-            <div className="font-display text-sm font-extrabold tracking-tight">SAFC</div>
+            <div className="font-display text-sm font-extrabold tracking-tight">SA FC</div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
               South African Football Community
             </div>

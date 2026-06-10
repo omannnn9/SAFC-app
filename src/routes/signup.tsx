@@ -7,7 +7,7 @@ import safcHero from "@/assets/safc-hero.jpg.asset.json";
 import { SafcLogo } from "@/components/SafcLogo";
 
 export const Route = createFileRoute("/signup")({
-  head: () => ({ meta: [{ title: "Join — SAFC" }] }),
+  head: () => ({ meta: [{ title: "Join — SA FC" }] }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (data.session) throw redirect({ to: "/" });
@@ -43,7 +43,7 @@ function SignupPage() {
     if (error) return toast.error(error.message);
     if (data.session) {
       // Auto-confirm is enabled: the user is already signed in.
-      toast.success("Welcome to SAFC! Your account is ready.");
+      toast.success("Welcome to SA FC! Your account is ready.");
       navigate({ to: "/" });
       return;
     }
@@ -76,7 +76,7 @@ function SignupPage() {
         <div className="mt-10 flex items-center gap-3">
           <SafcLogo size={44} />
           <div>
-            <div className="font-display text-sm font-extrabold tracking-tight">SAFC</div>
+            <div className="font-display text-sm font-extrabold tracking-tight">SA FC</div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
               South African Football Community
             </div>
@@ -92,7 +92,7 @@ function SignupPage() {
             Join the <span className="text-gradient-safc">movement.</span>
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Become an SAFC supporter — events, fan-zones, exclusive content and the community.
+            Become a SA FC supporter — events, fan-zones, exclusive content and the community.
           </p>
         </div>
 
@@ -166,7 +166,7 @@ function SignupPage() {
                 <Loader2 className="h-4 w-4 animate-spin" /> Creating…
               </>
             ) : (
-              "Join SAFC"
+              "Join SA FC"
             )}
           </button>
 

@@ -11,7 +11,7 @@ import type { EventRow } from "@/lib/social";
 import type { AttendanceStatus } from "@/lib/social";
 
 export const Route = createFileRoute("/_authenticated/my-events")({
-  head: () => ({ meta: [{ title: "My Events — SAFC" }] }),
+  head: () => ({ meta: [{ title: "My Events — SA FC" }] }),
   component: MyEventsPage,
 });
 

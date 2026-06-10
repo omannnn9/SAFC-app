@@ -61,7 +61,7 @@ export function PostCard({ post, onChange }: { post: FeedPost; onChange?: () => 
   const onShare = async () => {
     const url = `${window.location.origin}/`;
     try {
-      if (navigator.share) await navigator.share({ title: "SAFC", text: body ?? "Check this out", url });
+      if (navigator.share) await navigator.share({ title: "SA FC", text: body ?? "Check this out", url });
       else { await navigator.clipboard.writeText(url); toast.success("Link copied"); }
       if (user) { await recordShare(post.id, user.id); setShares((s) => s + 1); }
     } catch { /* user cancel */ }

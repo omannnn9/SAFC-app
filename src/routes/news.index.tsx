@@ -7,7 +7,7 @@ import { PageContainer } from "@/components/PageContainer";
 import { getNews, type Article } from "@/lib/data";
 
 export const Route = createFileRoute("/news/")({
-  head: () => ({ meta: [{ title: "News — SAFC" }] }),
+  head: () => ({ meta: [{ title: "News — SA FC" }] }),
   component: NewsPage,
 });
 

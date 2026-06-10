@@ -24,7 +24,7 @@ export function SafcLogo({
       src={src}
       width={size}
       height={size}
-      alt="SAFC — South African Football Community"
+      alt="SA FC — South Africa Football Community"
       className={cn("shrink-0 select-none", className)}
       draggable={false}
     />
@@ -37,7 +37,7 @@ export function SafcLockup({ className }: { className?: string }) {
     <div className={cn("flex items-center gap-2.5", className)}>
       <SafcLogo size={36} />
       <div className="leading-none">
-        <div className="font-display text-[15px] font-extrabold tracking-tight">SAFC</div>
+        <div className="font-display text-[15px] font-extrabold tracking-tight">SA FC</div>
         <div className="mt-1 text-[8.5px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
           Football&nbsp;Community
         </div>

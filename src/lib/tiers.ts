@@ -46,7 +46,7 @@ export const TIERS: ReadonlyArray<TierDef> = [
   },
   {
     id: "basic",
-    name: "SAFC Basic",
+    name: "SA FC Basic",
     tagline: "For everyday supporters",
     priceCents: 4900,
     icon: Shield,
@@ -62,7 +62,7 @@ export const TIERS: ReadonlyArray<TierDef> = [
   },
   {
     id: "premium",
-    name: "SAFC Premium",
+    name: "SA FC Premium",
     tagline: "For die-hard supporters",
     priceCents: 9900,
     icon: Star,
@@ -88,7 +88,7 @@ export const TIERS: ReadonlyArray<TierDef> = [
     badge: "FOUNDER",
     perks: [
       "Permanent Founding Member status",
-      "Unique SAFC member number",
+      "Unique SA FC member number",
       "Voting rights on club decisions",
       "Founders-only content & chats",
       "Annual Founders recognition",

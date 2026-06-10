@@ -19,9 +19,9 @@ export const Route = createFileRoute("/membership")({
   }),
   head: () => ({
     meta: [
-      { title: "Membership — SAFC" },
-      { name: "description", content: "Join the SAFC movement. Free, Basic, Premium and Founding Member tiers — your digital supporter card included." },
-      { property: "og:title", content: "SAFC Membership — We Are SAFC" },
+      { title: "Membership — SA FC" },
+      { name: "description", content: "Join the SA FC movement. Free, Basic, Premium and Founding Member tiers — your digital supporter card included." },
+      { property: "og:title", content: "SA FC Membership — We Are SA FC" },
       { property: "og:description", content: "Become part of the South African Football Community. Choose your tier and get your digital member card." },
     ],
   }),
@@ -131,13 +131,13 @@ function MembershipPage() {
       <section className="relative px-4 pt-6">
         <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[var(--safc-green)]/60 via-black to-[var(--safc-cobalt)]/40 p-6 sm:p-10">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-white">
-            <Sparkles className="h-3 w-3" /> We are SAFC
+            <Sparkles className="h-3 w-3" /> We are SA FC
           </div>
           <h1 className="mt-3 font-display text-3xl font-black tracking-tight sm:text-5xl">
             Become part of the movement.
           </h1>
           <p className="mt-2 max-w-xl text-sm text-white/80 sm:text-base">
-            Free to join. Upgrade when you're ready to ride harder. Every member gets a digital SAFC card with their own unique member number.
+            Free to join. Upgrade when you're ready to ride harder. Every member gets a digital SA FC card with their own unique member number.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             {!user && (
@@ -146,7 +146,7 @@ function MembershipPage() {
               </Link>
             )}
             <Link to="/movement" className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-wider hover:bg-white/20">
-              The SAFC movement <ArrowRight className="h-4 w-4" />
+              The SA FC movement <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
           {foundersLeft !== null && (
@@ -160,7 +160,7 @@ function MembershipPage() {
       {/* Personal card */}
       {user && me && (
         <section className="px-4 pt-8">
-          <div className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">Your SAFC card</div>
+          <div className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">Your SA FC card</div>
           <DigitalCard
             tier={me.tier}
             fullName={me.full_name ?? profile?.full_name ?? user.email ?? "Supporter"}

@@ -15,7 +15,7 @@ export function AppHeader({ title }: { title?: string }) {
       <Link to="/" className="flex items-center gap-2.5">
         <SafcLogo size={38} />
         <div className="leading-tight">
-          <div className="font-display text-sm font-extrabold tracking-tight">SAFC</div>
+          <div className="font-display text-sm font-extrabold tracking-tight">SA FC</div>
           <div className="text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
             {title ?? "Football Community"}
           </div>
