@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import safcHero from "@/assets/safc-hero.jpg.asset.json";
 import { SafcLogo } from "@/components/SafcLogo";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
 
 export const Route = createFileRoute("/login")({
@@ -122,6 +123,14 @@ function LoginPage() {
               "Sign in"
             )}
           </button>
+
+          <div className="flex items-center gap-3 py-1">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">or</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <GoogleSignInButton redirect={search.redirect || "/"} />
 
           <Link
             to="/signup"

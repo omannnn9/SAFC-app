@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Mail, Lock, User, Shield, Loader2, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import safcHero from "@/assets/safc-hero.jpg.asset.json";
 import { SafcLogo } from "@/components/SafcLogo";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "Join — SA FC" }] }),
@@ -169,6 +170,14 @@ function SignupPage() {
               "Join SA FC"
             )}
           </button>
+
+          <div className="flex items-center gap-3 py-1">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">or</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <GoogleSignInButton label="Sign up with Google" />
 
           <div className="grid grid-cols-3 gap-2 pt-2 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
             <Perk label="Live updates" />
