@@ -29,7 +29,16 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
   }
 });
 
+const watchPartySubdomainMiddleware = createMiddleware({ type: "request" }).server(async ({ request, pathname, next }) => {
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? "";
+  const sub = host.split(":")[0].split(".")[0];
+  if (pathname === "/" && ["welcomect", "welcomejozi", "welcomeuk"].includes(sub)) {
+    return Response.redirect(new URL("/watchparties/welcome.html", request.url), 302);
+  }
+  return next();
+});
+
 export const startInstance = createStart(() => ({
-  requestMiddleware: [errorMiddleware],
+  requestMiddleware: [watchPartySubdomainMiddleware, errorMiddleware],
   functionMiddleware: [attachSupabaseAuth, attachFreshSupabaseAuth],
 }));

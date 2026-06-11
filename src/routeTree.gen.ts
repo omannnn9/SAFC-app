@@ -10,6 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorldcupRouteImport } from './routes/worldcup'
+import { Route as WelcomeukRouteImport } from './routes/welcomeuk'
+import { Route as WelcomejoziRouteImport } from './routes/welcomejozi'
+import { Route as WelcomectRouteImport } from './routes/welcomect'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
@@ -20,6 +23,7 @@ import { Route as MembershipRouteImport } from './routes/membership'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as GroupsRouteImport } from './routes/groups'
 import { Route as EventsRouteImport } from './routes/events'
+import { Route as CreatethevibeRouteImport } from './routes/createthevibe'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -28,18 +32,38 @@ import { Route as UIdRouteImport } from './routes/u.$id'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as EventsIdRouteImport } from './routes/events.$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as ApiIntakeRouteImport } from './routes/api/intake'
 import { Route as AuthenticatedMyEventsRouteImport } from './routes/_authenticated/my-events'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as ApiWatchpartyConfigRouteImport } from './routes/api/watchparty/config'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 import { Route as AuthenticatedMessagesIdRouteImport } from './routes/_authenticated/messages.$id'
 import { Route as AuthenticatedEventChatIdRouteImport } from './routes/_authenticated/event-chat.$id'
 import { Route as AuthenticatedAdminWorldcupRouteImport } from './routes/_authenticated/admin.worldcup'
+import { Route as ApiWatchpartyAdminSummaryRouteImport } from './routes/api/watchparty/admin/summary'
+import { Route as ApiWatchpartyAdminSignupsRouteImport } from './routes/api/watchparty/admin/signups'
+import { Route as ApiWatchpartyAdminRandomWinnerRouteImport } from './routes/api/watchparty/admin/random-winner'
 
 const WorldcupRoute = WorldcupRouteImport.update({
   id: '/worldcup',
   path: '/worldcup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomeukRoute = WelcomeukRouteImport.update({
+  id: '/welcomeuk',
+  path: '/welcomeuk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomejoziRoute = WelcomejoziRouteImport.update({
+  id: '/welcomejozi',
+  path: '/welcomejozi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomectRoute = WelcomectRouteImport.update({
+  id: '/welcomect',
+  path: '/welcomect',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -92,6 +116,11 @@ const EventsRoute = EventsRouteImport.update({
   path: '/events',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CreatethevibeRoute = CreatethevibeRouteImport.update({
+  id: '/createthevibe',
+  path: '/createthevibe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CommunityRoute = CommunityRouteImport.update({
   id: '/community',
   path: '/community',
@@ -131,6 +160,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiIntakeRoute = ApiIntakeRouteImport.update({
+  id: '/api/intake',
+  path: '/api/intake',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedMyEventsRoute = AuthenticatedMyEventsRouteImport.update({
   id: '/my-events',
   path: '/my-events',
@@ -150,6 +184,11 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   id: '/account',
   path: '/account',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const ApiWatchpartyConfigRoute = ApiWatchpartyConfigRouteImport.update({
+  id: '/api/watchparty/config',
+  path: '/api/watchparty/config',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
   id: '/api/stripe/webhook',
@@ -173,10 +212,29 @@ const AuthenticatedAdminWorldcupRoute =
     path: '/worldcup',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const ApiWatchpartyAdminSummaryRoute =
+  ApiWatchpartyAdminSummaryRouteImport.update({
+    id: '/api/watchparty/admin/summary',
+    path: '/api/watchparty/admin/summary',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiWatchpartyAdminSignupsRoute =
+  ApiWatchpartyAdminSignupsRouteImport.update({
+    id: '/api/watchparty/admin/signups',
+    path: '/api/watchparty/admin/signups',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiWatchpartyAdminRandomWinnerRoute =
+  ApiWatchpartyAdminRandomWinnerRouteImport.update({
+    id: '/api/watchparty/admin/random-winner',
+    path: '/api/watchparty/admin/random-winner',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/community': typeof CommunityRoute
+  '/createthevibe': typeof CreatethevibeRoute
   '/events': typeof EventsRouteWithChildren
   '/groups': typeof GroupsRoute
   '/login': typeof LoginRoute
@@ -187,11 +245,15 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/welcomect': typeof WelcomectRoute
+  '/welcomejozi': typeof WelcomejoziRoute
+  '/welcomeuk': typeof WelcomeukRoute
   '/worldcup': typeof WorldcupRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/my-events': typeof AuthenticatedMyEventsRoute
+  '/api/intake': typeof ApiIntakeRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -201,10 +263,15 @@ export interface FileRoutesByFullPath {
   '/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/messages/$id': typeof AuthenticatedMessagesIdRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
+  '/api/watchparty/config': typeof ApiWatchpartyConfigRoute
+  '/api/watchparty/admin/random-winner': typeof ApiWatchpartyAdminRandomWinnerRoute
+  '/api/watchparty/admin/signups': typeof ApiWatchpartyAdminSignupsRoute
+  '/api/watchparty/admin/summary': typeof ApiWatchpartyAdminSummaryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/community': typeof CommunityRoute
+  '/createthevibe': typeof CreatethevibeRoute
   '/events': typeof EventsRouteWithChildren
   '/groups': typeof GroupsRoute
   '/login': typeof LoginRoute
@@ -215,11 +282,15 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/welcomect': typeof WelcomectRoute
+  '/welcomejozi': typeof WelcomejoziRoute
+  '/welcomeuk': typeof WelcomeukRoute
   '/worldcup': typeof WorldcupRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/my-events': typeof AuthenticatedMyEventsRoute
+  '/api/intake': typeof ApiIntakeRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -229,12 +300,17 @@ export interface FileRoutesByTo {
   '/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/messages/$id': typeof AuthenticatedMessagesIdRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
+  '/api/watchparty/config': typeof ApiWatchpartyConfigRoute
+  '/api/watchparty/admin/random-winner': typeof ApiWatchpartyAdminRandomWinnerRoute
+  '/api/watchparty/admin/signups': typeof ApiWatchpartyAdminSignupsRoute
+  '/api/watchparty/admin/summary': typeof ApiWatchpartyAdminSummaryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/community': typeof CommunityRoute
+  '/createthevibe': typeof CreatethevibeRoute
   '/events': typeof EventsRouteWithChildren
   '/groups': typeof GroupsRoute
   '/login': typeof LoginRoute
@@ -245,11 +321,15 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/welcomect': typeof WelcomectRoute
+  '/welcomejozi': typeof WelcomejoziRoute
+  '/welcomeuk': typeof WelcomeukRoute
   '/worldcup': typeof WorldcupRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/_authenticated/my-events': typeof AuthenticatedMyEventsRoute
+  '/api/intake': typeof ApiIntakeRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -259,12 +339,17 @@ export interface FileRoutesById {
   '/_authenticated/event-chat/$id': typeof AuthenticatedEventChatIdRoute
   '/_authenticated/messages/$id': typeof AuthenticatedMessagesIdRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
+  '/api/watchparty/config': typeof ApiWatchpartyConfigRoute
+  '/api/watchparty/admin/random-winner': typeof ApiWatchpartyAdminRandomWinnerRoute
+  '/api/watchparty/admin/signups': typeof ApiWatchpartyAdminSignupsRoute
+  '/api/watchparty/admin/summary': typeof ApiWatchpartyAdminSummaryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/community'
+    | '/createthevibe'
     | '/events'
     | '/groups'
     | '/login'
@@ -275,11 +360,15 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/terms'
+    | '/welcomect'
+    | '/welcomejozi'
+    | '/welcomeuk'
     | '/worldcup'
     | '/account'
     | '/admin'
     | '/messages'
     | '/my-events'
+    | '/api/intake'
     | '/auth/callback'
     | '/events/$id'
     | '/news/$slug'
@@ -289,10 +378,15 @@ export interface FileRouteTypes {
     | '/event-chat/$id'
     | '/messages/$id'
     | '/api/stripe/webhook'
+    | '/api/watchparty/config'
+    | '/api/watchparty/admin/random-winner'
+    | '/api/watchparty/admin/signups'
+    | '/api/watchparty/admin/summary'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/community'
+    | '/createthevibe'
     | '/events'
     | '/groups'
     | '/login'
@@ -303,11 +397,15 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/terms'
+    | '/welcomect'
+    | '/welcomejozi'
+    | '/welcomeuk'
     | '/worldcup'
     | '/account'
     | '/admin'
     | '/messages'
     | '/my-events'
+    | '/api/intake'
     | '/auth/callback'
     | '/events/$id'
     | '/news/$slug'
@@ -317,11 +415,16 @@ export interface FileRouteTypes {
     | '/event-chat/$id'
     | '/messages/$id'
     | '/api/stripe/webhook'
+    | '/api/watchparty/config'
+    | '/api/watchparty/admin/random-winner'
+    | '/api/watchparty/admin/signups'
+    | '/api/watchparty/admin/summary'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/community'
+    | '/createthevibe'
     | '/events'
     | '/groups'
     | '/login'
@@ -332,11 +435,15 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/terms'
+    | '/welcomect'
+    | '/welcomejozi'
+    | '/welcomeuk'
     | '/worldcup'
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/messages'
     | '/_authenticated/my-events'
+    | '/api/intake'
     | '/auth/callback'
     | '/events/$id'
     | '/news/$slug'
@@ -346,12 +453,17 @@ export interface FileRouteTypes {
     | '/_authenticated/event-chat/$id'
     | '/_authenticated/messages/$id'
     | '/api/stripe/webhook'
+    | '/api/watchparty/config'
+    | '/api/watchparty/admin/random-winner'
+    | '/api/watchparty/admin/signups'
+    | '/api/watchparty/admin/summary'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   CommunityRoute: typeof CommunityRoute
+  CreatethevibeRoute: typeof CreatethevibeRoute
   EventsRoute: typeof EventsRouteWithChildren
   GroupsRoute: typeof GroupsRoute
   LoginRoute: typeof LoginRoute
@@ -362,12 +474,20 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
+  WelcomectRoute: typeof WelcomectRoute
+  WelcomejoziRoute: typeof WelcomejoziRoute
+  WelcomeukRoute: typeof WelcomeukRoute
   WorldcupRoute: typeof WorldcupRoute
+  ApiIntakeRoute: typeof ApiIntakeRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   NewsSlugRoute: typeof NewsSlugRoute
   UIdRoute: typeof UIdRoute
   NewsIndexRoute: typeof NewsIndexRoute
   ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
+  ApiWatchpartyConfigRoute: typeof ApiWatchpartyConfigRoute
+  ApiWatchpartyAdminRandomWinnerRoute: typeof ApiWatchpartyAdminRandomWinnerRoute
+  ApiWatchpartyAdminSignupsRoute: typeof ApiWatchpartyAdminSignupsRoute
+  ApiWatchpartyAdminSummaryRoute: typeof ApiWatchpartyAdminSummaryRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -377,6 +497,27 @@ declare module '@tanstack/react-router' {
       path: '/worldcup'
       fullPath: '/worldcup'
       preLoaderRoute: typeof WorldcupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcomeuk': {
+      id: '/welcomeuk'
+      path: '/welcomeuk'
+      fullPath: '/welcomeuk'
+      preLoaderRoute: typeof WelcomeukRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcomejozi': {
+      id: '/welcomejozi'
+      path: '/welcomejozi'
+      fullPath: '/welcomejozi'
+      preLoaderRoute: typeof WelcomejoziRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcomect': {
+      id: '/welcomect'
+      path: '/welcomect'
+      fullPath: '/welcomect'
+      preLoaderRoute: typeof WelcomectRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -449,6 +590,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/createthevibe': {
+      id: '/createthevibe'
+      path: '/createthevibe'
+      fullPath: '/createthevibe'
+      preLoaderRoute: typeof CreatethevibeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/community': {
       id: '/community'
       path: '/community'
@@ -505,6 +653,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/intake': {
+      id: '/api/intake'
+      path: '/api/intake'
+      fullPath: '/api/intake'
+      preLoaderRoute: typeof ApiIntakeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/my-events': {
       id: '/_authenticated/my-events'
       path: '/my-events'
@@ -533,6 +688,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/watchparty/config': {
+      id: '/api/watchparty/config'
+      path: '/api/watchparty/config'
+      fullPath: '/api/watchparty/config'
+      preLoaderRoute: typeof ApiWatchpartyConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/stripe/webhook': {
       id: '/api/stripe/webhook'
       path: '/api/stripe/webhook'
@@ -560,6 +722,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/worldcup'
       preLoaderRoute: typeof AuthenticatedAdminWorldcupRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/api/watchparty/admin/summary': {
+      id: '/api/watchparty/admin/summary'
+      path: '/api/watchparty/admin/summary'
+      fullPath: '/api/watchparty/admin/summary'
+      preLoaderRoute: typeof ApiWatchpartyAdminSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/watchparty/admin/signups': {
+      id: '/api/watchparty/admin/signups'
+      path: '/api/watchparty/admin/signups'
+      fullPath: '/api/watchparty/admin/signups'
+      preLoaderRoute: typeof ApiWatchpartyAdminSignupsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/watchparty/admin/random-winner': {
+      id: '/api/watchparty/admin/random-winner'
+      path: '/api/watchparty/admin/random-winner'
+      fullPath: '/api/watchparty/admin/random-winner'
+      preLoaderRoute: typeof ApiWatchpartyAdminRandomWinnerRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -623,6 +806,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   CommunityRoute: CommunityRoute,
+  CreatethevibeRoute: CreatethevibeRoute,
   EventsRoute: EventsRouteWithChildren,
   GroupsRoute: GroupsRoute,
   LoginRoute: LoginRoute,
@@ -633,12 +817,20 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
+  WelcomectRoute: WelcomectRoute,
+  WelcomejoziRoute: WelcomejoziRoute,
+  WelcomeukRoute: WelcomeukRoute,
   WorldcupRoute: WorldcupRoute,
+  ApiIntakeRoute: ApiIntakeRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   NewsSlugRoute: NewsSlugRoute,
   UIdRoute: UIdRoute,
   NewsIndexRoute: NewsIndexRoute,
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,
+  ApiWatchpartyConfigRoute: ApiWatchpartyConfigRoute,
+  ApiWatchpartyAdminRandomWinnerRoute: ApiWatchpartyAdminRandomWinnerRoute,
+  ApiWatchpartyAdminSignupsRoute: ApiWatchpartyAdminSignupsRoute,
+  ApiWatchpartyAdminSummaryRoute: ApiWatchpartyAdminSummaryRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
