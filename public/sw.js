@@ -1,4 +1,4 @@
-// SAFC — South African Football Community — Web Push service worker
+// SAFC — South Africa Football Community — Web Push service worker
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
@@ -14,7 +14,7 @@ self.addEventListener("push", (event) => {
   } catch (e) {
     data = { title: "SAFC", body: event.data ? event.data.text() : "" };
   }
-  const title = data.title || "SAFC — South African Football Community";
+  const title = data.title || "SAFC — South Africa Football Community";
   const options = {
     body: data.body || "",
     icon: data.icon || "/favicon.png",

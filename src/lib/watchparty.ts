@@ -1,14 +1,37 @@
 export const WATCH_PARTY_SOURCES = {
-  welcomect: { label: "Cape Town", venue: "Toad on the Road", venue_tag: "@toadontheroad", slug: "welcomect" },
-  welcomejozi: { label: "Jozi", venue: "Native Rebels", venue_tag: "@NativeRebels", slug: "welcomejozi" },
-  welcomeuk: { label: "UK", venue: "our UK watch party venue", venue_tag: "@SouthAfricaFC", slug: "welcomeuk" },
-  main: { label: "Main site", venue: "southafricafc.com", venue_tag: "@SouthAfricaFC", slug: "main" },
+  welcomect: {
+    label: "Cape Town",
+    venue: "Toad on the Road",
+    venue_tag: "@toadontheroad",
+    slug: "welcomect",
+  },
+  welcomejozi: {
+    label: "Jozi",
+    venue: "Native Rebels",
+    venue_tag: "@NativeRebels",
+    slug: "welcomejozi",
+  },
+  welcomeuk: {
+    label: "UK",
+    venue: "our UK watch party venue",
+    venue_tag: "@SouthAfricaFC",
+    slug: "welcomeuk",
+  },
+  main: {
+    label: "Main site",
+    venue: "southafricafc.com",
+    venue_tag: "@SouthAfricaFC",
+    slug: "main",
+  },
 } as const;
 
 export type WatchPartySourceKey = keyof typeof WATCH_PARTY_SOURCES;
 
 export function safeSourceKey(raw: unknown): WatchPartySourceKey {
-  const key = String(raw || "main").trim().toLowerCase().replaceAll("/", "");
+  const key = String(raw || "main")
+    .trim()
+    .toLowerCase()
+    .replaceAll("/", "");
   return key in WATCH_PARTY_SOURCES ? (key as WatchPartySourceKey) : "main";
 }
 
@@ -20,18 +43,18 @@ export function watchPartyConfig(rawSource: unknown) {
     location: source.label,
     venue: source.venue,
     venue_tag: source.venue_tag,
-    safc_handle: process.env.SAFC_SOCIAL_HANDLE || "@southafricafo",
+    safc_handle: "@southafricafc",
     social: {
-      instagram: process.env.SAFC_INSTAGRAM_URL || "https://www.instagram.com/southafricafo/",
-      instagram_handle: process.env.SAFC_INSTAGRAM_HANDLE || "@southafricafo",
+      instagram: "https://www.instagram.com/southafricafc/",
+      instagram_handle: "@southafricafc",
       x: process.env.SAFC_X_URL || "https://x.com/SouthAfricaFC10",
       x_handle: process.env.SAFC_X_HANDLE || "@SouthAfricaFC10",
       facebook: process.env.SAFC_FACEBOOK_URL || "https://www.facebook.com/southafricafc/",
       facebook_handle: process.env.SAFC_FACEBOOK_HANDLE || "South Africa Football Community",
-      tiktok: process.env.SAFC_TIKTOK_URL || "https://www.tiktok.com/@southafrica.fc10",
-      tiktok_handle: process.env.SAFC_TIKTOK_HANDLE || "@southafrica.fc10",
-      youtube: process.env.SAFC_YOUTUBE_URL || "https://www.youtube.com/@SouthAfricaFC10",
-      youtube_handle: process.env.SAFC_YOUTUBE_HANDLE || "@SouthAfricaFC10",
+      tiktok: "https://www.tiktok.com/@southafrica.fc10",
+      tiktok_handle: "@southafrica.fc10",
+      youtube: "https://www.youtube.com/@SouthAfricaFC10",
+      youtube_handle: "@SouthAfricaFC10",
     },
     google_client_id: process.env.SAFC_GOOGLE_CLIENT_ID || "",
   };

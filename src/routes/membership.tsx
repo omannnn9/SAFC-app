@@ -10,8 +10,11 @@ import { DigitalCard } from "@/components/DigitalCard";
 import { TIERS, tierTone, FOUNDER_CAP, type Tier } from "@/lib/tiers";
 import { useAuth } from "@/lib/auth";
 import { listTierConfig, getMyMembership, getFoundersCount } from "@/lib/membership.functions";
-import { createCheckoutSession, createBillingPortalSession, getMySubscription } from "@/lib/billing.functions";
-
+import {
+  createCheckoutSession,
+  createBillingPortalSession,
+  getMySubscription,
+} from "@/lib/billing.functions";
 
 export const Route = createFileRoute("/membership")({
   validateSearch: (search: Record<string, unknown>): { checkout?: string } => ({
@@ -20,9 +23,17 @@ export const Route = createFileRoute("/membership")({
   head: () => ({
     meta: [
       { title: "Membership — SA FC" },
-      { name: "description", content: "Join the SA FC movement. Free, Basic, Premium and Founding Member tiers — your digital supporter card included." },
+      {
+        name: "description",
+        content:
+          "Join the SA FC movement. Free, Basic, Premium and Founding Member tiers — your digital supporter card included.",
+      },
       { property: "og:title", content: "SA FC Membership — We Are SA FC" },
-      { property: "og:description", content: "Become part of the South African Football Community. Choose your tier and get your digital member card." },
+      {
+        property: "og:description",
+        content:
+          "Become part of the South Africa Football Community. Choose your tier and get your digital member card.",
+      },
     ],
   }),
   component: MembershipPage,
@@ -57,14 +68,24 @@ function MembershipPage() {
   const subFn = useServerFn(getMySubscription);
 
   const tiersQ = useQuery({ queryKey: ["tier-config"], queryFn: () => listFn() });
-  const meQ = useQuery({ queryKey: ["my-membership", user?.id], queryFn: () => meFn(), enabled: !!user });
+  const meQ = useQuery({
+    queryKey: ["my-membership", user?.id],
+    queryFn: () => meFn(),
+    enabled: !!user,
+  });
   const foundersQ = useQuery({ queryKey: ["founders-count"], queryFn: () => countFn() });
-  const subQ = useQuery({ queryKey: ["my-subscription", user?.id], queryFn: () => subFn(), enabled: !!user });
+  const subQ = useQuery({
+    queryKey: ["my-subscription", user?.id],
+    queryFn: () => subFn(),
+    enabled: !!user,
+  });
 
   useEffect(() => {
     if (!checkout) return;
     if (checkout === "success") {
-      toast.success("Payment received — welcome to your new tier! It may take a few seconds to activate.");
+      toast.success(
+        "Payment received — welcome to your new tier! It may take a few seconds to activate.",
+      );
       qc.invalidateQueries({ queryKey: ["my-membership"] });
       qc.invalidateQueries({ queryKey: ["my-subscription"] });
       qc.invalidateQueries({ queryKey: ["founders-count"] });
@@ -76,7 +97,15 @@ function MembershipPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkout]);
 
-  type TierRow = { id: Tier; name: string; tagline: string | null; price_cents: number; perks: string[]; visible: boolean; sort_order: number };
+  type TierRow = {
+    id: Tier;
+    name: string;
+    tagline: string | null;
+    price_cents: number;
+    perks: string[];
+    visible: boolean;
+    sort_order: number;
+  };
   const tiers: TierRow[] =
     (tiersQ.data as TierRow[] | undefined)?.filter((t) => t.visible) ??
     TIERS.map((t, i) => ({
@@ -90,21 +119,39 @@ function MembershipPage() {
     }));
 
   const me = meQ.data as
-    | { full_name: string | null; avatar_url: string | null; tier: Tier; member_no: number | null; is_founder: boolean; created_at: string }
+    | {
+        full_name: string | null;
+        avatar_url: string | null;
+        tier: Tier;
+        member_no: number | null;
+        is_founder: boolean;
+        created_at: string;
+      }
     | null
     | undefined;
   const sub = subQ.data as
-    | { id: string; tier: Tier | null; status: string; interval: string | null; current_period_end: string | null; cancel_at_period_end: boolean }
+    | {
+        id: string;
+        tier: Tier | null;
+        status: string;
+        interval: string | null;
+        current_period_end: string | null;
+        cancel_at_period_end: boolean;
+      }
     | null
     | undefined;
   const hasActiveSub = sub?.status === "active";
-  const foundersLeft = foundersQ.data ? FOUNDER_CAP - (foundersQ.data as { count: number }).count : null;
+  const foundersLeft = foundersQ.data
+    ? FOUNDER_CAP - (foundersQ.data as { count: number }).count
+    : null;
 
   const startCheckout = async (tier: Tier) => {
     if (tier === "free") return;
     setBusyTier(tier);
     try {
-      const res = await checkoutFn({ data: { tier: tier as "basic" | "premium" | "founder", interval } });
+      const res = await checkoutFn({
+        data: { tier: tier as "basic" | "premium" | "founder", interval },
+      });
       window.location.href = res.url;
     } catch (e) {
       toast.error((e as Error).message);
@@ -137,15 +184,22 @@ function MembershipPage() {
             Become part of the movement.
           </h1>
           <p className="mt-2 max-w-xl text-sm text-white/80 sm:text-base">
-            Free to join. Upgrade when you're ready to ride harder. Every member gets a digital SA FC card with their own unique member number.
+            Free to join. Upgrade when you're ready to ride harder. Every member gets a digital SA
+            FC card with their own unique member number.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             {!user && (
-              <Link to="/signup" className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-black uppercase tracking-wider text-primary-foreground">
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-black uppercase tracking-wider text-primary-foreground"
+              >
                 <LogIn className="h-4 w-4" /> Join free
               </Link>
             )}
-            <Link to="/movement" className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-wider hover:bg-white/20">
+            <Link
+              to="/movement"
+              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-wider hover:bg-white/20"
+            >
               The SA FC movement <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -160,7 +214,9 @@ function MembershipPage() {
       {/* Personal card */}
       {user && me && (
         <section className="px-4 pt-8">
-          <div className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">Your SA FC card</div>
+          <div className="mb-3 text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">
+            Your SA FC card
+          </div>
           <DigitalCard
             tier={me.tier}
             fullName={me.full_name ?? profile?.full_name ?? user.email ?? "Supporter"}
@@ -172,10 +228,16 @@ function MembershipPage() {
           {hasActiveSub && (
             <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
               <div className="flex-1 text-xs text-white/70">
-                <span className="font-black uppercase tracking-wider text-white">Active membership</span>
+                <span className="font-black uppercase tracking-wider text-white">
+                  Active membership
+                </span>
                 {sub?.interval && <> · billed {sub.interval === "annual" ? "yearly" : "monthly"}</>}
                 {sub?.current_period_end && (
-                  <> · {sub.cancel_at_period_end ? "ends" : "renews"} {new Date(sub.current_period_end).toLocaleDateString()}</>
+                  <>
+                    {" "}
+                    · {sub.cancel_at_period_end ? "ends" : "renews"}{" "}
+                    {new Date(sub.current_period_end).toLocaleDateString()}
+                  </>
                 )}
               </div>
               <button
@@ -183,7 +245,11 @@ function MembershipPage() {
                 disabled={portalBusy}
                 className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-[11px] font-black uppercase tracking-wider hover:bg-white/20 disabled:opacity-60"
               >
-                {portalBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                {portalBusy ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CreditCard className="h-4 w-4" />
+                )}
                 Manage billing
               </button>
             </div>
@@ -194,7 +260,9 @@ function MembershipPage() {
       {/* Tier grid */}
       <section className="px-4 pb-32 pt-10">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">Choose your tier</div>
+          <div className="text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">
+            Choose your tier
+          </div>
           <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 p-1 text-[10px] font-black uppercase tracking-wider">
             <button
               onClick={() => setInterval("monthly")}
@@ -206,7 +274,10 @@ function MembershipPage() {
               onClick={() => setInterval("annual")}
               className={`rounded-full px-3 py-1.5 transition ${interval === "annual" ? "bg-primary text-primary-foreground" : "text-white/60 hover:text-white"}`}
             >
-              Annual <span className={interval === "annual" ? "opacity-80" : "text-[var(--safc-yellow)]"}>· 2 months free</span>
+              Annual{" "}
+              <span className={interval === "annual" ? "opacity-80" : "text-[var(--safc-yellow)]"}>
+                · 2 months free
+              </span>
             </button>
           </div>
         </div>
@@ -218,7 +289,12 @@ function MembershipPage() {
             const isMine = me?.tier === t.id;
             const isFounder = t.id === "founder";
             const founderFull = isFounder && foundersLeft !== null && foundersLeft <= 0;
-            const displayCents = t.price_cents === 0 ? 0 : interval === "annual" ? annualCents(t.price_cents) : t.price_cents;
+            const displayCents =
+              t.price_cents === 0
+                ? 0
+                : interval === "annual"
+                  ? annualCents(t.price_cents)
+                  : t.price_cents;
             return (
               <div
                 key={t.id}
@@ -229,7 +305,9 @@ function MembershipPage() {
                   <div className="flex items-center justify-between">
                     <Icon className={`h-6 w-6 ${tone.text}`} />
                     {isMine && (
-                      <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider">Your tier</span>
+                      <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider">
+                        Your tier
+                      </span>
                     )}
                   </div>
                   <h3 className="mt-3 font-display text-xl font-black tracking-tight">{t.name}</h3>
@@ -237,20 +315,29 @@ function MembershipPage() {
                   <div className={`mt-3 font-display text-2xl font-black ${tone.text}`}>
                     {rands(displayCents, interval)}
                     {t.price_cents > 0 && interval === "annual" && (
-                      <span className="ml-2 align-middle text-[10px] font-black uppercase tracking-wider text-[var(--safc-yellow)]">2 months free</span>
+                      <span className="ml-2 align-middle text-[10px] font-black uppercase tracking-wider text-[var(--safc-yellow)]">
+                        2 months free
+                      </span>
                     )}
                   </div>
                   <ul className="mt-4 flex-1 space-y-1.5 text-xs text-white/80">
                     {t.perks.map((p) => (
-                      <li key={p} className="flex gap-2"><Check className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${tone.text}`} /> {p}</li>
+                      <li key={p} className="flex gap-2">
+                        <Check className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${tone.text}`} /> {p}
+                      </li>
                     ))}
                   </ul>
                   {!user ? (
-                    <Link to="/signup" className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-[11px] font-black uppercase tracking-wider hover:bg-white/20">
+                    <Link
+                      to="/signup"
+                      className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-[11px] font-black uppercase tracking-wider hover:bg-white/20"
+                    >
                       Start with {def.badge}
                     </Link>
                   ) : isMine ? (
-                    <div className="mt-5 rounded-xl bg-white/5 px-4 py-2 text-center text-[11px] font-black uppercase tracking-wider text-white/60">Active</div>
+                    <div className="mt-5 rounded-xl bg-white/5 px-4 py-2 text-center text-[11px] font-black uppercase tracking-wider text-white/60">
+                      Active
+                    </div>
                   ) : t.price_cents === 0 ? (
                     hasActiveSub ? (
                       <button
@@ -261,10 +348,14 @@ function MembershipPage() {
                         Cancel paid plan
                       </button>
                     ) : (
-                      <div className="mt-5 rounded-xl bg-white/5 px-4 py-2 text-center text-[11px] font-black uppercase tracking-wider text-white/40">Included free</div>
+                      <div className="mt-5 rounded-xl bg-white/5 px-4 py-2 text-center text-[11px] font-black uppercase tracking-wider text-white/40">
+                        Included free
+                      </div>
                     )
                   ) : founderFull ? (
-                    <div className="mt-5 rounded-xl bg-white/5 px-4 py-2 text-center text-[11px] font-black uppercase tracking-wider text-white/40">Starting XI full</div>
+                    <div className="mt-5 rounded-xl bg-white/5 px-4 py-2 text-center text-[11px] font-black uppercase tracking-wider text-white/40">
+                      Starting XI full
+                    </div>
                   ) : hasActiveSub ? (
                     <button
                       onClick={openPortal}
@@ -290,7 +381,8 @@ function MembershipPage() {
         </div>
 
         <p className="mt-6 text-center text-[11px] text-white/40">
-          Payments are processed securely by Stripe. Prices in South African Rand (ZAR). Cancel anytime via Manage billing.
+          Payments are processed securely by Stripe. Prices in South African Rand (ZAR). Cancel
+          anytime via Manage billing.
         </p>
       </section>
     </PageContainer>

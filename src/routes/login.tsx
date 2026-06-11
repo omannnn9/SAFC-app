@@ -7,7 +7,6 @@ import safcHero from "@/assets/safc-hero.jpg.asset.json";
 import { SafcLogo } from "@/components/SafcLogo";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
-
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — SA FC" }] }),
   validateSearch: (s: Record<string, unknown>): { redirect?: string } => ({
@@ -42,14 +41,23 @@ function LoginPage() {
     <div className="relative min-h-screen w-full overflow-hidden">
       {/* SAFC deck backdrop */}
       <div className="absolute inset-0">
-        <img src={safcHero.url} alt="" className="h-full w-full object-cover opacity-70 slow-zoom" />
+        <img
+          src={safcHero.url}
+          alt=""
+          className="h-full w-full object-cover opacity-70 slow-zoom"
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-[color:var(--safc-green)]/55 to-[color:var(--safc-ink)]/90" />
-        <div className="absolute inset-0 mix-blend-overlay opacity-50"
-             style={{ background: "var(--gradient-stadium)" }} />
+        <div
+          className="absolute inset-0 mix-blend-overlay opacity-50"
+          style={{ background: "var(--gradient-stadium)" }}
+        />
       </div>
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-10 animate-[reveal-up_0.7s_var(--ease-out-expo)]">
-        <Link to="/" className="text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition">
+        <Link
+          to="/"
+          className="text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition"
+        >
           ← Back
         </Link>
 
@@ -59,7 +67,7 @@ function LoginPage() {
           <div>
             <div className="font-display text-sm font-extrabold tracking-tight">SA FC</div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              South African Football Community
+              South Africa Football Community
             </div>
           </div>
         </div>
@@ -109,7 +117,6 @@ function LoginPage() {
             }
           />
 
-
           <button
             type="submit"
             disabled={loading}
@@ -126,7 +133,9 @@ function LoginPage() {
 
           <div className="flex items-center gap-3 py-1">
             <span className="h-px flex-1 bg-border" />
-            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">or</span>
+            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              or
+            </span>
             <span className="h-px flex-1 bg-border" />
           </div>
 
@@ -142,9 +151,7 @@ function LoginPage() {
 
         {/* Social proof */}
         <div className="mt-8 space-y-2 text-center">
-          <p className="text-xs font-medium text-muted-foreground">
-            Join thousands of supporters
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">Join thousands of supporters</p>
           <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/70">
             Live match updates · Exclusive news · Membership perks
           </p>

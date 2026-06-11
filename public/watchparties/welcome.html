@@ -1,1 +1,127 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#06381f"><title>SA FC Watch Party</title><link rel="preload" href="/watchparties/assets/safc-mark.svg" as="image"><link rel="preload" href="/watchparties/assets/safc-wp-hero.webp" as="image"><link rel="stylesheet" href="/watchparties/welcome.css"></head><body><div class="top"><div class="wrap nav"><a class="brand" href="#top" aria-label="SA FC Watch Party home"><img src="/watchparties/assets/safc-mark.svg" alt="SA FC"><span><small>South Africa Football Community</small>SA FC Watch Party</span></a><div class="nav-actions"><a class="btn btn-primary" href="#signup">Join + enter draw</a></div></div></div><main id="top"><section class="hero"><div class="wrap hero-grid"><div><div class="eyebrow">Bafana Bafana match night</div><h1>Welcome to our <em id="location-title">SA FC</em> Watch Party!</h1><p class="copy">Scan, sign up, follow the community, and back Team South Africa with proper <span class="sa-touch">Mzansi gees</span>. Complete your member sign-up tonight and you’re in the random prize draw for this venue.</p><div class="hero-actions"><a class="btn btn-primary" href="#signup">Sign up in 60 seconds</a></div></div><aside class="poster-card"><picture><source srcset="/watchparties/assets/safc-wp-hero.webp" type="image/webp"><img src="/watchparties/assets/safc-wp-hero-small.jpg" alt="SA FC watch-party artwork" width="760" height="766" decoding="async"></picture><div class="poster-caption"><div class="eyebrow">You are here</div><div class="venue-big" id="venue-name">Loading venue…</div><p id="venue-copy" class="small"></p></div></aside></div></section><section class="section steps-section"><div class="wrap panel card"><div class="steps"><div class="step"><b>1. Join</b><br><span class="small">Add your name and email to the SA FC list for this location.</span></div><div class="step"><b>2. Follow</b><br><span class="small">Open SA FC's official social pages and follow the community.</span></div><div class="step"><b>3. Create the vibe</b><br><span class="small">Post the pre-filled message and support Bafana Bafana.</span></div></div></div></section><section class="section" id="signup"><div class="wrap grid"><div class="panel card"><h2>Join the community</h2><form id="intake-form" class="stack"><input type="hidden" name="source_key" id="source-key"><input type="hidden" name="source_location" id="source-location"><input type="hidden" name="watch_party_venue" id="watch-party-venue"><input type="hidden" name="provider" value="manual_eft"><input type="hidden" name="amount_zar" value="899"><label>Full name<input name="full_name" required autocomplete="name" placeholder="Your name"></label><label>Mobile<input name="mobile" required autocomplete="tel" inputmode="tel" placeholder="Your WhatsApp / mobile number"></label><label>Email<input type="email" name="email" required autocomplete="email" inputmode="email" placeholder="you@example.com"></label><label>Province / city<input name="province" autocomplete="address-level1" placeholder="e.g. Cape Town, Jozi, Durban"></label><label class="check"><input type="checkbox" name="consent_to_contact" checked><span>SA FC may contact me about membership, watch parties, and supporter updates.</span></label><label class="check"><input type="checkbox" name="disclosure_acknowledged" required><span>I understand this sign-up enters me into tonight’s venue prize draw and creates a membership intake record.</span></label><button class="primary" type="submit">Join SA FC + enter the draw</button></form><div id="signup-result" class="result hidden"></div></div><div class="panel card" id="follow"><h2>Follow SA FC + post your support</h2><div class="social"><a id="instagram" class="btn btn-secondary" target="_blank" rel="noopener">Instagram</a><a id="tiktok" class="btn btn-secondary" target="_blank" rel="noopener">TikTok</a><a id="youtube" class="btn btn-secondary" target="_blank" rel="noopener">YouTube</a><a id="facebook" class="btn btn-secondary" target="_blank" rel="noopener">Facebook</a></div><h3>Ready-to-post message</h3><div id="share-text" class="sharebox"></div><div class="nav-actions" style="margin-top:12px"><button id="native-share" class="primary">Share from my phone</button><a id="x-share" class="btn btn-primary" target="_blank" rel="noopener">Post on X</a><a id="wa-share" class="btn btn-primary" target="_blank" rel="noopener">WhatsApp</a><button id="copy-share" class="primary">Copy text</button></div><p class="small">Tip: if you’re at the venue, tag the venue too so the gees is visible.</p></div></div></section></main><footer class="footer"><div class="wrap">SA FC — South Africa Football Community. Built for fast QR sign-up, social follow-through, and venue prize draws.</div></footer><script src="/watchparties/welcome.js" defer></script></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#06381f" />
+    <title>SA FC Watch Party</title>
+    <link rel="preload" href="/watchparties/assets/safc-mark.svg" as="image" />
+    <link rel="preload" href="/watchparties/assets/safc-wp-hero.webp" as="image" />
+    <link rel="stylesheet" href="/watchparties/welcome.css" />
+  </head>
+  <body>
+    <div class="top">
+      <div class="wrap nav">
+        <a class="brand" href="#top" aria-label="SA FC Watch Party home"
+          ><img src="/watchparties/assets/safc-mark.svg" alt="SA FC" /><span
+            ><small>South Africa Football Community</small>SA FC Watch Party</span
+          ></a
+        >
+        <div class="nav-actions"><a class="btn btn-primary" href="#signup">Join community</a></div>
+      </div>
+    </div>
+    <main id="top">
+      <section class="hero">
+        <div class="wrap hero-grid">
+          <div>
+            <div class="eyebrow">Bafana Bafana match night</div>
+            <h1>Welcome to our <em id="location-title">SA FC</em> Watch Party!</h1>
+            <p class="copy">
+              Scan, sign up, follow the community, and back Team South Africa with proper
+              <span class="sa-touch">Mzansi gees</span>. Use the official South Africa Football
+              Community sign-up flow, then follow and share the community for this venue.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="#signup">Join with the official SA FC sign-up</a>
+            </div>
+          </div>
+          <aside class="poster-card">
+            <picture
+              ><source srcset="/watchparties/assets/safc-wp-hero.webp" type="image/webp" />
+              <img
+                src="/watchparties/assets/safc-wp-hero-small.jpg"
+                alt="SA FC watch-party artwork"
+                width="760"
+                height="766"
+                decoding="async"
+            /></picture>
+            <div class="poster-caption">
+              <div class="eyebrow">You are here</div>
+              <div class="venue-big" id="venue-name">Loading venue…</div>
+              <p id="venue-copy" class="small"></p>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <section class="section steps-section">
+        <div class="wrap panel card">
+          <div class="steps">
+            <div class="step">
+              <b>1. Join</b><br /><span class="small"
+                >Use the same SA FC account sign-up used by the main community site.</span
+              >
+            </div>
+            <div class="step">
+              <b>2. Follow</b><br /><span class="small"
+                >Open SA FC's official social pages and follow the community.</span
+              >
+            </div>
+            <div class="step">
+              <b>3. Create the vibe</b><br /><span class="small"
+                >Post the pre-filled message and support Bafana Bafana.</span
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section" id="signup">
+        <div class="wrap grid">
+          <div class="panel card">
+            <h2>Join the community</h2>
+            <div class="stack">
+              <p class="small">
+                Create your SA FC account through the same secure community sign-up used across
+                southafricafc.com. We will carry this venue into the sign-up link so the team can
+                identify where you joined from.
+              </p>
+              <a id="signup-link" class="primary" href="/signup"
+                >Continue to official SA FC sign-up</a
+              >
+              <p id="signup-result" class="result hidden"></p>
+            </div>
+          </div>
+          <div class="panel card" id="follow">
+            <h2>Follow SA FC + post your support</h2>
+            <div class="social">
+              <a id="instagram" class="btn btn-secondary" target="_blank" rel="noopener"
+                >Instagram</a
+              ><a id="tiktok" class="btn btn-secondary" target="_blank" rel="noopener">TikTok</a
+              ><a id="youtube" class="btn btn-secondary" target="_blank" rel="noopener">YouTube</a
+              ><a id="facebook" class="btn btn-secondary" target="_blank" rel="noopener"
+                >Facebook</a
+              >
+            </div>
+            <h3>Ready-to-post message</h3>
+            <div id="share-text" class="sharebox"></div>
+            <div class="nav-actions" style="margin-top: 12px">
+              <button id="native-share" class="primary">Share from my phone</button
+              ><a id="x-share" class="btn btn-primary" target="_blank" rel="noopener">Post on X</a
+              ><a id="wa-share" class="btn btn-primary" target="_blank" rel="noopener">WhatsApp</a
+              ><button id="copy-share" class="primary">Copy text</button>
+            </div>
+            <p class="small">
+              Tip: if you’re at the venue, tag the venue too so the gees is visible.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="footer">
+      <div class="wrap">
+        SA FC — South Africa Football Community. Built for fast QR sign-up, social follow-through,
+        and venue prize draws.
+      </div>
+    </footer>
+    <script src="/watchparties/welcome.js" defer></script>
+  </body>
+</html>

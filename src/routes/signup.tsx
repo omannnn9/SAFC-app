@@ -26,6 +26,16 @@ function SignupPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const watchpartySource =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("source")
+      : null;
+  const watchpartyVenue =
+    typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("venue") : null;
+  const isWatchpartySignup =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("watchparty") === "1"
+      : false;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -37,7 +47,12 @@ function SignupPage() {
       email,
       password,
       options: {
-        data: { full_name: fullName, country: "South Africa" },
+        data: {
+          full_name: fullName,
+          country: "South Africa",
+          ...(watchpartySource ? { watchparty_source: watchpartySource } : {}),
+          ...(watchpartyVenue ? { watchparty_venue: watchpartyVenue } : {}),
+        },
       },
     });
     setLoading(false);
@@ -57,15 +72,24 @@ function SignupPage() {
     <div className="relative min-h-screen w-full overflow-hidden">
       {/* SAFC deck backdrop */}
       <div className="absolute inset-0">
-        <img src={safcHero.url} alt="" className="h-full w-full object-cover opacity-70 slow-zoom" />
+        <img
+          src={safcHero.url}
+          alt=""
+          className="h-full w-full object-cover opacity-70 slow-zoom"
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-[color:var(--safc-green)]/55 to-[color:var(--safc-ink)]/90" />
-        <div className="absolute inset-0 mix-blend-overlay opacity-50"
-             style={{ background: "var(--gradient-stadium)" }} />
+        <div
+          className="absolute inset-0 mix-blend-overlay opacity-50"
+          style={{ background: "var(--gradient-stadium)" }}
+        />
       </div>
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-10 animate-[reveal-up_0.7s_var(--ease-out-expo)]">
         <div className="flex items-center justify-between">
-          <Link to="/" className="text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition">
+          <Link
+            to="/"
+            className="text-xs uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition"
+          >
             ← Back
           </Link>
           <Link to="/login" className="text-xs font-semibold text-[color:var(--safc-yellow)]">
@@ -79,7 +103,7 @@ function SignupPage() {
           <div>
             <div className="font-display text-sm font-extrabold tracking-tight">SA FC</div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              South African Football Community
+              South Africa Football Community
             </div>
           </div>
         </div>
@@ -93,11 +117,25 @@ function SignupPage() {
             Join the <span className="text-gradient-safc">movement.</span>
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Become a SA FC supporter — events, fan-zones, exclusive content and the community.
+            {isWatchpartySignup
+              ? "Create your SA FC supporter account with the same sign-up flow used across the South Africa Football Community."
+              : "Become a SA FC supporter — events, fan-zones, exclusive content and the community."}
           </p>
         </div>
 
         {/* Card */}
+        {isWatchpartySignup && (
+          <div className="glass mt-6 rounded-2xl border border-[color:var(--safc-yellow)]/30 p-4 text-xs text-muted-foreground">
+            Watch-party source:{" "}
+            <span className="font-semibold text-foreground">{watchpartySource}</span>
+            {watchpartyVenue ? (
+              <>
+                {" "}
+                · Venue: <span className="font-semibold text-foreground">{watchpartyVenue}</span>
+              </>
+            ) : null}
+          </div>
+        )}
         <form
           onSubmit={onSubmit}
           className="glass-strong mt-8 space-y-4 rounded-2xl p-6 shadow-[var(--shadow-card-lift)]"
@@ -156,7 +194,6 @@ function SignupPage() {
             }
           />
 
-
           <button
             type="submit"
             disabled={loading}
@@ -173,7 +210,9 @@ function SignupPage() {
 
           <div className="flex items-center gap-3 py-1">
             <span className="h-px flex-1 bg-border" />
-            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">or</span>
+            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              or
+            </span>
             <span className="h-px flex-1 bg-border" />
           </div>
 

@@ -1,1 +1,89 @@
-const sourceFromHost=()=>{const h=location.hostname.split('.')[0];if(['welcomect','welcomejozi','welcomeuk'].includes(h))return h;const p=location.pathname.replace(/^\//,'').replace(/\/$/,'');if(['welcomect','welcomejozi','welcomeuk'].includes(p))return p;return 'main';};const $=id=>document.getElementById(id);let cfg=null;async function api(path,options={}){const res=await fetch(path,{headers:{'Content-Type':'application/json',...(options.headers||{})},credentials:'same-origin',...options});const type=res.headers.get('content-type')||'';const data=type.includes('application/json')?await res.json():await res.text();if(!res.ok)throw new Error((data&&data.error)||data||`Request failed ${res.status}`);return data}function platformHandle(){return cfg.social.instagram_handle||cfg.safc_handle||'@southafricafo'}function shareText(){return `I joined ${platformHandle()} to support Bafana Bafana (Team South Africa) ${cfg.venue} ${cfg.venue_tag}. Mzansi gees only! Join the community: ${location.origin}/${cfg.source_key}`;}async function load(){cfg=await api(`/api/watchparty/config?source=${encodeURIComponent(sourceFromHost())}`);document.title=`SAFC ${cfg.location} Watch Party`; $('location-title').textContent=cfg.location;$('venue-name').textContent=cfg.venue;$('venue-copy').textContent=`${cfg.location} check-in. Sign up here and SAFC will place you in the ${cfg.location} prize-draw list for ${cfg.venue}.`;$('source-key').value=cfg.source_key;$('source-location').value=cfg.location;$('watch-party-venue').value=cfg.venue;const links={instagram:cfg.social.instagram,facebook:cfg.social.facebook,tiktok:cfg.social.tiktok,youtube:cfg.social.youtube};Object.entries(links).forEach(([id,url])=>{const el=$(id);if(el&&url)el.href=url;});const text=shareText();$('share-text').textContent=text;$('x-share').href=`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;$('wa-share').href=`https://wa.me/?text=${encodeURIComponent(text)}`;$('native-share').onclick=async()=>{try{if(navigator.share){await navigator.share({text,url:location.href,title:document.title});}else{await navigator.clipboard.writeText(text);alert('Post text copied.');}}catch(e){if(e.name!=='AbortError')alert(e.message);}};$('copy-share').onclick=async()=>{await navigator.clipboard.writeText(text);alert('Post text copied.');};}document.getElementById('intake-form').addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter;const original=btn.textContent;btn.disabled=true;btn.textContent='Signing you up…';const form=new FormData(e.target);const payload=Object.fromEntries(form.entries());payload.consent_to_contact=form.get('consent_to_contact')==='on';payload.disclosure_acknowledged=form.get('disclosure_acknowledged')==='on';payload.amount_zar=899;try{const data=await api('/api/intake',{method:'POST',body:JSON.stringify(payload)});const r=$('signup-result');r.classList.remove('hidden');r.innerHTML=`<strong>Sharp — you’re on the ${cfg.location} list.</strong><br>Supporter code: ${data.supporter_code}<br>Reference: ${data.instructions.payment_reference}<br><br>Next: follow SA FC and share the ready-made Bafana message below.`;document.getElementById('follow').scrollIntoView({behavior:'smooth',block:'start'});}catch(err){alert(err.message);}finally{btn.disabled=false;btn.textContent=original;}});load().catch(err=>alert(err.message));
+const WATCH_PARTY_KEYS = ["welcomect", "welcomejozi", "welcomeuk"];
+const sourceFromHost = () => {
+  const h = location.hostname.split(".")[0];
+  if (WATCH_PARTY_KEYS.includes(h)) return h;
+  const p = location.pathname.replace(/^\//, "").replace(/\/$/, "");
+  if (WATCH_PARTY_KEYS.includes(p)) return p;
+  return "main";
+};
+const $ = (id) => document.getElementById(id);
+let cfg = null;
+
+async function api(path, options = {}) {
+  const res = await fetch(path, {
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    credentials: "same-origin",
+    ...options,
+  });
+  const type = res.headers.get("content-type") || "";
+  const data = type.includes("application/json") ? await res.json() : await res.text();
+  if (!res.ok) throw new Error((data && data.error) || data || `Request failed ${res.status}`);
+  return data;
+}
+
+function platformHandle() {
+  return cfg.social.instagram_handle || cfg.safc_handle || "@southafricafc";
+}
+
+function signupHref() {
+  const params = new URLSearchParams({
+    source: cfg.source_key,
+    watchparty: "1",
+    location: cfg.location,
+    venue: cfg.venue,
+  });
+  return `/signup?${params.toString()}`;
+}
+
+function shareText() {
+  return `I joined ${platformHandle()} to support Bafana Bafana (Team South Africa) at ${cfg.venue} ${cfg.venue_tag}. Mzansi gees only! Join the South Africa Football Community: ${location.origin}/signup?source=${encodeURIComponent(cfg.source_key)}&watchparty=1`;
+}
+
+async function load() {
+  cfg = await api(`/api/watchparty/config?source=${encodeURIComponent(sourceFromHost())}`);
+  document.title = `SA FC ${cfg.location} Watch Party`;
+  $("location-title").textContent = cfg.location;
+  $("venue-name").textContent = cfg.venue;
+  $("venue-copy").textContent =
+    `${cfg.location} check-in for ${cfg.venue}. Continue through the official South Africa Football Community sign-up flow.`;
+  const signup = $("signup-link");
+  if (signup) signup.href = signupHref();
+  const links = {
+    instagram: cfg.social.instagram,
+    facebook: cfg.social.facebook,
+    tiktok: cfg.social.tiktok,
+    youtube: cfg.social.youtube,
+  };
+  Object.entries(links).forEach(([id, url]) => {
+    const el = $(id);
+    if (el && url) el.href = url;
+  });
+  const text = shareText();
+  $("share-text").textContent = text;
+  $("x-share").href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+  $("wa-share").href = `https://wa.me/?text=${encodeURIComponent(text)}`;
+  $("native-share").onclick = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ text, url: signupHref(), title: document.title });
+      } else {
+        await navigator.clipboard.writeText(text);
+        alert("Post text copied.");
+      }
+    } catch (e) {
+      if (e.name !== "AbortError") alert(e.message);
+    }
+  };
+  $("copy-share").onclick = async () => {
+    await navigator.clipboard.writeText(text);
+    alert("Post text copied.");
+  };
+}
+
+load().catch((err) => {
+  const result = $("signup-result");
+  if (result) {
+    result.classList.remove("hidden");
+    result.textContent = err.message;
+  }
+});
