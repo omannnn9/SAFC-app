@@ -26,6 +26,9 @@ function platformHandle() {
 }
 
 function signupHref() {
+  if (cfg.source_key === "welcomect") {
+    return "https://welcomect.southafricafc.com/signup?source=welcomect&watchparty=1&location=Cape+Town&venue=Toad+on+the+Road";
+  }
   const params = new URLSearchParams({
     source: cfg.source_key,
     watchparty: "1",
@@ -36,21 +39,26 @@ function signupHref() {
 }
 
 function shareText() {
-  return `I joined ${platformHandle()} to support Bafana Bafana (Team South Africa) at ${cfg.venue} ${cfg.venue_tag}. Mzansi gees only! Join the South Africa Football Community: ${location.origin}/signup?source=${encodeURIComponent(cfg.source_key)}&watchparty=1`;
+  if (cfg.source_key === "welcomect") {
+    return "I joined @southafricafc to support Bafana Bafana 🇿🇦 at @thetoad. Mzansi gees only!\nJoin the South Africa Football Community: https://www.southafricafc.com";
+  }
+  return `I joined ${platformHandle()} to support Bafana Bafana 🇿🇦 at ${cfg.venue} ${cfg.venue_tag}. Mzansi gees only!\nJoin the South Africa Football Community: https://www.southafricafc.com`;
 }
 
 async function load() {
   cfg = await api(`/api/watchparty/config?source=${encodeURIComponent(sourceFromHost())}`);
-  document.title = `SA FC ${cfg.location} Watch Party`;
+  document.title =
+    cfg.source_key === "welcomect" ? "Cape Town Watch Party" : `SA FC ${cfg.location} Watch Party`;
   $("location-title").textContent = cfg.location;
   $("venue-name").textContent = cfg.venue;
   $("venue-copy").textContent =
-    `${cfg.location} check-in for ${cfg.venue}. Continue through the official South Africa Football Community sign-up flow.`;
+    cfg.source_key === "welcomect"
+      ? "Welcome to our Toad on the Road Watch Party!\n\nGrab a drink, join the community and show your support for Bafana Bafana 🇿🇦 and stand a chance to win some amazing prizes throughout the night!"
+      : `${cfg.location} check-in for ${cfg.venue}. Continue through the official South Africa Football Community sign-up flow.`;
   const signup = $("signup-link");
   if (signup) signup.href = signupHref();
   const links = {
     instagram: cfg.social.instagram,
-    facebook: cfg.social.facebook,
     tiktok: cfg.social.tiktok,
     youtube: cfg.social.youtube,
   };
