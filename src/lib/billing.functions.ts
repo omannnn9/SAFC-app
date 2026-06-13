@@ -5,6 +5,7 @@ import { FOUNDER_CAP } from "@/lib/tiers";
 
 const PaidTierEnum = z.enum(["basic", "premium", "founder"]);
 const IntervalEnum = z.enum(["monthly", "annual"]);
+const SUBSCRIPTIONS_COMING_SOON = true;
 
 async function getAppOrigin() {
   const { getRequest } = await import("@tanstack/react-start/server");
@@ -13,12 +14,17 @@ async function getAppOrigin() {
   if (origin) return origin;
   const host = req?.headers.get("x-forwarded-host") ?? req?.headers.get("host");
   if (!host) throw new Error("Unable to determine request origin");
-  const proto = req?.headers.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  const proto =
+    req?.headers.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   return `${proto}://${host}`;
 }
 
 /** Get or create the Stripe customer for a user, persisting the ID on their profile. */
-async function getOrCreateStripeCustomer(userId: string, email: string | undefined, fullName: string | null) {
+async function getOrCreateStripeCustomer(
+  userId: string,
+  email: string | undefined,
+  fullName: string | null,
+) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { stripe } = await import("@/lib/stripe.server");
 
@@ -55,10 +61,14 @@ async function getOrCreateStripeCustomer(userId: string, email: string | undefin
 }
 
 export const createCheckoutSession = createServerFn({ method: "POST" })
-  .inputValidator((input) =>
-    z.object({ tier: PaidTierEnum, interval: IntervalEnum }).parse(input),
-  )
+  .inputValidator((input) => z.object({ tier: PaidTierEnum, interval: IntervalEnum }).parse(input))
   .handler(async ({ data }) => {
+    if (SUBSCRIPTIONS_COMING_SOON) {
+      throw new Error(
+        "Paid memberships are coming soon. No subscription payment can be started right now.",
+      );
+    }
+
     const { supabase, user, userId } = await requireAuthenticatedSupabase();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { stripe, getPriceId } = await import("@/lib/stripe.server");
@@ -83,7 +93,9 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       .eq("status", "active")
       .maybeSingle();
     if (activeSub) {
-      throw new Error("You already have an active membership. Use Manage billing to change your plan.");
+      throw new Error(
+        "You already have an active membership. Use Manage billing to change your plan.",
+      );
     }
 
     const { data: me } = await supabase
@@ -92,7 +104,11 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       .eq("id", userId)
       .maybeSingle();
 
-    const customerId = await getOrCreateStripeCustomer(userId, user.email ?? undefined, me?.full_name ?? null);
+    const customerId = await getOrCreateStripeCustomer(
+      userId,
+      user.email ?? undefined,
+      me?.full_name ?? null,
+    );
     const origin = await getAppOrigin();
 
     const session = await stripe.checkout.sessions.create({

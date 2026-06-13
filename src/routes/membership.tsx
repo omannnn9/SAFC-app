@@ -2,19 +2,21 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Check, Crown, Sparkles, ArrowRight, LogIn, Loader2, CreditCard } from "lucide-react";
+import { Check, Crown, Sparkles, ArrowRight, LogIn, Loader2, CreditCard, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { PageContainer } from "@/components/PageContainer";
 import { DigitalCard } from "@/components/DigitalCard";
 import { TIERS, tierTone, FOUNDER_CAP, type Tier } from "@/lib/tiers";
 import { useAuth } from "@/lib/auth";
-import { listTierConfig, getMyMembership, getFoundersCount } from "@/lib/membership.functions";
 import {
-  createCheckoutSession,
-  createBillingPortalSession,
-  getMySubscription,
-} from "@/lib/billing.functions";
+  listTierConfig,
+  getMyMembership,
+  getFoundersCount,
+  joinMembershipWaitlist,
+  isOnMembershipWaitlist,
+} from "@/lib/membership.functions";
+import { createBillingPortalSession, getMySubscription } from "@/lib/billing.functions";
 
 export const Route = createFileRoute("/membership")({
   validateSearch: (search: Record<string, unknown>): { checkout?: string } => ({
@@ -39,33 +41,21 @@ export const Route = createFileRoute("/membership")({
   component: MembershipPage,
 });
 
-type Interval = "monthly" | "annual";
-
-function rands(cents: number, interval: Interval) {
-  if (!cents) return "FREE";
-  return `R${(cents / 100).toFixed(0)}/${interval === "annual" ? "yr" : "mo"}`;
-}
-
-/** Annual = 10x monthly (2 months free). */
-function annualCents(monthlyCents: number) {
-  return monthlyCents * 10;
-}
-
 function MembershipPage() {
   const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { checkout } = Route.useSearch();
-  const [interval, setInterval] = useState<Interval>("monthly");
-  const [busyTier, setBusyTier] = useState<Tier | null>(null);
   const [portalBusy, setPortalBusy] = useState(false);
+  const [waitlistBusy, setWaitlistBusy] = useState(false);
 
   const listFn = useServerFn(listTierConfig);
   const meFn = useServerFn(getMyMembership);
   const countFn = useServerFn(getFoundersCount);
-  const checkoutFn = useServerFn(createCheckoutSession);
   const portalFn = useServerFn(createBillingPortalSession);
   const subFn = useServerFn(getMySubscription);
+  const waitlistFn = useServerFn(joinMembershipWaitlist);
+  const waitlistStatusFn = useServerFn(isOnMembershipWaitlist);
 
   const tiersQ = useQuery({ queryKey: ["tier-config"], queryFn: () => listFn() });
   const meQ = useQuery({
@@ -77,6 +67,11 @@ function MembershipPage() {
   const subQ = useQuery({
     queryKey: ["my-subscription", user?.id],
     queryFn: () => subFn(),
+    enabled: !!user,
+  });
+  const waitlistQ = useQuery({
+    queryKey: ["membership-waitlist", user?.id],
+    queryFn: () => waitlistStatusFn(),
     enabled: !!user,
   });
 
@@ -144,18 +139,22 @@ function MembershipPage() {
   const foundersLeft = foundersQ.data
     ? FOUNDER_CAP - (foundersQ.data as { count: number }).count
     : null;
+  const waitlistJoined = !!(waitlistQ.data as { joined?: boolean } | undefined)?.joined;
 
-  const startCheckout = async (tier: Tier) => {
-    if (tier === "free") return;
-    setBusyTier(tier);
+  const joinWaitlist = async () => {
+    if (!user) {
+      navigate({ to: "/signup" });
+      return;
+    }
+    setWaitlistBusy(true);
     try {
-      const res = await checkoutFn({
-        data: { tier: tier as "basic" | "premium" | "founder", interval },
-      });
-      window.location.href = res.url;
+      await waitlistFn();
+      await qc.invalidateQueries({ queryKey: ["membership-waitlist", user.id] });
+      toast.success("You're on the membership launch list. We'll announce paid tiers soon.");
     } catch (e) {
       toast.error((e as Error).message);
-      setBusyTier(null);
+    } finally {
+      setWaitlistBusy(false);
     }
   };
 
@@ -184,8 +183,9 @@ function MembershipPage() {
             Become part of the movement.
           </h1>
           <p className="mt-2 max-w-xl text-sm text-white/80 sm:text-base">
-            Free to join. Upgrade when you're ready to ride harder. Every member gets a digital SA
-            FC card with their own unique member number.
+            Free to join. Paid supporter subscriptions are coming soon while we finalise the
+            membership offer. Every member gets a digital SA FC card with their own unique member
+            number.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             {!user && (
@@ -261,24 +261,10 @@ function MembershipPage() {
       <section className="px-4 pb-32 pt-10">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground">
-            Choose your tier
+            Membership tiers
           </div>
-          <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 p-1 text-[10px] font-black uppercase tracking-wider">
-            <button
-              onClick={() => setInterval("monthly")}
-              className={`rounded-full px-3 py-1.5 transition ${interval === "monthly" ? "bg-primary text-primary-foreground" : "text-white/60 hover:text-white"}`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setInterval("annual")}
-              className={`rounded-full px-3 py-1.5 transition ${interval === "annual" ? "bg-primary text-primary-foreground" : "text-white/60 hover:text-white"}`}
-            >
-              Annual{" "}
-              <span className={interval === "annual" ? "opacity-80" : "text-[var(--safc-yellow)]"}>
-                · 2 months free
-              </span>
-            </button>
+          <div className="rounded-full border border-[var(--safc-yellow)]/30 bg-[var(--safc-yellow)]/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-[var(--safc-yellow)]">
+            Paid subscriptions coming soon — payments paused
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -288,13 +274,6 @@ function MembershipPage() {
             const Icon = def.icon;
             const isMine = me?.tier === t.id;
             const isFounder = t.id === "founder";
-            const founderFull = isFounder && foundersLeft !== null && foundersLeft <= 0;
-            const displayCents =
-              t.price_cents === 0
-                ? 0
-                : interval === "annual"
-                  ? annualCents(t.price_cents)
-                  : t.price_cents;
             return (
               <div
                 key={t.id}
@@ -313,10 +292,10 @@ function MembershipPage() {
                   <h3 className="mt-3 font-display text-xl font-black tracking-tight">{t.name}</h3>
                   <p className="mt-1 text-xs text-white/60">{t.tagline}</p>
                   <div className={`mt-3 font-display text-2xl font-black ${tone.text}`}>
-                    {rands(displayCents, interval)}
-                    {t.price_cents > 0 && interval === "annual" && (
+                    {t.price_cents === 0 ? "FREE" : "COMING SOON"}
+                    {t.price_cents > 0 && (
                       <span className="ml-2 align-middle text-[10px] font-black uppercase tracking-wider text-[var(--safc-yellow)]">
-                        2 months free
+                        no payments yet
                       </span>
                     )}
                   </div>
@@ -332,7 +311,7 @@ function MembershipPage() {
                       to="/signup"
                       className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-[11px] font-black uppercase tracking-wider hover:bg-white/20"
                     >
-                      Start with {def.badge}
+                      Start free
                     </Link>
                   ) : isMine ? (
                     <div className="mt-5 rounded-xl bg-white/5 px-4 py-2 text-center text-[11px] font-black uppercase tracking-wider text-white/60">
@@ -345,33 +324,25 @@ function MembershipPage() {
                         disabled={portalBusy}
                         className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-[11px] font-black uppercase tracking-wider hover:bg-white/20 disabled:opacity-60"
                       >
-                        Cancel paid plan
+                        Manage existing billing
                       </button>
                     ) : (
                       <div className="mt-5 rounded-xl bg-white/5 px-4 py-2 text-center text-[11px] font-black uppercase tracking-wider text-white/40">
                         Included free
                       </div>
                     )
-                  ) : founderFull ? (
-                    <div className="mt-5 rounded-xl bg-white/5 px-4 py-2 text-center text-[11px] font-black uppercase tracking-wider text-white/40">
-                      Starting XI full
-                    </div>
-                  ) : hasActiveSub ? (
-                    <button
-                      onClick={openPortal}
-                      disabled={portalBusy}
-                      className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-[11px] font-black uppercase tracking-wider hover:bg-white/20 disabled:opacity-60"
-                    >
-                      Switch via billing portal
-                    </button>
                   ) : (
                     <button
-                      onClick={() => startCheckout(t.id)}
-                      disabled={busyTier !== null}
-                      className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-[11px] font-black uppercase tracking-wider text-primary-foreground disabled:opacity-60"
+                      onClick={joinWaitlist}
+                      disabled={waitlistBusy || waitlistJoined}
+                      className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-[11px] font-black uppercase tracking-wider hover:bg-white/20 disabled:opacity-60"
                     >
-                      {busyTier === t.id ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                      Upgrade to {def.badge}
+                      {waitlistBusy ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Bell className="h-4 w-4" />
+                      )}
+                      {waitlistJoined ? "On launch list" : "Notify me"}
                     </button>
                   )}
                 </div>
@@ -381,8 +352,8 @@ function MembershipPage() {
         </div>
 
         <p className="mt-6 text-center text-[11px] text-white/40">
-          Payments are processed securely by Stripe. Prices in South African Rand (ZAR). Cancel
-          anytime via Manage billing.
+          Paid subscriptions are temporarily paused and marked as coming soon. No Stripe checkout or
+          subscription payment can be started until SA FC confirms the launch.
         </p>
       </section>
     </PageContainer>
