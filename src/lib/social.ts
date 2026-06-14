@@ -254,30 +254,25 @@ export async function setAttendance(
   }
 }
 
-export async function uploadUserFile(userId: string, file: File, prefix: string): Promise<string> {
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `${userId}/${prefix}-${Date.now()}.${ext}`;
-  const { error } = await supabase.storage
-    .from("user-content")
-    .upload(path, file, { upsert: true });
-  if (error) {
-    const message = /bucket/i.test(error.message)
-      ? "Upload storage is being finalised. Please try again shortly."
-      : error.message;
-    throw new Error(message);
+export async function uploadUserFile(_userId: string, file: File, prefix: string): Promise<string> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error("Sign in to upload");
+
+  const form = new FormData();
+  form.set("file", file);
+  form.set("prefix", prefix);
+
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  const payload = (await response.json().catch(() => ({}))) as { url?: string; error?: string };
+  if (!response.ok || !payload.url) {
+    throw new Error(payload.error || "Upload failed");
   }
-  // 10-year signed URL (private bucket; public policy reads it too via select RLS)
-  const { data, error: sErr } = await supabase.storage
-    .from("user-content")
-    .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
-  if (sErr || !data) {
-    const message =
-      sErr && /bucket/i.test(sErr.message)
-        ? "Upload storage is being finalised. Please try again shortly."
-        : (sErr?.message ?? "Failed to sign URL");
-    throw new Error(message);
-  }
-  return data.signedUrl;
+  return payload.url;
 }
 
 export type EventPhoto = {

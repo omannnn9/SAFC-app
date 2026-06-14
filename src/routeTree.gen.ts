@@ -32,6 +32,7 @@ import { Route as UIdRouteImport } from './routes/u.$id'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as EventsIdRouteImport } from './routes/events.$id'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as ApiIntakeRouteImport } from './routes/api/intake'
 import { Route as AuthenticatedMyEventsRouteImport } from './routes/_authenticated/my-events'
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
@@ -160,6 +161,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiUploadRoute = ApiUploadRouteImport.update({
+  id: '/api/upload',
+  path: '/api/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiIntakeRoute = ApiIntakeRouteImport.update({
   id: '/api/intake',
   path: '/api/intake',
@@ -254,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/my-events': typeof AuthenticatedMyEventsRoute
   '/api/intake': typeof ApiIntakeRoute
+  '/api/upload': typeof ApiUploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -291,6 +298,7 @@ export interface FileRoutesByTo {
   '/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/my-events': typeof AuthenticatedMyEventsRoute
   '/api/intake': typeof ApiIntakeRoute
+  '/api/upload': typeof ApiUploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -330,6 +338,7 @@ export interface FileRoutesById {
   '/_authenticated/messages': typeof AuthenticatedMessagesRouteWithChildren
   '/_authenticated/my-events': typeof AuthenticatedMyEventsRoute
   '/api/intake': typeof ApiIntakeRoute
+  '/api/upload': typeof ApiUploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/events/$id': typeof EventsIdRoute
   '/news/$slug': typeof NewsSlugRoute
@@ -369,6 +378,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/my-events'
     | '/api/intake'
+    | '/api/upload'
     | '/auth/callback'
     | '/events/$id'
     | '/news/$slug'
@@ -406,6 +416,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/my-events'
     | '/api/intake'
+    | '/api/upload'
     | '/auth/callback'
     | '/events/$id'
     | '/news/$slug'
@@ -444,6 +455,7 @@ export interface FileRouteTypes {
     | '/_authenticated/messages'
     | '/_authenticated/my-events'
     | '/api/intake'
+    | '/api/upload'
     | '/auth/callback'
     | '/events/$id'
     | '/news/$slug'
@@ -479,6 +491,7 @@ export interface RootRouteChildren {
   WelcomeukRoute: typeof WelcomeukRoute
   WorldcupRoute: typeof WorldcupRoute
   ApiIntakeRoute: typeof ApiIntakeRoute
+  ApiUploadRoute: typeof ApiUploadRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   NewsSlugRoute: typeof NewsSlugRoute
   UIdRoute: typeof UIdRoute
@@ -653,6 +666,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/upload': {
+      id: '/api/upload'
+      path: '/api/upload'
+      fullPath: '/api/upload'
+      preLoaderRoute: typeof ApiUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/intake': {
       id: '/api/intake'
       path: '/api/intake'
@@ -822,6 +842,7 @@ const rootRouteChildren: RootRouteChildren = {
   WelcomeukRoute: WelcomeukRoute,
   WorldcupRoute: WorldcupRoute,
   ApiIntakeRoute: ApiIntakeRoute,
+  ApiUploadRoute: ApiUploadRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   NewsSlugRoute: NewsSlugRoute,
   UIdRoute: UIdRoute,
