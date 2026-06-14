@@ -98,7 +98,13 @@ export const Route = createFileRoute("/api/upload")({
             .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
           if (signError || !signed?.signedUrl) throw signError ?? new Error("Failed to sign upload URL");
 
-          return jsonResponse({ url: signed.signedUrl, path });
+          const publicSupabaseUrl = process.env.VITE_SUPABASE_URL || url;
+          const signedUrl = new URL(signed.signedUrl);
+          const publicUrl = new URL(publicSupabaseUrl);
+          signedUrl.protocol = publicUrl.protocol;
+          signedUrl.host = publicUrl.host;
+
+          return jsonResponse({ url: signedUrl.toString(), path });
         } catch (error) {
           const message = error instanceof Error ? error.message : "Upload failed";
           return jsonResponse({ error: message }, { status: 500 });
