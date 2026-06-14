@@ -45,13 +45,23 @@ function AuthCallback() {
         return;
       }
 
-      // supabase-js (detectSessionInUrl) processes the implicit hash or the
-      // PKCE `?code=` automatically on client init. Poll until the session lands.
+      const authCode = url.searchParams.get("code");
+      if (authCode) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode);
+        if (exchangeError) {
+          const msg = exchangeError.message || "Google sign-in failed.";
+          setError(msg);
+          toast.error(msg);
+          setTimeout(() => navigate({ to: "/login" }), 2500);
+          return;
+        }
+      }
+
       for (let i = 0; i < 30; i++) {
         const { data } = await supabase.auth.getSession();
         if (data.session) {
           toast.success("Signed in with Google.");
-          navigate({ to: popRedirect() });
+          navigate({ to: popRedirect(), replace: true });
           return;
         }
         await new Promise((r) => setTimeout(r, 200));
