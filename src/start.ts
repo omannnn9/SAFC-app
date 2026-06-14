@@ -31,7 +31,8 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 });
 
 const securityHeadersMiddleware = createMiddleware({ type: "request" }).server(async ({ next }) => {
-  const response = (await next()) as unknown as Response;
+  const result = await next();
+  const response = result instanceof Response ? result : result.response;
   const headers = new Headers(response.headers);
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -53,11 +54,12 @@ const securityHeadersMiddleware = createMiddleware({ type: "request" }).server(a
       ].join("; "),
     );
   }
-  return new Response(response.body, {
+  const securedResponse = new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
     headers,
   });
+  return result instanceof Response ? securedResponse : { ...result, response: securedResponse };
 });
 
 const watchPartySubdomainMiddleware = createMiddleware({ type: "request" }).server(
